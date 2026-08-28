@@ -2,7 +2,7 @@
 
 この文書は**セッションとマシンをまたぐ引き継ぎ**のため Git 追跡ファイルとして置いています（`.ai/temp/` は worktree もマシンもまたげません）。作業が進んだら**上書き更新**してください。履歴は Git が持ちます。
 
-- 最終更新: 2026-08-28
+- 最終更新: 2026-08-29
 - 統合ブランチ: `develop`
 - Remote: `git@github.com:Eiji1010/GapAtlas.git`
 
@@ -11,8 +11,8 @@
 ```bash
 git fetch --all --prune
 git switch develop && git pull --ff-only
-make setup          # backend の依存関係(uv sync)
-make verify         # 開始時点で緑であることを確認
+make setup          # backend の依存関係(uv sync --all-extras)
+make verify         # 開始時点で緑であることを確認(799 passed)
 ```
 
 読む順番:
@@ -24,6 +24,11 @@ make verify         # 開始時点で緑であることを確認
 5. 実装対象の仕様書
 
 `.env` は Git 管理外です。必要なら `cp .env.example .env`。既定の `SERPAPI_MODE=fixture` / `LLM_MODE=stub` で外部APIキーなしに全て動きます。
+
+### 環境の前提（2026-08-29 時点で確認）
+
+- `uv` が必要です。未導入なら `brew install uv`
+- **`gh` は未認証です。** PR の作成・マージには `gh auth login` が必要（人間が対話で実行する）。認証できるまで、Wave の成果は `develop` へ直接 push しています
 
 ## 作業目的
 
@@ -47,75 +52,106 @@ make verify         # 開始時点で緑であることを確認
 |---|---|---|
 | W0 | リポジトリ基盤 + 仕様ドキュメント一式 | **完了** |
 | W1 | Phase 2 ドメインモデル（凍結契約） / SerpApi fixture 作成 | **完了** |
-| W2 | Phase 3 SerpApiアダプタ / Phase 4+5 Scoring+Confidence / LLMアダプタ+分類 | **次はここ** |
-| W3 | 統合 → CLI E2E（`make scan COUNTRY=JP`） | 未着手 |
-| W4 | 第三者レビュー（仕様適合 / セキュリティ・信頼性 / 数値独立検証） | 未着手 |
-| W5+ | Phase 6〜15 | 未着手 |
+| W2 | Phase 3 SerpApiアダプタ / Phase 4+5 Scoring+Confidence / LLMアダプタ+分類 | **完了**（第三者レビュー3観点と指摘対応まで） |
+| W3 | 統合 → CLI E2E（`make scan COUNTRY=JP`） | **次はここ** |
+| W4 | 第三者レビュー（W3 の統合部分） | 未着手 |
+| W5+ | Phase 7〜15（永続化 / API / Frontend / Terraform / Athena / demo） | 未着手 |
+
+`make verify` は **799 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。
 
 ## 完了済みの成果物
 
 ### W0: 基盤
 
 - `AGENTS.md` / `CLAUDE.md` — AI開発ルールの正本
-- `.ai/keep/workflows/` — analyze / plan / implementation / review / **third-party-review** / **parallel-agents** / **autonomous-wave** / handoff
+- `.ai/keep/workflows/` — analyze / plan / implementation / review / third-party-review / parallel-agents / autonomous-wave / handoff
 - `.ai/keep/templates/` — task-request / implementation-plan / completion-report / handoff / agent-handoff-request
 - `docs/` — requirements / scoring / methodology / architecture / api / serpapi-schema / query-profiles / llm-prompts / index / development/commands
 - `docs/decisions/` — ADR 0001〜0003
 - `config/query_profiles/elder_care/{JP,US,GB,DE,IN}.yaml`
 - `Makefile` / `backend/pyproject.toml`（ruff + mypy strict + pytest）/ `.env.example` / `.claude/settings.json`
 
-### W1-1: ドメインモデル（Phase 2）— 凍結契約
+### W1: ドメインモデルと fixture
 
-`backend/src/gapatlas/domain/models/` と `backend/src/gapatlas/config/`。
+`backend/src/gapatlas/domain/models/` と `backend/src/gapatlas/config/`、`backend/tests/fixtures/serpapi/`（40 JSON + README）。
 
-検証: ruff / ruff format / **mypy strict** / **pytest 150件** すべて成功（統合ブランチで独立に再実行して確認済み）。
-
-**後続トラックが知っておくべき点:**
+**後続が知っておくべき点:**
 
 - 全ドメインモデルは `ConfigDict(extra="forbid")`。**YAML やレスポンスに未知フィールドがあると弾かれる**
-- `Settings` の API キーは **`SecretStr`**。利用側は `.get_secret_value()` を呼ぶ（`__repr__` へのキー漏洩を型で防止）
-- `TrendsSeries.points` はバリデータで**古い順へ自動ソート**される（`scoring.md` の「末尾12点」前提をアダプタのバグで破れないようにするため）
+- `Settings` の API キーは **`SecretStr`**。利用側は `.get_secret_value()` を呼ぶ
+- `TrendsSeries.points` はバリデータで**古い順へ自動ソート**される
 - 日時は `UtcDatetime`（naive は `InvalidTemporalValueError`）
-- `*Classification.confidence` は範囲外の値を **clip**（例外を投げない）
-- 例外階層: `GapAtlasError` → `DomainError` / `ConfigError`。`DomainValidationError` は `ValueError` を継承（Pydantic が `ValidationError` へ変換するため）
-- `__init__.py` はすべて**空**（再エクスポートしない＝並行作業の衝突源を消す方針）
+- `*Classification.confidence` は範囲外の値を **clip**（例外を投げない）。`5.0 → 1.0` / `-2.0 → 0.0`
+- 例外階層: `GapAtlasError` → `DomainError` / `ConfigError` / `SerpApiError` / `LlmError`
+- `__init__.py` はすべて**空**（再エクスポートしない）
+- fixture の**基準日は `2026-08-28T00:00:00Z`**。テストは `scan_time` にこれを明示的に渡すこと
 
-### W1-2: SerpApi fixture
+### W2: アダプタとスコアリング（本 Wave）
 
-`backend/tests/fixtures/serpapi/` に 40 JSON + README。
+契約変更 → 並列実装3トラック → 統合 → 独立検証 → 第三者レビュー3観点 → 指摘対応。
 
-- 正常系 25件: `elder_care/{JP,US,GB,DE,IN}/{trends_timeseries,trends_related_queries,search,news,maps}.json`
-- 境界値・異常系 15件: `edge_cases/`
-- **基準日 `2026-08-28T00:00:00Z`**。テストは `scan_time` にこれを明示的に渡すこと（渡さないと非決定的になる）
-- 各国に異なるトレンド性質を付与: JP=明確な上昇 / DE=ノイズの多い上昇 / IN=低ボリューム(0が37.2%) / US=横ばい / GB=緩やかな下降。**ランキングに差が出るよう意図的に設計されている**
-- Hard Rule 4（ゼロ率50%以上）は `edge_cases/trends_timeseries_half_zero.json`（61.5%）で検証する。IN は 37.2% で意図的に閾値未満
-- 企業・媒体名はすべて架空、URL は予約ドメインのみ、APIキー混入なし（検証済み）
+#### 契約変更
 
-## W2 の計画
+`QueryProfile` へ `maps_query` / `maps_location`（SerpApi `ll` 形式）を追加。5か国の `version` を **v2** へ更新。`maps_location` は形式と座標範囲をモデルで検証する。
 
-### 開始前に必ずやる契約変更（並列起動より先）
+#### 公開シグネチャ（後続が配線に使う）
 
-**QueryProfile に Maps 用のフィールドが無い。** fixture の `maps.json` は暫定的に `solution_query` と各国主要都市の座標を使っている。Maps は Phase 6 で Top2 の Local Evidence に必要になる。
+```python
+# adapters/serpapi
+def build_params(source: SourceName, profile: QueryProfile) -> dict[str, str]
+class SerpApiClient(Protocol):
+    def fetch(self, source: SourceName, profile: QueryProfile) -> dict[str, Any]
+class FixtureSerpApiClient:  # __init__(base_dir: Path | None = None)
+class LiveSerpApiClient:     # __init__(settings, *, client=None, sleep=time.sleep)
+def create_serpapi_client(settings: Settings) -> SerpApiClient
+def normalize_trends_timeseries(raw, queries: Sequence[str]) -> TrendsTimeseries
+def normalize_related_queries(raw) -> list[RisingQuery]
+def normalize_search_results(raw) -> list[SearchResultItem]
+def normalize_news_results(raw) -> list[NewsArticle]
+def normalize_maps_results(raw) -> list[MapsPlace]
+def mask_api_key(text: str) -> str
+def install_api_key_log_guard(logger_names=GUARDED_LOGGER_NAMES) -> None
 
-W2 の並列起動より**前に**、統合担当が次を一括で行うこと（契約を実装 Wave 中に変えないため）。
+# domain/scoring
+def round_half_up(value: float) -> int
+def clip(value: float, lower: float, upper: float) -> float
+def compute_ratio_score(window: Sequence[float]) -> float
+def compute_slope_score(window: Sequence[float]) -> float
+def compute_query_demand_score(points: Sequence[float]) -> float | None
+def compute_demand(trends: TrendsTimeseries | None) -> float | None
+def compute_pain(classified: Sequence[ClassifiedRisingQuery]) -> float | None
+def compute_solution_gap(classified: Sequence[ClassifiedSearchResult]) -> float | None
+def compute_news_urgency(classified, scan_time: datetime) -> float | None
+def compute_components(evidence, classified, scan_time) -> ScoreComponents
+def compute_need_gap(components: ScoreComponents) -> NeedGapResult
+def compute_confidence(evidence, profile, components, scan_time) -> ConfidenceResult
+def compute_sample_sufficiency(evidence, profile) -> float   # profile が必要
+def evaluate_country(evidence, classified, profile, scan_time) -> CountryEvaluation
 
-1. `docs/query-profiles.md` に `maps_query`（1件）と `maps_location`（SerpApi の `ll` 形式）を追加
-2. `config/query_profiles/elder_care/*.yaml` 5件へ追記
-3. `domain/models/query_profile.py` の `QueryProfile` へフィールド追加（`extra="forbid"` のため**追記しないと YAML ロードが壊れる**）
-4. `backend/tests/unit/config/` のテスト更新
-5. `make verify` で緑を確認してからコミット
+# adapters/llm
+class LlmClassifier(Protocol):   # classify_rising_queries / _search_results / _news_articles
+class BriefWriter(Protocol):     # write_brief(pack: EvidencePack) -> OpportunityBrief | None
+class StubLlmClient              # 引数なしで構築。両 Protocol を満たす
+class AnthropicLlmClient         # __init__(settings, *, client=None)
+class CachingLlmClassifier       # __init__(inner: LlmClassifier)
+class EvidencePack / EvidenceSummary / BriefComponents
+def validate_brief(brief, pack) -> OpportunityBrief | None
+def create_llm_classifier(settings) -> LlmClassifier
+def create_brief_writer(settings) -> BriefWriter
+CLASSIFIER_VERSION / PROMPT_VERSION / SCORE_VERSION
+```
 
-### 並列トラック（担当ディレクトリが重ならない3本）
+`__init__.py` は空なので、**サブモジュールから直接 import** してください。
 
-| トラック | 担当ディレクトリ | 内容 |
-|---|---|---|
-| A: SerpApiアダプタ | `adapters/serpapi/`, `tests/unit/adapters/serpapi/` | Protocol 定義、fixture 実装、live(httpx) 実装、正規化。リトライ対象は 429/500/503 とネットワークエラーのみ |
-| B: Scoring + Confidence | `domain/scoring/`, `tests/unit/scoring/` | `docs/scoring.md` を正本に純粋関数で実装。**時刻は引数で受け取る**。I/O 禁止 |
-| C: LLMアダプタ + 分類 | `adapters/llm/`, `tests/unit/adapters/llm/` | `docs/llm-prompts.md` を正本に。stub は決定的な規則ベース（全部 NEUTRAL を返す無意味な stub にしない） |
+#### W3 が必ず守るべき契約
 
-**B は Scoring と Confidence を分割しないこと。** `INSUFFICIENT_EVIDENCE` と「Trends失敗→スコア非表示」の状態遷移が両方に跨るため。
+1. **`evaluate_country` は `CountryStatus.FAILED` を返しません。** 想定外の例外は application 層が捕捉して `FAILED` にする
+2. **分類が全滅すると `LlmError` が飛びます。** application 層はこれを捕捉して**該当ソースを `MISSING`** にすること。既定値で埋めた結果をスコアへ流してはいけない
+3. **`SourceFetch` の組み立ては application 層の責務。** 「取得できたが中身が空」を `MISSING` と判定するのも application 層（`domain/scoring` は `NormalizedEvidence.fetches` を信じる）
+4. `normalize_trends_timeseries` の第2引数には `profile.demand_queries` をそのまま渡す
+5. `compute_sample_sufficiency` は `profile` を要求する（各 demand query 基準で数えるため）
 
-### W3: 統合（統合担当が実施）
+## W3 の計画（次にやること）
 
 `application/` と `cli.py` を実装し、次を成立させる（依頼書 §31 の Phase 4 完了条件）。
 
@@ -128,23 +164,32 @@ make scan COUNTRY=JP
   "solution_gap": 0, "need_gap_score": 0, "confidence": 0 }
 ```
 
-値は fixture の内容に応じて変わってよい。
+**着手前に決めること（後から変えると全ログ呼び出しの書き換えになる）:**
 
-**注意**: `backend/pyproject.toml` は `[project.scripts] gapatlas = "gapatlas.cli:main"` を宣言済みだが `cli.py` はまだ無い。`make scan` は `cli.py` が入るまで失敗する。
+- **構造化ログのコンテキスト伝播方式。** `docs/architecture.md`「Observability」は全ログに `scan_id` / `country` / `topic` / `source` を要求するが、アダプタ層は `scan_id` を知りえない。`contextvars` か `LoggerAdapter` かを先に決める
+
+**実装の骨子:**
+
+- `application/country_scan.py` — 1国分の取得 → 正規化 → 分類 → 評価。**1ソースの失敗で全体を止めない**（`SerpApiError` / `LlmError` を捕捉して `SourceFetch(status=MISSING)`）
+- `application/evidence.py` — `Evidence`（`E1` 始まりの連番）と `EvidencePack` の組み立て。**URL は SerpApi レスポンス由来のものだけ**
+- `application/scan_service.py` — 5か国の実行、ランキング整列（`need_gap_score` 降順、`None` は末尾）、Top1 の Brief、Top2 の Maps
+- `cli.py` — `gapatlas scan --topic elder_care --country JP --mode fixture`
+
+**参考**: `backend/tests/unit/integration/test_fixture_to_score_pipeline.py` に、fixture → 正規化 → stub 分類 → `evaluate_country` を通す配線がすでにあります。application 層はこれを製品コードへ移す形になります。
 
 ## 重要な技術的判断（会話だけに残さないため記録）
 
 ### C1. ドメインモデルは並列化しない
 
-全トラックの共通依存。W1 で確定済み。**W2 実行中にモデルを変更しない**（変更が必要なら上記「開始前の契約変更」で先に済ませる）。
+全トラックの共通依存。W1 で確定済み。変更が必要なら Wave 開始前に単独で行う（W2 の Maps フィールド追加がその例）。
 
 ### C2. Google Trends の 0〜100 は相対値
 
-国間の絶対需要比較に使えない。Demand Momentum は**変化率のみ**から算出している。`docs/methodology.md` 参照。
+国間の絶対需要比較に使えない。Demand Momentum は**変化率のみ**から算出。`docs/methodology.md` 参照。
 
 ### C3. Scoring と Confidence は同一エージェントが担当する
 
-状態遷移が両方に跨るため。
+`INSUFFICIENT_EVIDENCE` の状態遷移が両方に跨るため。
 
 ### C4. LLM の非決定性をスコアへ漏らさない
 
@@ -152,7 +197,7 @@ make scan COUNTRY=JP
 
 ### C5. fixture の品質がテストの品質
 
-`docs/serpapi-schema.md` で「確認済み」の構造のみに依存する。「未確認」項目に依存する実装を書かない。
+`docs/serpapi-schema.md` で「確認済み」の構造のみに依存する。
 
 ### C6. 共有ファイルは統合担当だけが編集する
 
@@ -160,44 +205,54 @@ make scan COUNTRY=JP
 
 ### C7. worktree エージェントのブランチ分岐元
 
-`isolation: worktree` で起動したエージェントのブランチは、起動時の HEAD ではなく `main` から切られる場合がある（W1-2 で実際に発生）。マージ前に `git diff --name-only develop..<branch>` で担当範囲外の混入を確認すること。分岐元の差分がそのまま出るため、**ファイル名だけで混入と判断しない**。
+`isolation: worktree` のブランチは `main` から切られる場合がある。**エージェントへの指示に `git merge --no-edit develop` を必ず入れること。** W2 では3トラクとも `Already up to date.` となり問題は起きなかった。マージ前の混入確認は `git diff --stat $(git merge-base develop <branch>)..<branch>` を使う（`develop..<branch>` だと先にマージした他トラックの差分が混ざる）。
+
+### C8. Demand は厳密な水準非依存ではない（W2 で判明）
+
+`SMOOTHING = 5.0` を分母へ加えるため、低ボリュームの系列は同じ変化率でも 50 寄りに減衰する。**意図した設計**であり、`docs/scoring.md` へ明記済み。「系列を10倍しても同じ値」というテストは成立しないので書かないこと。
+
+### C9. ログのマスクはプロセス全体に対する要件（W2 で判明）
+
+SerpApi はクエリパラメータ認証のみで URL 自体が秘密情報。httpx は全リクエストの URL を INFO で出力するため、自前のログをマスクするだけでは不十分。`adapters/serpapi/logging_guard.py` が `httpx` / `httpcore` のロガーへフィルタを装着する。**新しい HTTP ライブラリを足す場合は `GUARDED_LOGGER_NAMES` へ追加すること。**
+
+### C10. 「分類の全滅」は欠損として扱う（W2 で判明）
+
+既定値で全件を埋めた結果をスコアへ流すと `solution_gap = 100`（最大値）が観測値として入り、Confidence にも反映されない。アダプタは全滅時に `LlmError` を送出する。
+
+### C11. 仕様の数値はテストにリテラルで書く（W2 で判明）
+
+実装の定数を期待値に使うと自己参照になり、値を書き換えても検出できない。W2 のレビューではミューテーション試験42件のうち4件がこれで見逃されていた。
 
 ## 持ち越した課題
 
 | # | 内容 | 対応する Phase |
 |---|---|---|
-| 1 | QueryProfile に Maps 用フィールドが無い | **W2 開始前**（上記） |
-| 2 | QueryProfile ローダーが `<repo>/config/query_profiles` を相対解決しており、**Lambda デプロイパッケージ内では解決できない**。`QUERY_PROFILES_DIR` 環境変数の追加か wheel 同梱が必要。`base_dir` 引数が注入点として用意済み | Phase 9 / 13 |
-| 3 | `OpportunityBrief.cited_evidence_ids` の Evidence 実在チェックはモデル層では行えない（brief は `ScanSummary`、evidence は `CountryResult` にあり同居しない）。`docs/llm-prompts.md` 規定のコード側検証として application 層が担当する | Phase 11 |
-| 4 | `load_all_query_profiles` は全 `Country` メンバーのファイル存在を要求する。将来 Topic ごとに対象国が異なる場合はディレクトリ走査へ変更が必要 | 将来 |
-| 5 | `CountryResult` の整合性検証は片方向のみ（score が None ⇒ status は INSUFFICIENT_EVIDENCE/FAILED）。逆方向は未強制 | 必要になったら |
+| 1 | QueryProfile ローダーと fixture クライアントが `<repo>/...` を相対解決しており、**Lambda デプロイパッケージ内では解決できない**。両者とも `base_dir` 引数が注入点として用意済み | Phase 9 / 13 |
+| 2 | `OpportunityBrief.cited_evidence_ids` の Evidence 実在チェックはモデル層では行えない。`validate_brief` がコード側検証を担うが、`EvidencePack` の組み立ては application 層 | Phase 6 / 11 |
+| 3 | `load_all_query_profiles` は全 `Country` メンバーのファイル存在を要求する。Topic ごとに対象国が異なる場合はディレクトリ走査へ変更が必要 | 将来 |
+| 4 | `CountryResult` の整合性検証は片方向のみ（score が None ⇒ status は INSUFFICIENT_EVIDENCE/FAILED） | 必要になったら |
+| 5 | **全ログに `scan_id` が無い。** アダプタ層は知りえないため、コンテキスト伝播方式を決める必要がある | **Phase 6 の着手前** |
+| 6 | `mypy` が `tests/` を型チェックしていない（`packages = ["gapatlas"]`）。有効化には test ディレクトリへの `__init__.py` 追加が必要で、`from conftest import ...` が壊れる | 別途 |
+| 7 | live クライアントがリトライごとに `httpx.Client` を再生成する（TLS ハンドシェイクの無駄） | Phase 14 |
+| 8 | `edge_cases/search_missing_position.json` は `position` の代替値が本来の順位と一致するため、「添字代替」と「全件添字上書き」を区別できない | fixture を触る機会に |
+| 9 | `MapsPlace.link` は `docs/serpapi-schema.md` の確認済みキー一覧に無い。防御的読み取りとして残している | live 検証時 |
 
 ## 未確認事項（推測で実装しないこと）
 
-SerpApi キー取得後に実データで再検証が必要。チェックリストは `docs/serpapi-schema.md` 末尾。
+SerpApi キー取得後に実データで再検証が必要。チェックリストは `docs/serpapi-schema.md` 7章。
 
-- TIMESERIES に複数キーワードを渡したときの `values` 配列の完全な構造（**fixture はこの推定に基づいており、違えば5か国の timeseries を作り直す必要がある**）
+- **TIMESERIES に複数キーワードを渡したときの `values` 配列の構造。** 実装と fixture の両方がこの推定に依存しており、**違っていた場合は例外が出ず系列が空になり、全国が `INSUFFICIENT_EVIDENCE` になる（無言の全滅）**
 - `rising[].value` に `"Record"` が実際に出るか
-- Google News の `stories` ネストの発生条件とキー構造
-- Maps の `search_metadata` の Maps 固有キー
-- News の `menu_links` / `related_topics` / `related_publications` の中身の構造
-
-## SerpApi 調査で判明した、実装に直結する事実
-
-いずれも公式ドキュメントで確認済み。詳細は `docs/serpapi-schema.md`。
-
-1. **RELATED_QUERIES は1リクエスト1クエリのみ**（TIMESERIES と違いカンマ区切り不可）
-2. **Google News に `snippet` が存在しない** → 関連性分類は `title` + `source.name` のみ
-3. **Google News の `date` は絶対表記**、`iso_date`(ISO8601 UTC) が併記 → recency は `iso_date` を使う
-4. **rising の `value` は `"+4,500%"` / `"Breakout"` / 未文書の `"Record"` を取りうる** → `extracted_value` を主とし防御的にパースする
-5. Google Trends に `gl` / `google_domain` は無い。地域指定は `geo` のみ
-6. 英国は `geo: GB` だが `gl: uk`
+- Google News の `stories` ネストの発生条件とキー構造（検出したら警告ログを出す実装になっている）
+- Maps の `search_metadata` の Maps 固有キー、`local_results[].link` の有無
+- Anthropic API で `tool_choice` 強制が現行モデルで期待どおり動くか（フェイククライアントでしか検証していない）
 
 ## 秘密情報について
 
 - SerpApi / Anthropic の API キーはリポジトリに存在しない
 - `.env` は `.gitignore` 済み。`.env.example` にはプレースホルダーのみ
 - fixture に APIキーらしき文字列が無いことを検証済み
+- **live モードのログ流出は W2 で塞いだ**（`logging_guard.py` + 回帰テスト）。新しい HTTP ライブラリを足すときは同じ経路を確認すること
 
 ## 注意事項
 
