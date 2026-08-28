@@ -64,6 +64,14 @@ make scan COUNTRY=JP     # fixture モードで単一国を分析し JSON を出
 make verify              # lint + 整形確認 + 型チェック + テスト
 ```
 
+5か国のランキングと Opportunity Brief まで出す場合:
+
+```bash
+cd backend && uv run gapatlas scan --topic elder_care --all --mode fixture
+```
+
+結果は標準出力へ JSON、ログは標準エラーへ JSON1行で出ます。
+
 ## ドキュメント
 
 [docs/index.md](docs/index.md) が入口です。
