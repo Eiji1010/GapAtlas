@@ -88,6 +88,13 @@ from gapatlas.application.country_scan import (
 from gapatlas.application.evidence import build_evidence_pack
 from gapatlas.application.jobs import ScanJob
 from gapatlas.application.logging_context import log_context
+from gapatlas.application.persistence import (
+    archive_curated,
+    archive_normalized,
+    archive_raw,
+    save_country,
+    save_summary,
+)
 from gapatlas.application.scan_service import (
     MAPS_COUNTRY_LIMIT,
     RANKABLE_STATUSES,
@@ -400,102 +407,60 @@ class ScanWorker:
             return brief
 
     # --- 永続化 -----------------------------------------------------------------------
+    #
+    # 規則は `application/persistence.py` が持つ(`ScanService` と共有)。
+    # **保存の失敗でジョブを失敗させない。** 例外を通すと算出済みの結果を
+    # 捨てたうえで SerpApi と LLM の呼び出しを再度支払うことになる
+    # (モジュール docstring「例外を投げる / 投げない」)。
 
     def _persist_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
-        """1国分を保存する。**失敗してもジョブを失敗させない。**
-
-        保存はスコア算出の後段であり、ここで例外を通すと算出済みの結果を
-        捨てたうえで SerpApi と LLM の呼び出しを再度支払うことになる
-        (モジュール docstring「例外を投げる / 投げない」)。
-        """
+        """1国分を保存する。"""
         result = outcome.result
         with log_context(country=result.country.value):
-            self._archive_country(outcome, scan_time=scan_time)
-            self._save_country(result)
-
-    def _persist_maps(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
-        """Maps を足した国を保存し直す。**失敗してもジョブを失敗させない。**
-
-        `normalized/` は書き直さない。ここで持っている `NormalizedEvidence` は
-        Maps だけの部分的なものであり、同じキーへ書くと `_fetch_maps` が避けた
-        「事実と異なる要約での上書き」を S3 側でやってしまう。`raw/` は Maps
-        専用のキーなので追記になり、`curated/` は完全な `CountryResult` を書く。
-        """
-        result = outcome.result
-        with log_context(country=result.country.value):
-            self._archive_raw(outcome, scan_time=scan_time)
-            self._archive_curated(result, scan_time=scan_time)
-            self._save_country(result)
-
-    def _save_country(self, result: CountryResult) -> None:
-        try:
-            self._repository.save_country(result)
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "country repository"})
-
-    def _persist_summary(self, summary: ScanSummary) -> None:
-        """スキャン概要を保存する。**失敗してもジョブを失敗させない。**
-
-        例外の型を絞らない。アダプタは独自の例外階層を持つが、boto3 由来の
-        想定外の例外も同じく「保存に失敗しただけ」として扱う。
-        """
-        try:
-            self._repository.save_scan(summary)
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "scan repository"})
-
-    def _archive_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
-        """S3 相当のアーカイブへ raw / normalized / curated を書き出す。"""
-        if self._archive is None:
-            return
-        archive = self._archive
-        self._archive_raw(outcome, scan_time=scan_time)
-        try:
-            archive.put_normalized(
-                topic_id=outcome.result.topic_id,
-                country=outcome.result.country,
-                scan_time=scan_time,
-                scan_id=outcome.result.scan_id,
-                evidence=outcome.evidence,
-            )
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "normalized archive"})
-        self._archive_curated(outcome.result, scan_time=scan_time)
-
-    def _archive_raw(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
-        if self._archive is None:
-            return
-        archive = self._archive
-        result = outcome.result
-        for source, payload in outcome.raw.payloads.items():
-            try:
-                archive.put_raw(
-                    source=source,
-                    topic_id=result.topic_id,
-                    country=result.country,
-                    scan_time=scan_time,
-                    scan_id=result.scan_id,
-                    payload=payload,
-                )
-            except Exception:
-                _LOGGER.exception(
-                    "persistence failed",
-                    extra={"operation": "raw archive", "source": source.value},
-                )
-
-    def _archive_curated(self, result: CountryResult, *, scan_time: datetime) -> None:
-        if self._archive is None:
-            return
-        try:
-            self._archive.put_curated(
+            archive_raw(
+                self._archive,
+                outcome.raw.payloads,
                 topic_id=result.topic_id,
                 country=result.country,
                 scan_time=scan_time,
                 scan_id=result.scan_id,
-                result=result,
             )
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "curated archive"})
+            archive_normalized(
+                self._archive,
+                outcome.evidence,
+                topic_id=result.topic_id,
+                country=result.country,
+                scan_time=scan_time,
+                scan_id=result.scan_id,
+            )
+            archive_curated(self._archive, result, scan_time=scan_time)
+            save_country(self._repository, result)
+
+    def _persist_maps(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
+        """Maps を足した国を保存し直す。
+
+        **`normalized/` は書き直さない。** ここで持っている
+        `NormalizedEvidence` は Maps だけの部分的なものであり、同じキーへ
+        書くと `_fetch_maps` が避けた「事実と異なる要約での上書き」を
+        S3 側でやってしまう。`raw/` は Maps 専用のキーなので追記になり、
+        `curated/` は完全な `CountryResult` を書く。
+        """
+        result = outcome.result
+        with log_context(country=result.country.value):
+            archive_raw(
+                self._archive,
+                outcome.raw.payloads,
+                topic_id=result.topic_id,
+                country=result.country,
+                scan_time=scan_time,
+                scan_id=result.scan_id,
+            )
+            archive_curated(self._archive, result, scan_time=scan_time)
+            save_country(self._repository, result)
+
+    def _persist_summary(self, summary: ScanSummary) -> None:
+        """スキャン概要を保存する。"""
+        save_summary(self._repository, summary)
 
 
 def _renumbered(items: Sequence[Evidence], *, start: int) -> list[Evidence]:

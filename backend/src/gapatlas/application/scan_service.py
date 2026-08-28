@@ -30,6 +30,13 @@ from gapatlas.application.country_scan import (
 )
 from gapatlas.application.evidence import build_evidence_pack
 from gapatlas.application.logging_context import log_context
+from gapatlas.application.persistence import (
+    archive_curated,
+    archive_normalized,
+    archive_raw,
+    save_country,
+    save_summary,
+)
 from gapatlas.config.errors import ConfigError
 from gapatlas.config.query_profile_loader import load_query_profile
 from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus, TopicId
@@ -110,6 +117,20 @@ def to_public_component(value: float | None) -> int | None:
     公開表現と 1 ずれ、同じ画面で違う値が出る。
     """
     return None if value is None else round_half_up(value)
+
+
+def maps_targets(ordered: Sequence[CountryResult]) -> list[Country]:
+    """Maps を取得する国。**ランキング可能な国の上位 `MAPS_COUNTRY_LIMIT` 件**。
+
+    `docs/requirements.md`「5か国ランキング完成後、**Top 2 countries** に
+    ついてのみ取得し Local Evidence として表示する」。`INSUFFICIENT_EVIDENCE`
+    の国はランキングから除外されるので対象にしない。
+
+    `ordered[:2]` と混同しないこと。上位2件が `COMPLETED` でない場合、
+    実際に Maps を足す国とずれる。
+    """
+    rankable = [result for result in ordered if result.status in RANKABLE_STATUSES]
+    return [result.country for result in rankable[:MAPS_COUNTRY_LIMIT]]
 
 
 def _to_ranking_entry(result: CountryResult) -> RankingEntry:
@@ -216,12 +237,16 @@ class ScanService:
             ordered = sorted((outcome.result for outcome in outcomes.values()), key=_ranking_key)
             brief: OpportunityBrief | None = None
             if enrich:
+                targets = maps_targets(ordered)
                 outcomes = self._attach_maps_to_top_countries(
-                    outcomes, ordered, profiles, scan_time=scan_time
+                    outcomes, targets, profiles, scan_time=scan_time
                 )
-                # Maps を足した国は Evidence と source_status が変わるので保存し直す
-                for result in ordered[:MAPS_COUNTRY_LIMIT]:
-                    self._persist_country(outcomes[result.country], scan_time=scan_time)
+                # Maps を足した国は Evidence と source_status が変わるので保存し直す。
+                # **Maps を足した国と保存し直す国を必ず一致させること。**
+                # ランキング上位2国が COMPLETED でない場合、`ordered[:2]` と
+                # 実際に Maps を足した国はずれる。
+                for country in targets:
+                    self._persist_country(outcomes[country], scan_time=scan_time)
                 brief = self._write_brief(outcomes, ordered, topic_id)
 
             results = [outcomes[result.country].result for result in ordered]
@@ -267,81 +292,32 @@ class ScanService:
     def _persist_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
         """1国分を保存する。**失敗してもスキャンを止めない。**
 
-        保存はスコア算出の後段であり、ここで例外を通すと算出済みの結果を
-        捨てることになる(docs/requirements.md「Reliability」)。
+        規則は `application/persistence.py` が持つ(Worker と共有)。
         """
         result = outcome.result
         with log_context(country=result.country.value):
-            self._archive_country(outcome, scan_time=scan_time)
-            if self._repository is not None:
-                repository = self._repository
-                try:
-                    repository.save_country(result)
-                except Exception:
-                    _LOGGER.exception(
-                        "persistence failed", extra={"operation": "country repository"}
-                    )
-
-    def _archive_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
-        """S3 相当のアーカイブへ raw / normalized / curated を書き出す。"""
-        if self._archive is None:
-            return
-        archive = self._archive
-        result = outcome.result
-        topic_id = result.topic_id
-        country = result.country
-        scan_id = result.scan_id
-
-        for source, payload in outcome.raw.payloads.items():
-            try:
-                archive.put_raw(
-                    source=source,
-                    topic_id=topic_id,
-                    country=country,
-                    scan_time=scan_time,
-                    scan_id=scan_id,
-                    payload=payload,
-                )
-            except Exception:
-                _LOGGER.exception(
-                    "persistence failed",
-                    extra={"operation": "raw archive", "source": source.value},
-                )
-        try:
-            archive.put_normalized(
-                topic_id=topic_id,
-                country=country,
+            archive_raw(
+                self._archive,
+                outcome.raw.payloads,
+                topic_id=result.topic_id,
+                country=result.country,
                 scan_time=scan_time,
-                scan_id=scan_id,
-                evidence=outcome.evidence,
+                scan_id=result.scan_id,
             )
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "normalized archive"})
-        try:
-            archive.put_curated(
-                topic_id=topic_id,
-                country=country,
+            archive_normalized(
+                self._archive,
+                outcome.evidence,
+                topic_id=result.topic_id,
+                country=result.country,
                 scan_time=scan_time,
-                scan_id=scan_id,
-                result=result,
+                scan_id=result.scan_id,
             )
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "curated archive"})
+            archive_curated(self._archive, result, scan_time=scan_time)
+            save_country(self._repository, result)
 
     def _persist_summary(self, summary: ScanSummary) -> None:
-        """スキャン概要を保存する。**失敗してもスキャンを止めない。**
-
-        例外の型を絞らない。アダプタは独自の例外階層を持つが、boto3 由来の
-        想定外の例外も同じく「保存に失敗しただけ」として扱う。算出済みの
-        結果を捨てないことを優先する。
-        """
-        if self._repository is None:
-            return
-        repository = self._repository
-        try:
-            repository.save_scan(summary)
-        except Exception:
-            _LOGGER.exception("persistence failed", extra={"operation": "scan repository"})
+        """スキャン概要を保存する。**失敗してもスキャンを止めない。**"""
+        save_summary(self._repository, summary)
 
     # --- 内部 -------------------------------------------------------------------------
 
@@ -370,24 +346,23 @@ class ScanService:
     def _attach_maps_to_top_countries(
         self,
         outcomes: dict[Country, CountryScanOutcome],
-        ordered: Sequence[CountryResult],
+        targets: Sequence[Country],
         profiles: dict[Country, QueryProfile | None],
         *,
         scan_time: datetime,
     ) -> dict[Country, CountryScanOutcome]:
-        """ランキング確定後、Top 2 についてのみ Maps を取得する。
+        """`targets` の国についてのみ Maps を取得する。
 
         スコアには影響しない(Maps は Core Source ではない)。読み込み済みの
         プロファイルを再利用し、YAML を二重に読まない。
         """
         updated = dict(outcomes)
-        rankable = [result for result in ordered if result.status in RANKABLE_STATUSES]
-        for result in rankable[:MAPS_COUNTRY_LIMIT]:
-            profile = profiles.get(result.country)
+        for country in targets:
+            profile = profiles.get(country)
             if profile is None:
                 continue
-            updated[result.country] = self._scanner.attach_maps(
-                updated[result.country], profile, scan_time=scan_time
+            updated[country] = self._scanner.attach_maps(
+                updated[country], profile, scan_time=scan_time
             )
         return updated
 

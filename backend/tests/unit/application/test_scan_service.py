@@ -29,6 +29,7 @@ from gapatlas.application.scan_service import (
     MAPS_COUNTRY_LIMIT,
     ScanService,
     _ranking_key,
+    maps_targets,
     to_public_component,
 )
 from gapatlas.config.query_profile_loader import DEFAULT_QUERY_PROFILES_DIR
@@ -517,3 +518,46 @@ def test_persistence_is_optional():
     """リポジトリもアーカイブも渡さなければ何も保存しない。"""
     output = _run(_persisting_service())
     assert output.summary.status is ScanStatus.COMPLETED
+
+
+def test_maps_are_saved_for_the_countries_that_actually_received_them():
+    """Maps を足した国と保存し直す国が一致すること。
+
+    ランキング上位2件が `COMPLETED` でない場合、`ordered[:2]` と実際に
+    Maps を足した国はずれる。ずれると、Maps を足した国の保存済み結果に
+    Maps の Evidence が入らない。
+    """
+    repository = InMemoryScanRepository()
+    # JP と DE を INSUFFICIENT_EVIDENCE にする -> Maps は3位・4位の国へ回る
+    service = ScanService(
+        TrendsKillClient([Country.JP, Country.DE]),
+        StubLlmClient(),
+        StubLlmClient(),
+        repository=repository,
+    )
+    output = service.scan(TOPIC, list(Country), scan_id=SCAN_ID, scan_time=SCAN_TIME)
+
+    with_maps = [
+        country
+        for country, outcome in output.outcomes.items()
+        if outcome.evidence.maps_places is not None
+    ]
+    assert len(with_maps) == 2
+    assert Country.JP not in with_maps
+    assert Country.DE not in with_maps
+    for country in with_maps:
+        stored = repository.get_country(SCAN_ID, country)
+        assert stored is not None
+        assert stored.source_status[SourceName.MAPS] is SourceStatus.OK
+        assert any(item.source is SourceName.MAPS for item in stored.evidence)
+
+
+def test_maps_targets_skips_countries_without_a_score():
+    """`maps_targets` はランキング可能な国だけを返す。"""
+    completed = _make_result(Country.US, score=50, status=CountryStatus.COMPLETED, confidence=80)
+    insufficient = _make_result(
+        Country.JP, score=None, status=CountryStatus.INSUFFICIENT_EVIDENCE, confidence=90
+    )
+    # ランキング順では insufficient が先に来る並びを作っても、対象は completed だけ
+    assert maps_targets([insufficient, completed]) == [Country.US]
+    assert maps_targets([insufficient]) == []
