@@ -50,3 +50,5 @@ cp .env.example .env
 ```
 
 既定は `SERPAPI_MODE=fixture` と `LLM_MODE=stub` です。この状態で外部通信なしに全てのテストとスキャンが動作します。
+
+`LLM_MODE=anthropic` を使う場合は `anthropic` パッケージが必要です。`make setup` は `uv sync --all-extras` を実行するため通常は入っていますが、未インストールの環境では起動時に `LlmError` になります。

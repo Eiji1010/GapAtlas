@@ -113,10 +113,10 @@ Login / User Account / Payment / Multi Tenant / ECS / EKS / EC2 / RDS / Redis / 
 |---|---|
 | ドメインモデル | `backend/src/gapatlas/domain/models`, `backend/src/gapatlas/config`, `backend/tests/unit/{models,config}` |
 | スコアリング | `backend/src/gapatlas/domain/scoring`, `backend/tests/unit/scoring` |
-| SerpApiアダプタ | `backend/src/gapatlas/adapters/serpapi`, `backend/tests/fixtures` |
-| LLMアダプタ | `backend/src/gapatlas/adapters/llm` |
-| 永続化アダプタ | `backend/src/gapatlas/adapters/{dynamodb,s3}` |
-| アプリケーション/API | `backend/src/gapatlas/{application,api}` |
+| SerpApiアダプタ | `backend/src/gapatlas/adapters/serpapi`, `backend/tests/unit/adapters/serpapi`, `backend/tests/fixtures` |
+| LLMアダプタ | `backend/src/gapatlas/adapters/llm`, `backend/tests/unit/adapters/llm` |
+| 永続化アダプタ | `backend/src/gapatlas/adapters/{dynamodb,s3}`, `backend/tests/unit/adapters/{dynamodb,s3}` |
+| アプリケーション/API | `backend/src/gapatlas/{application,api}`, `backend/tests/unit/{application,api,integration}` |
 | フロントエンド | `frontend/` |
 | インフラ | `infrastructure/` |
 | クエリプロファイル | `config/query_profiles` |

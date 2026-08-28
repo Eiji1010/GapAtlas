@@ -184,7 +184,7 @@ Demand accelerated [E1], while shortage-related queries increased [E2].
 - 同じ入力に対して常に同じ出力を返す（乱数・時刻に依存しない）
 - 分類は、入力文字列に対する**決定的な規則**（例: キーワード一致表）で決める。すべて `NEUTRAL` を返すような無意味な stub にしない。スコアリングのテストが意味を持たなくなるため
 - stub の分類規則は `docs/` ではなくコードとテストで管理する（プロンプト仕様の一部ではない）
-- Opportunity Brief の stub は、入力 Evidence ID をすべて引用した固定文面を返す
+- Opportunity Brief の stub は、入力 Evidence ID をすべて引用した固定文面を返す。**引用は「コード側の検証」2 を満たすよう、`why_now` / `what_people_are_struggling_with` / `visible_solutions` の3節それぞれに置く**（1節にまとめると検証で落ちる）
 
 ## バージョン管理
 
