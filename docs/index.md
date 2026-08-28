@@ -34,6 +34,10 @@ GapAtlas の仕様・設計・運用ドキュメントの入口です。AI開発
 | [並行作業](../.ai/keep/workflows/parallel-agents.md) | 複数エージェントでのworktree運用 |
 | [引き継ぎ](../.ai/keep/workflows/handoff.md) | セッションをまたぐ引き継ぎ |
 
+## 現在の引き継ぎ
+
+[作業引き継ぎ](../.ai/keep/handoff.md) — セッション・マシンをまたぐ現在の状態。作業が進んだら上書き更新する。
+
 ## 意思決定記録
 
 | 文書 | 内容 |
