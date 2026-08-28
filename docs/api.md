@@ -144,7 +144,7 @@ SLO: p95 < 800ms。
   "news_results": [],
   "maps_results": null,
   "versions": {
-    "query_profile_version": "elder-care-jp-v1",
+    "query_profile_version": "elder-care-jp-v2",
     "score_version": "gapatlas-score-v1",
     "classifier_version": "gapatlas-classifier-v1",
     "prompt_version": "gapatlas-prompt-v1"

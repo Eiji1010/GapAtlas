@@ -21,10 +21,25 @@
 | `related_query_seed` | list[string] | ○ | **ちょうど1件**。RELATED_QUERIES は1リクエスト1クエリのみ |
 | `solution_query` | list[string] | ○ | **ちょうど1件** |
 | `news_query` | list[string] | ○ | **ちょうど1件** |
+| `maps_query` | list[string] | ○ | **ちょうど1件** |
+| `maps_location` | string | ○ | SerpApi Maps の `ll` 形式(`@緯度,経度,ズームz`) |
 
 件数制約はローダーで検証し、違反する場合は起動時に失敗させます。曖昧な集約規則を持ち込まないための制約です。
 
 `geo` と `gl` が異なる国があります(例: 英国は `geo: GB` / `gl: uk`)。詳細は[SerpApi レスポンススキーマ](serpapi-schema.md)を参照。
+
+## Maps 用フィールド
+
+Google Maps は **Core Score に使いません**([要件定義](requirements.md))。5か国のランキング確定後、**Top 2 countries** についてのみ取得し Local Evidence として表示するためのものです。**Maps の件数を実際の供給量として扱ってはいけません。**
+
+| フィールド | 内容 |
+|---|---|
+| `maps_query` | Maps 検索に渡すクエリ。「その地域で実際に申し込めるサービス」を探す語にする |
+| `maps_location` | 検索の中心座標。SerpApi の `ll` パラメータ形式 `@<緯度>,<経度>,<ズーム>z` |
+
+`maps_location` はモデル側で形式(`@緯度,経度,ズームz`)と座標の範囲(緯度 ±90 / 経度 ±180)を検証します。形式違反は起動時に失敗させます。
+
+**現在の5か国は、各国の代表都市1点(東京 / New York / London / Berlin / Delhi)を `12z` で指定しています。** 全国を代表する値ではなく、あくまで「その国で最も検索結果が得られる1地点」です。国全体の供給量を測るものではないことを UI にも明記します。
 
 ## `review_status` の意味
 

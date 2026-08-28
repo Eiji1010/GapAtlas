@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -44,6 +45,11 @@ solution_query:
 
 news_query:
   - 介護 人手不足
+
+maps_query:
+  - 介護 サービス
+
+maps_location: "@35.6812,139.7671,12z"
 """
 
 
@@ -63,6 +69,8 @@ def test_real_profile_loads(country):
     assert len(profile.related_query_seed) == 1
     assert len(profile.solution_query) == 1
     assert len(profile.news_query) == 1
+    assert len(profile.maps_query) == 1
+    assert profile.maps_location.startswith("@")
     assert profile.version
     assert profile.serpapi.geo and profile.serpapi.gl
     assert profile.serpapi.hl and profile.serpapi.google_domain
@@ -87,6 +95,27 @@ def test_gb_geo_and_gl_differ():
     profile = load_query_profile(TopicId.ELDER_CARE, Country.GB)
     assert profile.serpapi.geo == "GB"
     assert profile.serpapi.gl == "uk"
+
+
+@pytest.mark.parametrize("country", list(Country))
+def test_real_profile_maps_fields_match_maps_fixture(country):
+    """QueryProfile の maps_query / maps_location が maps fixture と一致すること。
+
+    ずれると Top2 の Local Evidence が fixture と別の場所・別のクエリを指す
+    (backend/tests/fixtures/README.md)。
+    """
+    profile = load_query_profile(TopicId.ELDER_CARE, country)
+    fixture_path = (
+        Path(__file__).resolve().parents[2]
+        / "fixtures"
+        / "serpapi"
+        / "elder_care"
+        / country.value
+        / "maps.json"
+    )
+    parameters = json.loads(fixture_path.read_text(encoding="utf-8"))["search_parameters"]
+    assert profile.maps == parameters["q"]
+    assert profile.maps_location == parameters["ll"]
 
 
 def test_load_all_query_profiles_returns_every_country():

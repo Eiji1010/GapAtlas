@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
+import re
 from enum import StrEnum
+from typing import Final
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -14,6 +16,14 @@ from gapatlas.domain.models.errors import DomainValidationError
 
 MAX_DEMAND_QUERIES = 5
 """Trends TIMESERIES はカンマ区切りで最大5語まで比較可能(docs/serpapi-schema.md)。"""
+
+MAPS_LOCATION_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"^@-?\d{1,3}(?:\.\d+)?,-?\d{1,3}(?:\.\d+)?,\d{1,2}(?:\.\d+)?z$"
+)
+"""SerpApi Google Maps の `ll` 形式(`@緯度,経度,ズームz`)。docs/serpapi-schema.md 5章。"""
+
+MAPS_LATITUDE_LIMIT: Final[float] = 90.0
+MAPS_LONGITUDE_LIMIT: Final[float] = 180.0
 
 
 class ReviewStatus(StrEnum):
@@ -29,6 +39,31 @@ def _require_non_blank_items(values: list[str], field_name: str) -> list[str]:
             message = f"{field_name}[{index}] must not be empty or whitespace-only"
             raise DomainValidationError(message)
     return values
+
+
+def _validate_maps_location(value: str) -> str:
+    """`ll` 形式(`@緯度,経度,ズームz`)であることと、座標が地理的範囲内であることを検証する。
+
+    Maps は Core Score に使わないが、値が壊れていると Top2 の Local Evidence が
+    無言で別の場所を指す。起動時に落とすほうが安全なのでここで弾く。
+    """
+    if not MAPS_LOCATION_PATTERN.fullmatch(value):
+        message = (
+            "maps_location must be SerpApi 'll' format '@<latitude>,<longitude>,<zoom>z' "
+            f"(e.g. '@35.6812,139.7671,12z'), got {value!r}"
+        )
+        raise DomainValidationError(message)
+
+    latitude_text, longitude_text, _zoom = value[1:].split(",")
+    latitude = float(latitude_text)
+    longitude = float(longitude_text)
+    if abs(latitude) > MAPS_LATITUDE_LIMIT:
+        message = f"maps_location latitude must be within +/-90, got {latitude}"
+        raise DomainValidationError(message)
+    if abs(longitude) > MAPS_LONGITUDE_LIMIT:
+        message = f"maps_location longitude must be within +/-180, got {longitude}"
+        raise DomainValidationError(message)
+    return value
 
 
 def _require_exactly_one(values: list[str], field_name: str) -> list[str]:
@@ -92,6 +127,12 @@ class QueryProfile(BaseModel):
     news_query: list[str]
     """Google News 用。ちょうど1件。"""
 
+    maps_query: list[str]
+    """Google Maps 用。ちょうど1件。Top2 の Local Evidence 取得にのみ使う。"""
+
+    maps_location: str = Field(min_length=1)
+    """Google Maps の `ll`(`@緯度,経度,ズームz`)。その国の代表都市を指す。"""
+
     @field_validator("demand_queries")
     @classmethod
     def _validate_demand_queries(cls, values: list[str]) -> list[str]:
@@ -118,6 +159,16 @@ class QueryProfile(BaseModel):
     def _validate_news_query(cls, values: list[str]) -> list[str]:
         return _require_exactly_one(values, "news_query")
 
+    @field_validator("maps_query")
+    @classmethod
+    def _validate_maps_query(cls, values: list[str]) -> list[str]:
+        return _require_exactly_one(values, "maps_query")
+
+    @field_validator("maps_location")
+    @classmethod
+    def _validate_maps_location_format(cls, value: str) -> str:
+        return _validate_maps_location(value)
+
     @property
     def related_seed(self) -> str:
         """RELATED_QUERIES に渡す唯一のクエリ。"""
@@ -132,6 +183,11 @@ class QueryProfile(BaseModel):
     def news(self) -> str:
         """Google News に渡す唯一のクエリ。"""
         return self.news_query[0]
+
+    @property
+    def maps(self) -> str:
+        """Google Maps に渡す唯一のクエリ。"""
+        return self.maps_query[0]
 
     @property
     def is_primary_language(self) -> bool:

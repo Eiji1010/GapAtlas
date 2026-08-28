@@ -1,7 +1,7 @@
 topic_id: elder_care
 country: GB
 language: en
-version: elder-care-gb-v1
+version: elder-care-gb-v2
 review_status: LLM_GENERATED
 
 serpapi:
@@ -23,3 +23,9 @@ solution_query:
 
 news_query:
   - social care crisis
+
+# Maps は Core Score に使わない。Top2 の Local Evidence 表示のみ(docs/requirements.md)
+maps_query:
+  - elderly care services
+
+maps_location: "@51.5074,-0.1278,12z"   # London

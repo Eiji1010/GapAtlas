@@ -144,7 +144,7 @@ backend/tests/fixtures/serpapi/
 
 その他、この fixture 作成時に判断が必要だったが仕様が定まっていない点:
 
-- **Maps 用のクエリが QueryProfile に無い。** `maps.json` の `q` は暫定的に `solution_query` を使い、`ll` は各国の主要都市の座標を置いています。Maps クエリと位置指定の決め方は QueryProfile 側の仕様として決める必要があります
+- **Maps 用のクエリと位置指定は QueryProfile 側の仕様として確定済みです。** `maps.json` の `q` は QueryProfile の `maps_query`、`ll` は `maps_location` と一致します（[QueryProfile 仕様](../../../docs/query-profiles.md)）。fixture 作成時点ではこれらのフィールドが存在せず暫定値を置いていましたが、その暫定値がそのまま仕様として採用されました。**`maps_query` / `maps_location` を変更したら `maps.json` の `search_parameters` も合わせて直してください**
 - `related_queries[].link` は Google Trends の explore URL 形式（`https://trends.google.com/trends/explore?...`）にしています。SerpApi が返す値の構造を再現するためで、キーやトークンは含みません
 
 ## 更新するとき

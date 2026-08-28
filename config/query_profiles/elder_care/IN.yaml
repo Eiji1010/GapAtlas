@@ -1,7 +1,7 @@
 topic_id: elder_care
 country: IN
 language: en
-version: elder-care-in-v1
+version: elder-care-in-v2
 review_status: LLM_GENERATED
 
 serpapi:
@@ -23,3 +23,9 @@ solution_query:
 
 news_query:
   - elderly care india
+
+# Maps は Core Score に使わない。Top2 の Local Evidence 表示のみ(docs/requirements.md)
+maps_query:
+  - elder care services
+
+maps_location: "@28.6139,77.2090,12z"   # Delhi

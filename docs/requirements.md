@@ -48,7 +48,7 @@ Google Maps は **Core Score に使用しない**。5か国ランキング完成
 topic_id: elder_care
 country: JP
 language: ja
-version: elder-care-jp-v1
+version: elder-care-jp-v2
 
 demand_queries:
   - 介護
@@ -63,7 +63,14 @@ solution_query:
 
 news_query:
   - 介護 人手不足
+
+maps_query:
+  - 介護 サービス
+
+maps_location: "@35.6812,139.7671,12z"
 ```
+
+`maps_query` / `maps_location` は Top 2 countries の Local Evidence 取得にのみ使う。詳細は[QueryProfile 仕様](query-profiles.md)を参照。
 
 再現可能性のため、結果に次の4バージョンを必ず含める。
 
