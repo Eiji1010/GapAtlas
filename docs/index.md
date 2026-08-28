@@ -13,6 +13,7 @@ GapAtlas の仕様・設計・運用ドキュメントの入口です。AI開発
 | [API仕様](api.md) | MVP の4エンドポイント |
 | [SerpApi レスポンススキーマ](serpapi-schema.md) | 調査済みのレスポンス構造と未確認事項 |
 | [QueryProfile 仕様](query-profiles.md) | 国別クエリ定義のスキーマと制約 |
+| [LLM プロンプト仕様](llm-prompts.md) | 分類と Opportunity Brief の契約 |
 
 ## 開発
 

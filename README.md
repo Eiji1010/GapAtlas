@@ -77,6 +77,7 @@ make verify              # lint + 整形確認 + 型チェック + テスト
 | [API仕様](docs/api.md) | 4エンドポイント |
 | [SerpApi スキーマ](docs/serpapi-schema.md) | 調査済みのレスポンス構造 |
 | [QueryProfile 仕様](docs/query-profiles.md) | 国別クエリ定義 |
+| [LLM プロンプト仕様](docs/llm-prompts.md) | 分類と Opportunity Brief の契約 |
 
 AI エージェントで開発する場合は [AGENTS.md](AGENTS.md) を先に読んでください。
 

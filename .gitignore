@@ -36,3 +36,7 @@ frontend/.vite/
 *.log
 .DS_Store
 out/
+
+# Claude Code
+.claude/worktrees/
+.claude/settings.local.json
