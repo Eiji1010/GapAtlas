@@ -38,9 +38,11 @@ from gapatlas.domain.models.classification import (
 )
 from gapatlas.domain.models.common import (
     CORE_SOURCES,
+    Country,
     CountryStatus,
     SourceName,
     SourceStatus,
+    TopicId,
 )
 from gapatlas.domain.models.normalized import (
     MapsPlace,
@@ -54,7 +56,7 @@ from gapatlas.domain.models.normalized import (
 from gapatlas.domain.models.query_profile import QueryProfile
 from gapatlas.domain.models.result import CountryResult, Versions
 from gapatlas.domain.models.scores import ConfidenceBreakdown, ScoreComponents
-from gapatlas.domain.scoring.constants import SCORE_VERSION
+from gapatlas.domain.scoring.constants import SCORE_VERSION, WINDOW_WEEKS
 from gapatlas.domain.scoring.engine import CountryEvaluation, evaluate_country
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
@@ -80,12 +82,82 @@ class CountryScanOutcome:
     raw: RawSources
 
 
-def _versions(profile: QueryProfile) -> Versions:
+UNKNOWN_QUERY_PROFILE_VERSION: Final[str] = "unknown"
+"""QueryProfile を読めなかったときに記録する版。実在の版と区別できる値にする。"""
+
+
+def build_versions(
+    query_profile_version: str,
+    *,
+    classifier_version: str = CLASSIFIER_VERSION,
+    prompt_version: str = PROMPT_VERSION,
+) -> Versions:
+    """結果へ記録する4つの版識別子。
+
+    分類器の版は**実際に注入されたアダプタ**のものを使う。stub と実 LLM は
+    分類ロジックもプロンプトも違うのに同じ識別子を名乗ると、結果を後から
+    再現できない(docs/scoring.md 8章)。
+    """
     return Versions(
-        query_profile_version=profile.version,
+        query_profile_version=query_profile_version,
         score_version=SCORE_VERSION,
-        classifier_version=CLASSIFIER_VERSION,
-        prompt_version=PROMPT_VERSION,
+        classifier_version=classifier_version,
+        prompt_version=prompt_version,
+    )
+
+
+def build_failed_outcome(
+    topic_id: TopicId,
+    country: Country,
+    *,
+    scan_id: str,
+    scan_time: datetime,
+    query_profile_version: str = UNKNOWN_QUERY_PROFILE_VERSION,
+    classifier_version: str = CLASSIFIER_VERSION,
+    prompt_version: str = PROMPT_VERSION,
+) -> CountryScanOutcome:
+    """`FAILED` の結果を組み立てる。`confidence = 0`。
+
+    QueryProfile を読めなかった場合など、スキャンを開始すらできなかった国にも
+    使えるよう `profile` を要求しない(docs/scoring.md 7章の `FAILED` は
+    **国単位**のステータスであり、1国の失敗で他国の結果を捨てないため)。
+    """
+    empty_breakdown = ConfidenceBreakdown(
+        data_completeness=0.0,
+        sample_sufficiency=0.0,
+        localization_quality=0.0,
+        source_agreement=0.0,
+        freshness=0.0,
+    )
+    result = CountryResult(
+        scan_id=scan_id,
+        topic_id=topic_id,
+        country=country,
+        status=CountryStatus.FAILED,
+        need_gap_score=None,
+        confidence=0,
+        components=ScoreComponents(),
+        confidence_breakdown=empty_breakdown,
+        source_status={
+            **dict.fromkeys(CORE_SOURCES, SourceStatus.MISSING),
+            # 取得を試みていないので MISSING ではなく NOT_REQUESTED。
+            # 正常系と同じ5キーを必ず返す(docs/api.md の source_status)。
+            SourceName.MAPS: SourceStatus.NOT_REQUESTED,
+        },
+        evidence=[],
+        versions=build_versions(
+            query_profile_version,
+            classifier_version=classifier_version,
+            prompt_version=prompt_version,
+        ),
+        computed_at=scan_time,
+    )
+    return CountryScanOutcome(
+        result=result,
+        evidence=NormalizedEvidence(),
+        classified=ClassifiedEvidence(),
+        evaluation=None,
+        raw=RawSources(payloads={}),
     )
 
 
@@ -108,7 +180,6 @@ class CountryScanner:
         *,
         scan_id: str,
         scan_time: datetime,
-        include_maps: bool = False,
     ) -> CountryScanOutcome:
         """1国分を評価する。**例外を上へ投げない。**
 
@@ -119,9 +190,7 @@ class CountryScanner:
             scan_id=scan_id, topic=profile.topic_id.value, country=profile.country.value
         ):
             try:
-                return self._scan(
-                    profile, scan_id=scan_id, scan_time=scan_time, include_maps=include_maps
-                )
+                return self._scan(profile, scan_id=scan_id, scan_time=scan_time)
             except Exception:
                 _LOGGER.exception("country scan failed with an unexpected error")
                 return self._failed_outcome(profile, scan_id=scan_id, scan_time=scan_time)
@@ -134,7 +203,6 @@ class CountryScanner:
         *,
         scan_id: str,
         scan_time: datetime,
-        include_maps: bool,
     ) -> CountryScanOutcome:
         raw: dict[SourceName, dict[str, Any]] = {}
         fetches: dict[SourceName, SourceFetch] = {}
@@ -146,8 +214,12 @@ class CountryScanner:
             fetches=fetches,
             scan_time=scan_time,
             normalize=lambda payload: normalize_trends_timeseries(payload, profile.demand_queries),
-            has_content=lambda value: (
-                bool(value.series) and any(series.points for series in value.series)
+            # Demand Momentum は各クエリに WINDOW_WEEKS 点を要求する
+            # (docs/scoring.md 2章)。1点でもあれば OK とすると、Demand を
+            # 1つも計算できないのに data_completeness が満点になり、
+            # 「スコアは出ないが Confidence は最高」という出力になる。
+            has_content=lambda value: any(
+                len(series.points) >= WINDOW_WEEKS for series in value.series
             ),
             empty=TrendsTimeseries(),
         )
@@ -185,19 +257,6 @@ class CountryScanner:
             ),
             empty=list[NewsArticle](),
         )
-        maps: list[MapsPlace] | None = None
-        if include_maps:
-            maps = self._fetch(
-                SourceName.MAPS,
-                profile,
-                raw=raw,
-                fetches=fetches,
-                scan_time=scan_time,
-                normalize=normalize_maps_results,
-                has_content=bool,
-                empty=list[MapsPlace](),
-            )
-
         classified = self._classify(profile, rising, search, news, fetches)
 
         evidence = NormalizedEvidence(
@@ -205,7 +264,7 @@ class CountryScanner:
             rising_queries=rising,
             search_results=search,
             news_articles=news,
-            maps_places=maps,
+            maps_places=None,
             fetches=fetches,
         )
         evaluation = evaluate_country(evidence, classified, profile, scan_time)
@@ -224,7 +283,11 @@ class CountryScanner:
                 for source in (*CORE_SOURCES, SourceName.MAPS)
             },
             evidence=build_evidence(evidence, classified),
-            versions=_versions(profile),
+            versions=build_versions(
+                profile.version,
+                classifier_version=self._classifier.classifier_version,
+                prompt_version=self._classifier.prompt_version,
+            ),
             computed_at=scan_time,
         )
         _LOGGER.info(
@@ -234,6 +297,8 @@ class CountryScanner:
                 "need_gap_score": evaluation.public_need_gap_score,
                 "confidence": evaluation.public_confidence,
                 "missing_sources": [source.value for source in evidence.missing_core_sources()],
+                # Phase 7 で S3 へ払い出すまで保持し続けるため、実測を積む。
+                "raw_bytes": sum(len(str(payload)) for payload in raw.values()),
             },
         )
         return CountryScanOutcome(
@@ -277,13 +342,18 @@ class CountryScanner:
             evidence = outcome.evidence.model_copy(
                 update={"maps_places": places, "fetches": fetches}
             )
-            result = outcome.result.model_copy(
-                update={
+            # `model_copy(update=...)` は検証を再実行しないため、
+            # `CountryResult` のモデル横断バリデータを通す形で作り直す。
+            result = CountryResult.model_validate(
+                outcome.result.model_dump()
+                | {
                     "source_status": {
                         source: evidence.source_status(source)
                         for source in (*CORE_SOURCES, SourceName.MAPS)
                     },
-                    "evidence": build_evidence(evidence, outcome.classified),
+                    "evidence": [
+                        item.model_dump() for item in build_evidence(evidence, outcome.classified)
+                    ],
                 }
             )
             return CountryScanOutcome(
@@ -406,7 +476,10 @@ class CountryScanner:
         with log_context(source=source.value):
             try:
                 return classify(items)
-            except LlmError as exc:
+            except (LlmError, ValueError) as exc:
+                # ValueError は `zip(..., strict=True)` が投げる契約違反
+                # (返却件数が入力と違う)。1ソースの分類器のバグで国全体を
+                # FAILED にせず、そのソースだけ MISSING へ落とす。
                 _LOGGER.warning(
                     "classification failed; treating the source as missing",
                     extra={"error": type(exc).__name__},
@@ -422,32 +495,13 @@ class CountryScanner:
     def _failed_outcome(
         self, profile: QueryProfile, *, scan_id: str, scan_time: datetime
     ) -> CountryScanOutcome:
-        """想定外の例外時の結果。`confidence = 0` で `FAILED` を返す。"""
-        empty_breakdown = ConfidenceBreakdown(
-            data_completeness=0.0,
-            sample_sufficiency=0.0,
-            localization_quality=0.0,
-            source_agreement=0.0,
-            freshness=0.0,
-        )
-        result = CountryResult(
+        """想定外の例外時の結果。"""
+        return build_failed_outcome(
+            profile.topic_id,
+            profile.country,
             scan_id=scan_id,
-            topic_id=profile.topic_id,
-            country=profile.country,
-            status=CountryStatus.FAILED,
-            need_gap_score=None,
-            confidence=0,
-            components=ScoreComponents(),
-            confidence_breakdown=empty_breakdown,
-            source_status=dict.fromkeys(CORE_SOURCES, SourceStatus.MISSING),
-            evidence=[],
-            versions=_versions(profile),
-            computed_at=scan_time,
-        )
-        return CountryScanOutcome(
-            result=result,
-            evidence=NormalizedEvidence(),
-            classified=ClassifiedEvidence(),
-            evaluation=None,
-            raw=RawSources(payloads={}),
+            scan_time=scan_time,
+            query_profile_version=profile.version,
+            classifier_version=self._classifier.classifier_version,
+            prompt_version=self._classifier.prompt_version,
         )

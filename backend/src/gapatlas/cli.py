@@ -17,11 +17,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import uuid
 from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Final
 
 from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classifier
 from gapatlas.adapters.serpapi.factory import create_serpapi_client
@@ -35,6 +36,9 @@ from gapatlas.domain.models.result import CountryResult
 
 EXIT_OK = 0
 EXIT_ERROR = 1
+
+SCAN_ID_PATTERN: Final[re.Pattern[str]] = re.compile(r"[A-Za-z0-9_-]{1,64}")
+"""`--scan-id` に許す形。ストレージキーになるためパス区切りを含めない。"""
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -90,11 +94,39 @@ def _resolve_scan_time(raw: str | None) -> datetime:
 
     省略時のみ現在時刻を使う。`domain/scoring` は現在時刻を取得しないため、
     **時刻の決定はここが唯一の場所**である。
+
+    Raises:
+        ConfigError: ISO 8601 として解釈できない場合。生のトレースバックを
+            出さず `{"error": ...}` の契約を守るため、型を変換する。
     """
     if raw is None:
         return datetime.now(tz=UTC)
-    parsed = datetime.fromisoformat(raw)
+    try:
+        parsed = datetime.fromisoformat(raw)
+    except ValueError as exc:
+        message = f"--scan-time must be an ISO 8601 datetime, got {raw!r}"
+        raise ConfigError(message) from exc
     return parsed.replace(tzinfo=UTC) if parsed.tzinfo is None else parsed.astimezone(UTC)
+
+
+def _resolve_scan_id(raw: str | None) -> str:
+    """`--scan-id` を検証する。省略時は生成する。
+
+    scan_id は Phase 7 で S3 キーと DynamoDB のパーティションキーになる予定
+    なので、任意文字列を通さない。
+
+    Raises:
+        ConfigError: 形式が不正な場合。
+    """
+    if raw is None:
+        return f"scan_{uuid.uuid4().hex[:12]}"
+    if not SCAN_ID_PATTERN.fullmatch(raw):
+        message = (
+            "--scan-id must match "
+            f"{SCAN_ID_PATTERN.pattern} (letters, digits, '_' and '-'), got {raw!r}"
+        )
+        raise ConfigError(message)
+    return raw
 
 
 def _country_summary(result: CountryResult) -> dict[str, Any]:
@@ -150,11 +182,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         settings = _resolve_settings(args)
+        scan_time = _resolve_scan_time(args.scan_time)
+        scan_id = _resolve_scan_id(args.scan_id)
     except ConfigError as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return EXIT_ERROR
 
-    configure_logging(settings.log_level, stream=sys.stderr)
+    configure_logging(settings.log_level.value, stream=sys.stderr)
 
     countries = (
         list(Country) if args.all else [Country(args.country) if args.country else Country.JP]
@@ -169,8 +203,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         output = service.scan(
             TopicId(args.topic),
             countries,
-            scan_id=args.scan_id or f"scan_{uuid.uuid4().hex[:12]}",
-            scan_time=_resolve_scan_time(args.scan_time),
+            scan_id=scan_id,
+            scan_time=scan_time,
+            # 要約だけを出す単一国モードでは Maps と Brief を表示しないので、
+            # 使わない外部 API 呼び出しを行わない。
+            enrich=args.full or len(countries) > 1,
         )
     except GapAtlasError as exc:
         print(

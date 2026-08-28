@@ -67,6 +67,7 @@ api → application → domain
 - `domain/scoring` はネットワーク・ファイルI/O・現在時刻取得・乱数を持たない。**時刻は引数で受け取る**
 - `application` はアダプタを **Protocol(構造的部分型)** として受け取る。具体実装に依存しない
 - 外部APIの生レスポンスは adapters 内で正規化モデルへ変換する。**生の dict を domain へ流さない**
+- **正規化関数(`adapters/serpapi/normalize.py`)は純粋関数であり、application から直接呼んでよい。** `SerpApiClient` Protocol が生の dict を返すのは、raw JSON を無加工で S3 へ保存する要件があるため。application は「取得(Protocol) → 正規化(純粋関数) → domain」の順に組み立てる。**domain へ渡すのは正規化済みモデルだけ**という制約は維持する
 
 ## データフロー
 
@@ -212,7 +213,11 @@ CloudWatch Structured Logging(JSON1行)。全ログに次を含める。
 
 これは**自分が書くログだけでなく、プロセスが出すログ全体**に対する要件である。SerpApi は認証をクエリパラメータ(`api_key=...`)でしか受け付けないため URL そのものが秘密情報であり、httpx はリクエストごとに完全な URL を INFO で出力する。外部ライブラリのロガーへマスク用のフィルタを装着すること(`adapters/serpapi/logging_guard.py`)。
 
-**ログのコンテキスト伝播は Phase 6 で決める。** アダプタ層は `scan_id` を知りえないため、現状のログには `source` / `country` / `topic` しか入っていない。`contextvars` か `LoggerAdapter` で `scan_id` を伝播させる方式を、application 層の実装前に確定させること。後から決めると全ログ呼び出しの書き換えになる。
+**ログのコンテキスト伝播は `contextvars` を使う**(`application/logging_context.py`)。アダプタ層は `scan_id` を知りえないため、関数シグネチャを変えずに伝播させる。`log_context(...)` で文脈を積み、`ScanContextFilter` がレコードへ載せる。
+
+**スレッドへは自動では伝わらない。** `ThreadPoolExecutor` のワーカーは親の `Context` を継承しないため、Phase 8 で並列化する際は `submit_with_context` を使うこと。使わないと全ログの4フィールドが `null` になる。`asyncio` のタスクは自動で引き継ぐ。
+
+**API キーのマスクは root ハンドラへ装着する。** ロガー単位のフィルタ(`httpx` / `httpcore`)だけでは、自前のロガーや将来追加されるライブラリが素通りする。`configure_logging` が `ApiKeyMaskingFilter` を root ハンドラへ付け、`extra=` の値と例外トレースバックもマスクする。
 
 Metrics: `scan_duration_ms` / `serpapi_latency_ms` / `serpapi_calls` / `serpapi_errors` / `cache_hits` / `cache_misses` / `llm_latency` / `country_completed` / `scan_completed`
 

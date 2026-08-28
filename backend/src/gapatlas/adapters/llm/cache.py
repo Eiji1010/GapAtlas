@@ -37,8 +37,19 @@ from gapatlas.domain.models.normalized import NewsArticle, RisingQuery, SearchRe
 from gapatlas.domain.models.query_profile import QueryProfile
 
 
-def build_cache_key(kind: str, items: Sequence[ItemPayload], profile: QueryProfile) -> str:
-    """分類対象とバージョン識別子から安定したキーを作る。"""
+def build_cache_key(
+    kind: str,
+    items: Sequence[ItemPayload],
+    profile: QueryProfile,
+    *,
+    classifier_version: str = CLASSIFIER_VERSION,
+    prompt_version: str = PROMPT_VERSION,
+) -> str:
+    """分類対象とバージョン識別子から安定したキーを作る。
+
+    版は**実際の分類器のもの**を使う。stub と実 LLM で結果が変わるため、
+    共通の定数でキーを作るとモードを跨いで誤ってヒットする。
+    """
     material = json.dumps(
         {
             "kind": kind,
@@ -47,8 +58,8 @@ def build_cache_key(kind: str, items: Sequence[ItemPayload], profile: QueryProfi
             "country": profile.country.value,
             "language": profile.language,
             "query_profile_version": profile.version,
-            "classifier_version": CLASSIFIER_VERSION,
-            "prompt_version": PROMPT_VERSION,
+            "classifier_version": classifier_version,
+            "prompt_version": prompt_version,
         },
         ensure_ascii=False,
         sort_keys=True,
@@ -66,14 +77,28 @@ class CachingLlmClassifier:
 
     def __init__(self, inner: LlmClassifier) -> None:
         self._inner = inner
+        self._key_versions = {
+            "classifier_version": inner.classifier_version,
+            "prompt_version": inner.prompt_version,
+        }
         self._pain: dict[str, list[PainClassification]] = {}
         self._solution: dict[str, list[SolutionClassification]] = {}
         self._news: dict[str, list[NewsClassification]] = {}
 
+    @property
+    def classifier_version(self) -> str:
+        return self._inner.classifier_version
+
+    @property
+    def prompt_version(self) -> str:
+        return self._inner.prompt_version
+
     def classify_rising_queries(
         self, items: Sequence[RisingQuery], profile: QueryProfile
     ) -> list[PainClassification]:
-        key = build_cache_key("rising_queries", build_rising_query_payload(items), profile)
+        key = build_cache_key(
+            "rising_queries", build_rising_query_payload(items), profile, **self._key_versions
+        )
         cached = self._pain.get(key)
         if cached is None:
             cached = self._inner.classify_rising_queries(items, profile)
@@ -83,7 +108,9 @@ class CachingLlmClassifier:
     def classify_search_results(
         self, items: Sequence[SearchResultItem], profile: QueryProfile
     ) -> list[SolutionClassification]:
-        key = build_cache_key("search_results", build_search_result_payload(items), profile)
+        key = build_cache_key(
+            "search_results", build_search_result_payload(items), profile, **self._key_versions
+        )
         cached = self._solution.get(key)
         if cached is None:
             cached = self._inner.classify_search_results(items, profile)
@@ -93,7 +120,9 @@ class CachingLlmClassifier:
     def classify_news_articles(
         self, items: Sequence[NewsArticle], profile: QueryProfile
     ) -> list[NewsClassification]:
-        key = build_cache_key("news_articles", build_news_article_payload(items), profile)
+        key = build_cache_key(
+            "news_articles", build_news_article_payload(items), profile, **self._key_versions
+        )
         cached = self._news.get(key)
         if cached is None:
             cached = self._inner.classify_news_articles(items, profile)

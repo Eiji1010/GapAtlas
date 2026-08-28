@@ -143,3 +143,76 @@ def test_the_api_key_never_appears_in_the_output(capsys, monkeypatch):
     _, captured = _run(capsys, "--country", "JP")
     assert "cli-test-key-do-not-log" not in captured.out
     assert "cli-test-key-do-not-log" not in captured.err
+
+
+# --------------------------------------------------------------------------
+# 第三者レビューの指摘(不正入力で JSON エラー契約を破らないこと)
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "value", ["not-a-date", "2026-13-01", "", "2026-08-28T99:00:00Z"], ids=lambda v: v or "empty"
+)
+def test_an_invalid_scan_time_returns_an_error_json(capsys, value):
+    """生のトレースバックを出さず `{"error": ...}` を返すこと。"""
+    exit_code = main([*BASE_ARGS[:-4], "--country", "JP", "--scan-time", value])
+    captured = capsys.readouterr()
+    assert exit_code == EXIT_ERROR
+    assert captured.out == ""
+    payload = json.loads(captured.err.strip().splitlines()[-1])
+    assert "scan-time" in payload["error"]
+
+
+@pytest.mark.parametrize("value", ["../../etc/passwd", "scan id", "a" * 65, "scan/1"])
+def test_an_invalid_scan_id_returns_an_error_json(capsys, value):
+    """scan_id は Phase 7 でストレージキーになるため、任意文字列を通さない。"""
+    exit_code = main([*BASE_ARGS[:-2], "--country", "JP", "--scan-id", value])
+    captured = capsys.readouterr()
+    assert exit_code == EXIT_ERROR
+    assert "scan-id" in json.loads(captured.err.strip().splitlines()[-1])["error"]
+
+
+def test_an_invalid_log_level_returns_an_error_json(capsys, monkeypatch):
+    """ログ設定の最中に落ちると原因が構造化ログにも残らない。"""
+    monkeypatch.setenv("LOG_LEVEL", "verbose")
+    exit_code = main([*BASE_ARGS, "--country", "JP"])
+    captured = capsys.readouterr()
+    assert exit_code == EXIT_ERROR
+    assert "LOG_LEVEL" in json.loads(captured.err.strip().splitlines()[-1])["error"]
+
+
+def test_a_generated_scan_id_is_used_when_omitted(capsys):
+    exit_code = main([*BASE_ARGS[:-2], "--country", "JP", "--full"])
+    captured = capsys.readouterr()
+    assert exit_code == EXIT_OK
+    assert json.loads(captured.out)["summary"]["scan_id"].startswith("scan_")
+
+
+def test_a_single_country_summary_does_not_trigger_maps_or_brief(capsys):
+    """表示しない Maps と Brief のために外部 API を呼ばない。"""
+    _, captured = _run(capsys, "--country", "JP")
+    sources = {json.loads(line).get("source") for line in captured.err.strip().splitlines() if line}
+    assert "maps" not in sources
+
+
+def test_full_output_includes_maps_and_brief(capsys):
+    _, captured = _run(capsys, "--country", "JP", "--full")
+    payload = json.loads(captured.out)
+    assert payload["summary"]["opportunity_brief"] is not None
+    assert payload["countries"]["JP"]["source_status"]["maps"] == "ok"
+
+
+def test_expected_scores_are_stable(capsys):
+    """CLI 出力の期待値を固定する。"""
+    _, captured = _run(capsys, "--all")
+    ranking = {
+        entry["country"]: (entry["need_gap_score"], entry["confidence"])
+        for entry in json.loads(captured.out)["ranking"]
+    }
+    assert ranking == {
+        "JP": (75, 91),
+        "DE": (67, 90),
+        "IN": (66, 92),
+        "GB": (58, 90),
+        "US": (55, 90),
+    }

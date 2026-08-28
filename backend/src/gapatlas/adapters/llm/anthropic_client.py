@@ -45,6 +45,7 @@ from gapatlas.adapters.llm.prompts import (
     build_rising_query_prompt,
     build_search_result_prompt,
 )
+from gapatlas.adapters.llm.versions import CLASSIFIER_VERSION, PROMPT_VERSION
 from gapatlas.config.settings import Settings
 from gapatlas.domain.models.classification import (
     NewsClassification,
@@ -179,6 +180,19 @@ class AnthropicLlmClient:
             timeout=settings.anthropic_timeout_seconds,
             max_retries=settings.anthropic_max_retries,
         )
+
+    @property
+    def classifier_version(self) -> str:
+        return CLASSIFIER_VERSION
+
+    @property
+    def prompt_version(self) -> str:
+        """プロンプト版にモデル ID を含める。
+
+        docs/llm-prompts.md「モデル ID の変更 → `prompt_version`」。モデルを
+        差し替えたときに版が自動で変わるようにしておく。
+        """
+        return f"{PROMPT_VERSION}+{self._model}"
 
     # --- 分類 -------------------------------------------------------------------------
 

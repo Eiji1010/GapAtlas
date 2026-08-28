@@ -30,6 +30,16 @@ class SerpApiMode(StrEnum):
     """SerpApi へ実際にリクエストする。"""
 
 
+class LogLevel(StrEnum):
+    """`logging` が受け付けるレベル名。"""
+
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
 class LlmMode(StrEnum):
     """LLM の動作モード。"""
 
@@ -64,7 +74,13 @@ class Settings(BaseModel):
     s3_bucket_name: str = Field(default="gapatlas-data", min_length=1)
     sqs_queue_url: str | None = None
 
-    log_level: str = Field(default="INFO", min_length=1)
+    log_level: LogLevel = LogLevel.INFO
+    """`logging` のレベル名。不正な値は起動時に弾く。
+
+    自由文字列にすると `logging.setLevel` が `ValueError` を投げる。ログ設定の
+    最中に落ちるため構造化ログにも残らず、原因が追えない。
+    """
+
     cors_allowed_origins: list[str] = Field(
         default_factory=lambda: list(DEFAULT_CORS_ALLOWED_ORIGINS)
     )
@@ -134,6 +150,19 @@ def _get_int(env: Mapping[str, str], key: str, default: int) -> int:
         raise SettingsError(message) from exc
 
 
+def _get_log_level(env: Mapping[str, str]) -> LogLevel:
+    """`LOG_LEVEL` を読む。大文字小文字は問わない。"""
+    value = _get(env, "LOG_LEVEL")
+    if value is None:
+        return LogLevel.INFO
+    try:
+        return LogLevel(value.upper())
+    except ValueError as exc:
+        allowed = ", ".join(member.value for member in LogLevel)
+        message = f"LOG_LEVEL must be one of: {allowed}"
+        raise SettingsError(message) from exc
+
+
 def _get_str_list(env: Mapping[str, str], key: str, default: tuple[str, ...]) -> list[str]:
     """カンマ区切りの文字列をリストへ変換する。"""
     value = _get(env, key)
@@ -169,7 +198,7 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             dynamodb_table_name=_get(source, "DYNAMODB_TABLE_NAME") or "gapatlas",
             s3_bucket_name=_get(source, "S3_BUCKET_NAME") or "gapatlas-data",
             sqs_queue_url=_get(source, "SQS_QUEUE_URL"),
-            log_level=_get(source, "LOG_LEVEL") or "INFO",
+            log_level=_get_log_level(source),
             cors_allowed_origins=_get_str_list(
                 source, "CORS_ALLOWED_ORIGINS", DEFAULT_CORS_ALLOWED_ORIGINS
             ),

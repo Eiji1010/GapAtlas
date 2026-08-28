@@ -30,6 +30,8 @@ METHODOLOGY_LIMITATIONS: Final[tuple[str, ...]] = (
     "報道量は媒体の関心と報道慣行に依存するため、ニュースが少ないことは問題の不在を意味しない",
     "Maps の件数は事業者数ではなく、Core Score にも使用していない",
     "このスコアは社会問題の客観的な深刻度を測定していない",
+    "市場規模や TAM は算出していない",
+    "将来予測は行っていない",
 )
 """docs/methodology.md「何を示さないか」由来の限界。Brief へ必ず渡す。"""
 
@@ -69,7 +71,10 @@ def _trend_change_percent(evidence: NormalizedEvidence) -> float | None:
 def _trends_summary(evidence: NormalizedEvidence) -> str:
     change = _trend_change_percent(evidence)
     if change is None:
-        return "直近12週の検索需要の推移を取得した"
+        # Demand を計算できる系列が無い場合、そのソースは MISSING になり
+        # Evidence 自体が作られない。到達するのは第1系列だけが短い場合など。
+        # **点数を断定しない**(11点しか無いのに「12週」と書かない)。
+        return "検索需要の週次推移を取得した"
     direction = "上昇" if change >= 0 else "低下"
     return (
         f"直近{RECENT_WEEKS}週の検索需要が前{PREVIOUS_WEEKS}週比で "

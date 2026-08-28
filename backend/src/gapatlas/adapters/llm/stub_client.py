@@ -25,6 +25,7 @@ from enum import StrEnum
 from typing import Final
 
 from gapatlas.adapters.llm.models import EvidencePack
+from gapatlas.adapters.llm.versions import CLASSIFIER_VERSION, PROMPT_VERSION
 from gapatlas.domain.models.classification import (
     NewsClassification,
     NewsRelevance,
@@ -429,6 +430,20 @@ class StubLlmClient:
 
     `LlmClassifier` と `BriefWriter` の両方を満たす。状態を持たないため使い回してよい。
     """
+
+    @property
+    def classifier_version(self) -> str:
+        """stub の規則ベース分類であることを版に残す。
+
+        実 LLM とは結果が変わるため、同じ識別子を名乗ってはいけない
+        (docs/llm-prompts.md「バージョン管理」)。
+        """
+        return f"{CLASSIFIER_VERSION}-stub"
+
+    @property
+    def prompt_version(self) -> str:
+        """stub はプロンプトを使わないが、識別のため版を返す。"""
+        return f"{PROMPT_VERSION}-stub"
 
     def classify_rising_queries(
         self, items: Sequence[RisingQuery], profile: QueryProfile

@@ -37,6 +37,14 @@ class CountingClassifier:
         self.search_calls = 0
         self.news_calls = 0
 
+    @property
+    def classifier_version(self) -> str:
+        return "counting-classifier"
+
+    @property
+    def prompt_version(self) -> str:
+        return "counting-prompt"
+
     def classify_rising_queries(
         self, items: Sequence[RisingQuery], profile: QueryProfile
     ) -> list[PainClassification]:

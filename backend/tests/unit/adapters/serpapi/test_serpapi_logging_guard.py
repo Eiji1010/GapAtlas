@@ -126,12 +126,39 @@ def test_the_filter_is_installed_once_per_logger():
         assert len(filters) == 1
 
 
-def test_the_filter_keeps_non_string_arguments_intact():
-    """キーを含まない引数は型を変えない(`%d` などの書式を壊さない)。"""
+def test_the_filter_applies_the_format_before_masking():
+    """書式を適用してからマスクする。指定子ごと消して壊さないこと。"""
     record = logging.LogRecord("x", logging.INFO, __file__, 1, "count=%d", (42,), None)
     assert ApiKeyMaskingFilter().filter(record) is True
-    assert record.args == (42,)
     assert record.getMessage() == "count=42"
+
+
+def test_the_filter_masks_a_key_passed_as_an_argument():
+    """URL が `str` でない引数(httpx.URL など)でも取りこぼさない。"""
+    record = logging.LogRecord(
+        "x", logging.INFO, __file__, 1, "GET %s", (f"https://x?api_key={FAKE_API_KEY}",), None
+    )
+    ApiKeyMaskingFilter().filter(record)
+    assert FAKE_API_KEY not in record.getMessage()
+    assert "api_key=***" in record.getMessage()
+
+
+def test_the_filter_is_idempotent():
+    """二重に適用しても結果が変わらないこと(ロガーと root の両方に付く)。"""
+    record = logging.LogRecord(
+        "x", logging.INFO, __file__, 1, "GET %s", (f"https://x?api_key={FAKE_API_KEY}",), None
+    )
+    filter_ = ApiKeyMaskingFilter()
+    filter_.filter(record)
+    first = record.getMessage()
+    filter_.filter(record)
+    assert record.getMessage() == first
+
+
+def test_the_filter_survives_a_broken_format():
+    """書式と引数が食い違うレコードでログ処理を止めない。"""
+    record = logging.LogRecord("x", logging.INFO, __file__, 1, "no placeholder", (1, 2), None)
+    assert ApiKeyMaskingFilter().filter(record) is True
 
 
 def test_an_oversized_response_body_is_rejected(profile):

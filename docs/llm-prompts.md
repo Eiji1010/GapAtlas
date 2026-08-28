@@ -197,3 +197,12 @@ Demand accelerated [E1], while shortage-related queries increased [E2].
 | モデル ID の変更 | `prompt_version` |
 
 両方を結果に記録し、再現可能性を保ちます。
+
+**版は実装ごとに異なる値を返します。** `LlmClassifier` / `BriefWriter` は `classifier_version` / `prompt_version` プロパティを持ち、結果にはそれが記録されます。
+
+| 実装 | `classifier_version` | `prompt_version` |
+|---|---|---|
+| `StubLlmClient` | `gapatlas-classifier-v1-stub` | `gapatlas-prompt-v1-stub` |
+| `AnthropicLlmClient` | `gapatlas-classifier-v1` | `gapatlas-prompt-v1+<モデルID>` |
+
+stub の規則ベース分類と実 LLM の分類は結果が変わるため、同じ識別子を名乗ってはいけません。モデル ID を `prompt_version` に含めるのは、モデルを差し替えたときに版が自動で変わるようにするためです。

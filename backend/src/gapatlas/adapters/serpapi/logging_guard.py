@@ -14,7 +14,7 @@ SerpApi は認証をクエリパラメータ(`api_key=...`)でしか受け付け
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import Final
 
 from gapatlas.adapters.serpapi.errors import mask_api_key
@@ -23,36 +23,31 @@ GUARDED_LOGGER_NAMES: Final[tuple[str, ...]] = ("httpx", "httpcore")
 """マスクを装着するロガー。URL を出力しうる外部ライブラリを列挙する。"""
 
 
-def _mask(value: object) -> object:
-    """ログ引数から API キーを取り除く。
-
-    httpx は URL を `str` ではなく `httpx.URL` オブジェクトのまま引数へ渡す。
-    文字列だけを見ていると素通りするため、`str()` した結果にキーが含まれる
-    場合はマスク済みの文字列へ置き換える。含まれない引数は元の型のまま残す
-    (`%d` などの書式指定を壊さないため)。
-    """
-    if isinstance(value, str):
-        return mask_api_key(value)
-    text = str(value)
-    masked = mask_api_key(text)
-    return masked if masked != text else value
-
-
 class ApiKeyMaskingFilter(logging.Filter):
-    """ログレコードのメッセージと引数から API キーを取り除くフィルタ。
+    """ログレコードから API キーを取り除くフィルタ。
+
+    **書式を適用したあとの文字列**をマスクする。`msg` と `args` を別々に
+    書き換えると、次の2つの経路で漏れる/壊れる。
+
+    - httpx は URL を `str` ではなく `httpx.URL` のまま `args` へ渡すため、
+      文字列だけを見ていると素通りする
+    - 書式指定子(`%s`)を含む `msg` をマスクすると指定子ごと消える場合があり、
+      `msg % args` が `TypeError` になる
 
     `logging.Filter` はレコードを書き換えてよい。ここで書き換えると、上位の
-    ハンドラや `logging.exception` の出力にも反映される。
+    ハンドラや `logging.exception` の出力にも反映される。二重に適用されても
+    結果は変わらない(冪等)。
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if isinstance(record.msg, str):
-            record.msg = mask_api_key(record.msg)
-        args = record.args
-        if isinstance(args, tuple):
-            record.args = tuple(_mask(item) for item in args)
-        elif isinstance(args, Mapping):
-            record.args = {key: _mask(value) for key, value in args.items()}
+        try:
+            message = record.getMessage()
+        except (TypeError, ValueError):
+            # 書式と引数が食い違うレコードは、ここで落とさず素通りさせる
+            # (ログの不整合でアプリを止めない)。
+            return True
+        record.msg = mask_api_key(message)
+        record.args = None
         return True
 
 

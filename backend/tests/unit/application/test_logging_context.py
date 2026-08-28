@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from conftest import SCAN_ID, SCAN_TIME
 
@@ -24,6 +25,7 @@ from gapatlas.application.logging_context import (
     configure_logging,
     current_context,
     log_context,
+    submit_with_context,
 )
 from gapatlas.config.query_profile_loader import load_query_profile
 from gapatlas.domain.models.common import Country, TopicId
@@ -132,3 +134,112 @@ def test_a_real_scan_logs_the_full_context():
     assert completed[0]["scan_id"] == SCAN_ID
     assert completed[0]["topic"] == "elder_care"
     assert completed[0]["country"] == "JP"
+
+
+# --------------------------------------------------------------------------
+# 第三者レビューの指摘(root ハンドラでのマスク / スレッド境界)
+# --------------------------------------------------------------------------
+
+FAKE_KEY = "root-handler-canary-key"
+"""テスト用のダミー値。実キーではない。"""
+
+
+def _capture(level: str = "INFO"):
+    """`configure_logging` を適用し、後で必ず元へ戻すためのヘルパ。"""
+    stream = io.StringIO()
+    root = logging.getLogger()
+    previous_handlers = list(root.handlers)
+    previous_level = root.level
+    configure_logging(level, stream=stream)
+
+    def restore():
+        for handler in list(root.handlers):
+            root.removeHandler(handler)
+        for handler in previous_handlers:
+            root.addHandler(handler)
+        root.setLevel(previous_level)
+
+    return stream, restore
+
+
+def test_the_root_handler_masks_api_keys_from_any_logger():
+    """マスクは httpx 専用ではなく、**プロセスが出すログ全体**に効くこと。
+
+    docs/architecture.md「自分が書くログだけでなく、プロセスが出すログ全体に
+    対する要件である」。ロガー単位のフィルタだけだと、将来追加される
+    ライブラリや自前のロガーが素通りする。
+    """
+    stream, restore = _capture()
+    try:
+        logging.getLogger("some.third.party").info(
+            "sending https://serpapi.com/search.json?q=x&api_key=%s", FAKE_KEY
+        )
+    finally:
+        restore()
+    logged = stream.getvalue()
+    assert FAKE_KEY not in logged
+    assert "api_key=***" in logged
+
+
+def test_the_root_handler_masks_api_keys_in_tracebacks():
+    """`logger.exception` のトレースバック本文も覆うこと。"""
+    stream, restore = _capture()
+    try:
+        try:
+            message = f"failed to reach https://serpapi.com/search.json?api_key={FAKE_KEY}"
+            raise RuntimeError(message)
+        except RuntimeError:
+            logging.getLogger("gapatlas.test").exception("boom")
+    finally:
+        restore()
+    payload = json.loads(stream.getvalue().strip().splitlines()[-1])
+    assert FAKE_KEY not in payload["exception"]
+    assert "api_key=***" in payload["exception"]
+
+
+def test_the_root_handler_masks_api_keys_in_extra_fields():
+    """`extra=` で渡した文字列も覆うこと。"""
+    stream, restore = _capture()
+    try:
+        logging.getLogger("gapatlas.test").info(
+            "fetching", extra={"url": f"https://serpapi.com/search.json?api_key={FAKE_KEY}"}
+        )
+    finally:
+        restore()
+    payload = json.loads(stream.getvalue().strip().splitlines()[-1])
+    assert FAKE_KEY not in payload["url"]
+    assert "api_key=***" in payload["url"]
+
+
+def test_submit_with_context_carries_the_context_into_a_thread():
+    """`ThreadPoolExecutor` のワーカーは親の Context を継承しない。
+
+    素の `executor.submit` を使うと、Phase 8 の並列化で全ログの4フィールドが
+    `null` になる(docs/architecture.md「全ログに次を含める」)。
+    """
+    with ThreadPoolExecutor(max_workers=2) as executor, log_context(scan_id="s1", country="JP"):
+        assert submit_with_context(executor, current_context).result() == {
+            "scan_id": "s1",
+            "country": "JP",
+        }
+        # 素の submit では伝わらないことも固定する(ヘルパを外したら落ちる)
+        assert executor.submit(current_context).result() == {}
+
+
+def test_submit_with_context_isolates_sibling_tasks():
+    """ワーカー間で文脈が混ざらないこと。"""
+    results = {}
+
+    def record(name: str) -> None:
+        results[name] = dict(current_context())
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        with log_context(scan_id="s1", country="JP"):
+            first = submit_with_context(executor, record, "jp")
+        with log_context(scan_id="s1", country="US"):
+            second = submit_with_context(executor, record, "us")
+        first.result()
+        second.result()
+
+    assert results["jp"]["country"] == "JP"
+    assert results["us"]["country"] == "US"

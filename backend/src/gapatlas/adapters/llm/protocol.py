@@ -37,6 +37,25 @@ from gapatlas.domain.models.result import OpportunityBrief
 class LlmClassifier(Protocol):
     """分類だけを行う。スコア計算は行わない(AGENTS.md 絶対ルール)。"""
 
+    @property
+    def classifier_version(self) -> str:
+        """この分類器を識別する版。
+
+        **実装ごとに異なる値を返すこと。** stub の規則ベース分類と実 LLM の
+        分類は結果が変わるため、同じ識別子を名乗ると結果を後から再現できない
+        (docs/scoring.md 8章「再現可能性を最優先する」)。
+        """
+        ...
+
+    @property
+    def prompt_version(self) -> str:
+        """プロンプトとモデルを識別する版。
+
+        docs/llm-prompts.md「プロンプト文面の変更 / モデル ID の変更 →
+        `prompt_version`」。モデル ID を含めて返してよい。
+        """
+        ...
+
     def classify_rising_queries(
         self, items: Sequence[RisingQuery], profile: QueryProfile
     ) -> list[PainClassification]:
@@ -58,6 +77,11 @@ class LlmClassifier(Protocol):
 
 class BriefWriter(Protocol):
     """Opportunity Brief を生成する。"""
+
+    @property
+    def prompt_version(self) -> str:
+        """プロンプトとモデルを識別する版。"""
+        ...
 
     def write_brief(self, pack: EvidencePack) -> OpportunityBrief | None:
         """Brief を生成する。検証に通らない場合は None(誤った断定を出さない)。"""

@@ -57,6 +57,87 @@ class FixtureOverrideClient:
         return load_fixture(self._inner.base_dir / "edge_cases" / f"{name}.json")
 
 
+class TrendsKillClient:
+    """指定した国だけ Trends を失敗させる。スコア有無が混在する状況を作る。"""
+
+    def __init__(self, countries: Sequence[Country]) -> None:
+        self._inner = FixtureSerpApiClient()
+        self._countries = set(countries)
+
+    def fetch(self, source: SourceName, profile: QueryProfile) -> dict[str, Any]:
+        if source is SourceName.TRENDS and profile.country in self._countries:
+            message = f"simulated trends failure for {profile.country.value}"
+            raise SerpApiStatusError(message, status_code=503)
+        return self._inner.fetch(source, profile)
+
+
+class RecordingSerpApiClient:
+    """呼び出し順を記録するクライアント。Maps の取得タイミングを検証する。"""
+
+    def __init__(self) -> None:
+        self._inner = FixtureSerpApiClient()
+        self.calls: list[tuple[str, str]] = []
+
+    def fetch(self, source: SourceName, profile: QueryProfile) -> dict[str, Any]:
+        self.calls.append((profile.country.value, source.value))
+        return self._inner.fetch(source, profile)
+
+
+class ShortClassifier:
+    """Protocol 違反(返却件数が入力と違う)の分類器。"""
+
+    def __init__(self) -> None:
+        self._inner = StubLlmClient()
+
+    @property
+    def classifier_version(self) -> str:
+        return self._inner.classifier_version
+
+    @property
+    def prompt_version(self) -> str:
+        return self._inner.prompt_version
+
+    def classify_rising_queries(
+        self, items: Sequence[RisingQuery], profile: QueryProfile
+    ) -> list[PainClassification]:
+        return self._inner.classify_rising_queries(items, profile)
+
+    def classify_search_results(
+        self, items: Sequence[SearchResultItem], profile: QueryProfile
+    ) -> list[SolutionClassification]:
+        return self._inner.classify_search_results(items, profile)[:-1]
+
+    def classify_news_articles(
+        self, items: Sequence[NewsArticle], profile: QueryProfile
+    ) -> list[NewsClassification]:
+        return self._inner.classify_news_articles(items, profile)
+
+
+class ExplodingBriefWriter:
+    """Brief 生成で例外を投げる。完成済みの結果が失われないことを確認する。"""
+
+    def __init__(self, error: Exception | None = None) -> None:
+        self._error = error or RuntimeError("brief writer blew up")
+
+    @property
+    def prompt_version(self) -> str:
+        return "test-prompt"
+
+    def write_brief(self, pack: Any) -> Any:
+        raise self._error
+
+
+class NullBriefWriter:
+    """検証に落ちた想定で `None` を返す。"""
+
+    @property
+    def prompt_version(self) -> str:
+        return "test-prompt"
+
+    def write_brief(self, pack: Any) -> Any:
+        return None
+
+
 class ExplodingSerpApiClient:
     """想定外の例外を投げるクライアント。`FAILED` への遷移を確認する。"""
 
@@ -73,6 +154,14 @@ class FailingClassifier:
         self._rising = rising
         self._search = search
         self._news = news
+
+    @property
+    def classifier_version(self) -> str:
+        return self._inner.classifier_version
+
+    @property
+    def prompt_version(self) -> str:
+        return self._inner.prompt_version
 
     def classify_rising_queries(
         self, items: Sequence[RisingQuery], profile: QueryProfile
@@ -104,6 +193,10 @@ class RecordingBriefWriter:
         self._brief = brief
         self._inner = StubLlmClient()
 
+    @property
+    def prompt_version(self) -> str:
+        return self._inner.prompt_version
+
     def write_brief(self, pack: Any) -> Any:
         self.packs.append(pack)
         if self._brief is not None:
@@ -116,10 +209,15 @@ __all__ = [
     "SCAN_TIME",
     "TOPIC",
     "Country",
+    "ExplodingBriefWriter",
     "ExplodingSerpApiClient",
     "FailingClassifier",
     "FailingSerpApiClient",
     "FixtureOverrideClient",
+    "NullBriefWriter",
     "RecordingBriefWriter",
+    "RecordingSerpApiClient",
     "SerpApiResponseError",
+    "ShortClassifier",
+    "TrendsKillClient",
 ]

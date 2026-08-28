@@ -8,23 +8,34 @@ application 層だけで、adapters 層は知りえない。アダプタの関�
 `contextvars` を選んだ理由:
 
 - アダプタ層のコードを一切変更せずに済む
-- スレッド・タスク境界を越えても値が漏れない(`LoggerAdapter` はロガーごとの
+- 値が意図せず他のスキャンへ漏れない(`LoggerAdapter` はロガーごとの
   ラップが必要で、外部ライブラリのロガーには効かない)
+- `asyncio` のタスクは文脈を自動で引き継ぐ
+
+**スレッドへは自動では伝わらない。** `ThreadPoolExecutor` のワーカーは親の
+`Context` を継承しないため、Phase 8 で並列化する際は `submit_with_context`
+を使って明示的に引き渡すこと。使わないと全ログの4フィールドが `null` になる。
 - Lambda の1実行1リクエストという実行モデルと相性がよい
 
-**API キーのマスクは別の関心事**であり、`adapters/serpapi/logging_guard.py`
-が担当する。両方のフィルタが同じレコードへ適用される。
+**API キーのマスクも同じハンドラで行う。** `adapters/serpapi/logging_guard.py`
+はマスクの実装を持つが、ロガー単位のフィルタだけでは `httpx` / `httpcore` しか
+覆えない。root ハンドラへ付けることで、どのライブラリのログも必ず通る
+(docs/architecture.md「プロセスが出すログ全体に対する要件である」)。
 """
 
 from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
+from concurrent.futures import Executor, Future
 from contextlib import contextmanager
-from contextvars import ContextVar, Token
+from contextvars import ContextVar, Token, copy_context
 from types import MappingProxyType
 from typing import Any, Final
+
+from gapatlas.adapters.serpapi.errors import mask_api_key
+from gapatlas.adapters.serpapi.logging_guard import ApiKeyMaskingFilter
 
 CONTEXT_FIELDS: Final[tuple[str, ...]] = ("scan_id", "topic", "country", "source")
 """全ログへ含める文脈フィールド(docs/architecture.md「Observability」)。"""
@@ -113,9 +124,12 @@ class JsonFormatter(logging.Formatter):
             payload[field] = getattr(record, field, None)
         for key, value in record.__dict__.items():
             if key not in _RESERVED_RECORD_FIELDS and key not in payload:
-                payload[key] = value
+                # `extra=` 由来の値もマスクを通す。フィルタは `msg` と `args`
+                # しか書き換えないため、ここを通さないと素通りする。
+                payload[key] = mask_api_key(value) if isinstance(value, str) else value
         if record.exc_info is not None:
-            payload["exception"] = self.formatException(record.exc_info)
+            # トレースバックの本文にも URL が現れうる。
+            payload["exception"] = mask_api_key(self.formatException(record.exc_info))
         return json.dumps(payload, ensure_ascii=False, default=str)
 
 
@@ -128,9 +142,27 @@ def configure_logging(level: str = "INFO", *, stream: Any | None = None) -> None
     handler = logging.StreamHandler(stream)
     handler.setFormatter(JsonFormatter())
     handler.addFilter(ScanContextFilter())
+    # プロセスが出す全ログが必ず通る唯一の場所。ここで API キーを落とす。
+    handler.addFilter(ApiKeyMaskingFilter())
 
     root = logging.getLogger()
     for existing in list(root.handlers):
         root.removeHandler(existing)
     root.addHandler(handler)
     root.setLevel(level.upper())
+
+
+def submit_with_context[T](
+    executor: Executor, function: Callable[..., T], /, *args: Any, **kwargs: Any
+) -> Future[T]:
+    """現在のログ文脈を引き継いで `executor` へ投入する。
+
+    `ThreadPoolExecutor` のワーカースレッドは親の `Context` を継承しない。
+    素の `executor.submit` を使うと、ワーカーが出す全ログの `scan_id` /
+    `topic` / `country` / `source` が `null` になる
+    (docs/architecture.md「全ログに次を含める」に反する)。
+
+    `asyncio` のタスクは文脈を自動で引き継ぐため、このヘルパは不要。
+    """
+    context = copy_context()
+    return executor.submit(context.run, function, *args, **kwargs)

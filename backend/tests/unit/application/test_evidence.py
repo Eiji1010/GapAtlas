@@ -20,14 +20,13 @@ from gapatlas.config.query_profile_loader import load_query_profile
 from gapatlas.domain.models.common import Country, SourceName, TopicId
 
 
-def _outcome(serpapi=None, country: Country = Country.JP, include_maps: bool = False):
+def _outcome(serpapi=None, country: Country = Country.JP, with_maps: bool = False):
+    profile = load_query_profile(TopicId.ELDER_CARE, country)
     scanner = CountryScanner(serpapi or FixtureSerpApiClient(), StubLlmClient())
-    return scanner.scan(
-        load_query_profile(TopicId.ELDER_CARE, country),
-        scan_id=SCAN_ID,
-        scan_time=SCAN_TIME,
-        include_maps=include_maps,
-    )
+    outcome = scanner.scan(profile, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    if with_maps:
+        outcome = scanner.attach_maps(outcome, profile, scan_time=SCAN_TIME)
+    return outcome
 
 
 def test_one_evidence_per_ok_source():
@@ -50,7 +49,7 @@ def test_missing_sources_produce_no_evidence():
 
 
 def test_maps_evidence_appears_when_requested():
-    outcome = _outcome(include_maps=True)
+    outcome = _outcome(with_maps=True)
     maps_evidence = [item for item in outcome.result.evidence if item.source is SourceName.MAPS]
     assert len(maps_evidence) == 1
     assert "供給量ではない" in maps_evidence[0].summary

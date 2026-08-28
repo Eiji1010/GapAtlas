@@ -95,8 +95,12 @@ SLO: p95 < 800ms。
 ```
 
 - `status`: `processing` / `completed` / `partially_failed`
-- `ranking` は `need_gap_score` の降順。`need_gap_score` が `null` の国(`INSUFFICIENT_EVIDENCE`)は末尾へ回す
-- `opportunity_brief` は全国完了後、Top1 の国について生成されたら入る
+  - **`INSUFFICIENT_EVIDENCE` はエラーではない**ため、全国がそうなっても `completed` を返す。`partially_failed` は `FAILED` の国がある場合のみ
+  - 全国が `INSUFFICIENT_EVIDENCE` になるのは外形障害の可能性が高い。監視はログの `rankable_countries` / `insufficient_countries` を見る
+- `ranking` は `need_gap_score` の降順。`need_gap_score` が `null` の国(`INSUFFICIENT_EVIDENCE`)は末尾へ回す。`need_gap_score = 0` は有効なスコアであり `null` より上に来る。末尾側は `INSUFFICIENT_EVIDENCE` → `FAILED` の順
+- `opportunity_brief` は全国完了後、Top1 の国について生成されたら入る。**ランキング可能(`COMPLETED`)な国が1つも無ければ `null`**
+- スキャン単位の `versions.query_profile_version` は、**スキャンに使った国別プロファイル版を昇順で連結した文字列**(例 `elder-care-de-v2,elder-care-jp-v2`)。国別の正確な値は `GET /scans/{scan_id}/countries/{country}` の `versions` を見ること
+- `versions.classifier_version` / `prompt_version` は**実際に使った LLM アダプタ**の版。stub モードでは `-stub` が付く(結果が実 LLM と変わるため区別する)
 
 ## GET /api/v1/scans/{scan_id}/countries/{country}
 
