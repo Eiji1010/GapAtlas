@@ -306,10 +306,12 @@ data_completeness = 100 * (OK の Core Source 数) / 4
 
 | ソース | 数える対象 | 目標件数 |
 |---|---|---:|
-| `trends` | 週次データ点 | 12 |
+| `trends` | **各 demand query の系列長のうち最小値** | 12 |
 | `related_queries` | rising query | 10 |
 | `search` | organic result | 10 |
 | `news` | 日付をパースできた記事 | 5 |
+
+`trends` が最小値なのは、Demand Momentum が**各クエリについて 12 点を必要とする**ためです。1つでも 12 点に満たない系列があれば、そのクエリの Demand は計算できません。系列が1つも無い場合は 0 とします。
 
 ```text
 ratio_s = clip(count_s / target_s, 0, 1)      # MISSING のソースは ratio_s = 0
@@ -371,7 +373,15 @@ freshness = mean([freshness_s for s in OK の Core Source])
 1. `trends` が `MISSING` → `need_gap_score = None`, `status = INSUFFICIENT_EVIDENCE`
 2. Core Source の `MISSING` が **2つ以上** → `status = INSUFFICIENT_EVIDENCE`, `need_gap_score = None`
 3. Core Source の `MISSING` が **ちょうど1つ** → `confidence = min(confidence, 69)`
-4. Trends の週次データ点のうち **値が 0 のものが 50% 以上** → `confidence = min(confidence, 59)`
+4. Trends の **ゼロ率が 50% 以上** → `confidence = min(confidence, 59)`
+
+ゼロ率は、取得した全 demand query 系列の**すべての値**（`(系列, データ点)` の全組）に対する 0 の割合として計算します。
+
+```text
+zero_ratio = (全系列の全データ点のうち値が 0 のものの数) / (全系列の全データ点の数)
+```
+
+クエリごとに個別判定するのではなく、Trends データ全体で1つの比率を出します。分母が 0 の場合（データ点が1つも無い）、`trends` は `MISSING` であり Hard Rule 1 が先に適用されるため、この規則は評価しません。
 5. `localization_quality` の上限は Localization quality 節の表に従う(算出時点で適用済み)
 
 `status = INSUFFICIENT_EVIDENCE` の場合も **Evidence Confidence は算出して返す**。何がどれだけ欠けているかを利用者へ示すためである。
@@ -407,6 +417,8 @@ confidence = round_half_up(clip(confidence_after_hard_rules, 0, 100))
 
 - 週次データ点が 11 点 → `demand = None`
 - 週次データ点が全て 0 → `r = 1` → `ratio_score = 50`、`slope = 0` → `slope_score = 50`、`demand = 50`。かつ Hard Rule 4 により `confidence <= 59`
+- demand_queries が3件で、うち1件だけ系列長が 11 → そのクエリのみ除外し、残り2件の中央値で `demand` を出す。Sample sufficiency の `trends` の件数は **11**（最小値）
+- 3系列 × 52 点のうち 0 が 40% → Hard Rule 4 は発動しない（クエリ単位ではなく全体比率で判定するため）
 - `previous_mean = 0`, `recent_mean = 0` でゼロ除算しない
 - `r` が非常に大きい / 小さいとき `clip` が効く
 - rising が空 → `pain = None`

@@ -84,6 +84,7 @@ Login / User Account / Payment / Multi Tenant / ECS / EKS / EC2 / RDS / Redis / 
 - 計画を提示した後、[実装ワークフロー](.ai/keep/workflows/implementation.md)に従って実装と検証を行う
 - 実装後に[セルフレビューワークフロー](.ai/keep/workflows/review.md)で依頼と差分を直接比較する
 - 統合前に[第三者レビューワークフロー](.ai/keep/workflows/third-party-review.md)を実施する
+- Wave 単位で自律実行する場合は[自律Wave実行ワークフロー](.ai/keep/workflows/autonomous-wave.md)に従う
 - 検証結果は[完了報告テンプレート](.ai/keep/templates/completion-report.md)に従い、未実施項目も含めて報告する
 - セッションをまたぐ場合は[引き継ぎワークフロー](.ai/keep/workflows/handoff.md)に従って引き継ぎを作る
 

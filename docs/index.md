@@ -32,6 +32,7 @@ GapAtlas の仕様・設計・運用ドキュメントの入口です。AI開発
 | [セルフレビュー](../.ai/keep/workflows/review.md) | 依頼と差分の突き合わせ |
 | [第三者レビュー](../.ai/keep/workflows/third-party-review.md) | 独立視点でのレビュー |
 | [並行作業](../.ai/keep/workflows/parallel-agents.md) | 複数エージェントでのworktree運用 |
+| [自律Wave実行](../.ai/keep/workflows/autonomous-wave.md) | 実装→レビュー→PR→マージまでの自律実行手順 |
 | [引き継ぎ](../.ai/keep/workflows/handoff.md) | セッションをまたぐ引き継ぎ |
 
 ## 現在の引き継ぎ
