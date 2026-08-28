@@ -1,0 +1,165 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_IN_TRENDS_RELATED_QUERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_TRENDS_RELATED_QUERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_TRENDS_RELATED_QUERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elder care",
+    "hl": "en",
+    "geo": "IN",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "rising": [
+      {
+        "query": "geriatric care in tier 2 cities",
+        "value": "+340%",
+        "extracted_value": 340,
+        "link": "https://trends.google.com/trends/explore?q=geriatric%20care%20in%20tier%202%20cities&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_01.json"
+      },
+      {
+        "query": "no elder care service in my city",
+        "value": "Breakout",
+        "extracted_value": 5000,
+        "link": "https://trends.google.com/trends/explore?q=no%20elder%20care%20service%20in%20my%20city&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_02.json"
+      },
+      {
+        "query": "attendant for elderly at home",
+        "value": "+280%",
+        "extracted_value": 280,
+        "link": "https://trends.google.com/trends/explore?q=attendant%20for%20elderly%20at%20home&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_03.json"
+      },
+      {
+        "query": "elder care for parents living alone",
+        "value": "+260%",
+        "extracted_value": 260,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20for%20parents%20living%20alone&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_04.json"
+      },
+      {
+        "query": "affordable old age home",
+        "value": "+230%",
+        "extracted_value": 230,
+        "link": "https://trends.google.com/trends/explore?q=affordable%20old%20age%20home&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_05.json"
+      },
+      {
+        "query": "home nursing charges per day",
+        "value": "+190%",
+        "extracted_value": 190,
+        "link": "https://trends.google.com/trends/explore?q=home%20nursing%20charges%20per%20day&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_06.json"
+      },
+      {
+        "query": "nursing attendant not available",
+        "value": "+175%",
+        "extracted_value": 175,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20attendant%20not%20available&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_07.json"
+      },
+      {
+        "query": "old age home waiting list",
+        "value": "+150%",
+        "extracted_value": 150,
+        "link": "https://trends.google.com/trends/explore?q=old%20age%20home%20waiting%20list&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_08.json"
+      },
+      {
+        "query": "trained caregiver shortage",
+        "value": "+120%",
+        "extracted_value": 120,
+        "link": "https://trends.google.com/trends/explore?q=trained%20caregiver%20shortage&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_09.json"
+      },
+      {
+        "query": "old age home complaints",
+        "value": "+60%",
+        "extracted_value": 60,
+        "link": "https://trends.google.com/trends/explore?q=old%20age%20home%20complaints&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_10.json"
+      },
+      {
+        "query": "old age home admission process",
+        "value": "+55%",
+        "extracted_value": 55,
+        "link": "https://trends.google.com/trends/explore?q=old%20age%20home%20admission%20process&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_11.json"
+      },
+      {
+        "query": "senior citizen home care services",
+        "value": "+40%",
+        "extracted_value": 40,
+        "link": "https://trends.google.com/trends/explore?q=senior%20citizen%20home%20care%20services&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_RISING_12.json"
+      }
+    ],
+    "top": [
+      {
+        "query": "elder care",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_01.json"
+      },
+      {
+        "query": "old age home",
+        "value": "82",
+        "extracted_value": 82,
+        "link": "https://trends.google.com/trends/explore?q=old%20age%20home&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_02.json"
+      },
+      {
+        "query": "home nursing",
+        "value": "57",
+        "extracted_value": 57,
+        "link": "https://trends.google.com/trends/explore?q=home%20nursing&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_03.json"
+      },
+      {
+        "query": "elder care services",
+        "value": "45",
+        "extracted_value": 45,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20services&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_04.json"
+      },
+      {
+        "query": "senior citizen care",
+        "value": "38",
+        "extracted_value": 38,
+        "link": "https://trends.google.com/trends/explore?q=senior%20citizen%20care&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_05.json"
+      },
+      {
+        "query": "old age home near me",
+        "value": "33",
+        "extracted_value": 33,
+        "link": "https://trends.google.com/trends/explore?q=old%20age%20home%20near%20me&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_06.json"
+      },
+      {
+        "query": "elderly care at home",
+        "value": "25",
+        "extracted_value": 25,
+        "link": "https://trends.google.com/trends/explore?q=elderly%20care%20at%20home&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_07.json"
+      },
+      {
+        "query": "geriatric care",
+        "value": "17",
+        "extracted_value": 17,
+        "link": "https://trends.google.com/trends/explore?q=geriatric%20care&date=today+12-m&geo=IN",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/IN_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}

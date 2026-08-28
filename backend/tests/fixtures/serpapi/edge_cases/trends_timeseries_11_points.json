@@ -1,0 +1,287 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_TRENDS_TIMESERIES_11_POINTS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_TRENDS_TIMESERIES_11_POINTS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_TRENDS_TIMESERIES_11_POINTS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elder care,nursing home,home care for seniors",
+    "hl": "en",
+    "geo": "US",
+    "date": "today 12-m",
+    "data_type": "TIMESERIES"
+  },
+  "interest_over_time": {
+    "timeline_data": [
+      {
+        "date": "Jun 14, 2026 – Jun 20, 2026",
+        "timestamp": "1781395200",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "41",
+            "extracted_value": 41
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "18",
+            "extracted_value": 18
+          }
+        ]
+      },
+      {
+        "date": "Jun 21, 2026 – Jun 27, 2026",
+        "timestamp": "1782000000",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "44",
+            "extracted_value": 44
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Jun 28, 2026 – Jul 4, 2026",
+        "timestamp": "1782604800",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "43",
+            "extracted_value": 43
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Jul 5, 2026 – Jul 11, 2026",
+        "timestamp": "1783209600",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "47",
+            "extracted_value": 47
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "35",
+            "extracted_value": 35
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "22",
+            "extracted_value": 22
+          }
+        ]
+      },
+      {
+        "date": "Jul 12, 2026 – Jul 18, 2026",
+        "timestamp": "1783814400",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "52",
+            "extracted_value": 52
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "38",
+            "extracted_value": 38
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "24",
+            "extracted_value": 24
+          }
+        ]
+      },
+      {
+        "date": "Jul 19, 2026 – Jul 25, 2026",
+        "timestamp": "1784419200",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "49",
+            "extracted_value": 49
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "36",
+            "extracted_value": 36
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "23",
+            "extracted_value": 23
+          }
+        ]
+      },
+      {
+        "date": "Jul 26, 2026 – Aug 1, 2026",
+        "timestamp": "1785024000",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "40",
+            "extracted_value": 40
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "26",
+            "extracted_value": 26
+          }
+        ]
+      },
+      {
+        "date": "Aug 2, 2026 – Aug 8, 2026",
+        "timestamp": "1785628800",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "43",
+            "extracted_value": 43
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "27",
+            "extracted_value": 27
+          }
+        ]
+      },
+      {
+        "date": "Aug 9, 2026 – Aug 15, 2026",
+        "timestamp": "1786233600",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "61",
+            "extracted_value": 61
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "45",
+            "extracted_value": 45
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "29",
+            "extracted_value": 29
+          }
+        ]
+      },
+      {
+        "date": "Aug 16, 2026 – Aug 22, 2026",
+        "timestamp": "1786838400",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "66",
+            "extracted_value": 66
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "48",
+            "extracted_value": 48
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "31",
+            "extracted_value": 31
+          }
+        ]
+      },
+      {
+        "date": "Aug 23, 2026 – Aug 29, 2026",
+        "timestamp": "1787443200",
+        "values": [
+          {
+            "query": "elder care",
+            "query_index": 0,
+            "value": "72",
+            "extracted_value": 72
+          },
+          {
+            "query": "nursing home",
+            "query_index": 1,
+            "value": "52",
+            "extracted_value": 52
+          },
+          {
+            "query": "home care for seniors",
+            "query_index": 2,
+            "value": "34",
+            "extracted_value": 34
+          }
+        ]
+      }
+    ]
+  }
+}

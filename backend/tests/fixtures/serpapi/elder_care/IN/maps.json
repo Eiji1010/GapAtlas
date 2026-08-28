@@ -1,0 +1,170 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_IN_MAPS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_MAPS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_MAPS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_maps",
+    "q": "elder care services",
+    "type": "search",
+    "ll": "@28.6139,77.2090,12z",
+    "google_domain": "google.co.in",
+    "hl": "en",
+    "gl": "in"
+  },
+  "search_information": {
+    "local_results_state": "Results for exact spelling",
+    "query_displayed": "elder care services"
+  },
+  "local_results": [
+    {
+      "position": 1,
+      "title": "Example Ashirwad Care - Home Nursing (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_01",
+      "data_id": "0xFIXTURE0001:0xFIXTURE0001",
+      "data_cid": "FIXTURE_CID_IN_PLACE_01",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_01_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_01_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.6151,
+        "longitude": 77.2113
+      },
+      "provider_id": "/g/FIXTURE0001",
+      "rating": 4.3,
+      "reviews": 88,
+      "type": "Home health care service",
+      "types": [
+        "Home health care service"
+      ],
+      "address": "Plot 12, Example Marg, Example Nagar",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0001",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_01.jpeg"
+    },
+    {
+      "position": 2,
+      "title": "Example Sahara Senior Care Centre (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_02",
+      "data_id": "0xFIXTURE0002:0xFIXTURE0002",
+      "data_cid": "FIXTURE_CID_IN_PLACE_02",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_02_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_02_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.6247,
+        "longitude": 77.1988
+      },
+      "provider_id": "/g/FIXTURE0002",
+      "rating": 4.0,
+      "reviews": 57,
+      "type": "Assisted living facility",
+      "types": [
+        "Assisted living facility"
+      ],
+      "address": "44 Example Road, Example Colony",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0002",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_02.jpeg"
+    },
+    {
+      "position": 3,
+      "title": "Example Shanti Old Age Home (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_03",
+      "data_id": "0xFIXTURE0003:0xFIXTURE0003",
+      "data_cid": "FIXTURE_CID_IN_PLACE_03",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_03_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_03_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.6032,
+        "longitude": 77.2201
+      },
+      "provider_id": "/g/FIXTURE0003",
+      "rating": 3.8,
+      "reviews": 41,
+      "type": "Retirement home",
+      "types": [
+        "Retirement home"
+      ],
+      "address": "9 Example Lane, Example Vihar",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0003",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_03.jpeg"
+    },
+    {
+      "position": 4,
+      "title": "Example Geriatric Day Care (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_04",
+      "data_id": "0xFIXTURE0004:0xFIXTURE0004",
+      "data_cid": "FIXTURE_CID_IN_PLACE_04",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_04_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_04_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.6318,
+        "longitude": 77.2059
+      },
+      "provider_id": "/g/FIXTURE0004",
+      "rating": 4.4,
+      "reviews": 23,
+      "type": "Adult day care center",
+      "types": [
+        "Adult day care center"
+      ],
+      "address": "77 Example Street, Example Puram",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0004",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_04.jpeg"
+    },
+    {
+      "position": 5,
+      "title": "Example Care Connect Local Desk (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_05",
+      "data_id": "0xFIXTURE0005:0xFIXTURE0005",
+      "data_cid": "FIXTURE_CID_IN_PLACE_05",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_05_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_05_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.5974,
+        "longitude": 77.1902
+      },
+      "provider_id": "/g/FIXTURE0005",
+      "rating": 4.1,
+      "reviews": 35,
+      "type": "Home care agency",
+      "types": [
+        "Home care agency"
+      ],
+      "address": "3 Example Complex, Example Nagar",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0005",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_05.jpeg"
+    },
+    {
+      "position": 6,
+      "title": "Example Sneha Nursing Attendants (fictional)",
+      "place_id": "FIXTURE_PLACE_ID_IN_PLACE_06",
+      "data_id": "0xFIXTURE0006:0xFIXTURE0006",
+      "data_cid": "FIXTURE_CID_IN_PLACE_06",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_06_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/IN_PLACE_06_photos.json",
+      "gps_coordinates": {
+        "latitude": 28.6402,
+        "longitude": 77.2288
+      },
+      "provider_id": "/g/FIXTURE0006",
+      "rating": 3.9,
+      "reviews": 19,
+      "type": "Nursing agency",
+      "types": [
+        "Nursing agency"
+      ],
+      "address": "18 Example Chowk, Example Bagh",
+      "open_state": "Open ⋅ Closes 6 pm",
+      "phone": "011 0000 0006",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_PLACE_06.jpeg"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_SEARCH_MINIMAL_FIELDS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_SEARCH_MINIMAL_FIELDS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_SEARCH_MINIMAL_FIELDS.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.com/search?q=elder%20care%20services&gl=us&hl=en"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "elder care services",
+    "google_domain": "google.com",
+    "hl": "en",
+    "gl": "us",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "elder care services",
+    "total_results": 96300000,
+    "time_taken_displayed": 0.38
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Example Care Finder (fictional)",
+      "link": "https://finder.example.com/elder-care/"
+    },
+    {
+      "position": 2,
+      "title": "Example Home Care Group (fictional)",
+      "link": "https://homecare.example.com/services/"
+    },
+    {
+      "position": 3,
+      "title": "Example Senior Living (fictional)",
+      "link": "https://seniorliving.example.com/"
+    },
+    {
+      "position": 4,
+      "title": "Example County Aging Office (fictional)",
+      "link": "https://agingservices.example.org/"
+    },
+    {
+      "position": 5,
+      "title": "Example Care Marketplace (fictional)",
+      "link": "https://marketplace.example.com/home-care/"
+    },
+    {
+      "position": 6,
+      "title": "Example Senior Guide (fictional)",
+      "link": "https://guide.example.org/elder-care-costs/"
+    },
+    {
+      "position": 7,
+      "title": "Example Community Care (fictional)",
+      "link": "https://communitycare.example.com/adult-day/"
+    },
+    {
+      "position": 8,
+      "title": "Example Caregiver Match (fictional)",
+      "link": "https://match.example.com/caregivers/"
+    },
+    {
+      "position": 9,
+      "title": "Example Valley Care Services (fictional)",
+      "link": "https://valleycare.example.com/"
+    },
+    {
+      "position": 10,
+      "title": "Example Family Guide (fictional)",
+      "link": "https://familyguide.example.org/checklist/"
+    }
+  ]
+}

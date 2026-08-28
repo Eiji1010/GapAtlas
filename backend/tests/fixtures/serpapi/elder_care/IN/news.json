@@ -1,0 +1,147 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_IN_NEWS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_NEWS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_NEWS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_news",
+    "q": "elderly care india",
+    "hl": "en",
+    "gl": "in"
+  },
+  "news_results": [
+    {
+      "position": 1,
+      "title": "Demand for home nursing surges as families live apart",
+      "source": {
+        "name": "Example India Business Report (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_01.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_01",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_01.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_01_small.jpeg",
+      "date": "08/27/2026, 05:30 PM, +0530 IST",
+      "iso_date": "2026-08-27T12:00:00Z"
+    },
+    {
+      "position": 2,
+      "title": "Old age homes in smaller cities report long waiting lists",
+      "source": {
+        "name": "Example Nationwide Daily (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_02.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_02",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_02.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_02_small.jpeg",
+      "date": "08/26/2026, 03:06 AM, +0530 IST",
+      "iso_date": "2026-08-25T21:36:00Z"
+    },
+    {
+      "position": 3,
+      "title": "Trained geriatric caregivers remain scarce, say operators",
+      "source": {
+        "name": "Example Health Digest (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_03.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_03",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_03.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_03_small.jpeg",
+      "date": "08/23/2026, 07:54 PM, +0530 IST",
+      "iso_date": "2026-08-23T14:24:00Z"
+    },
+    {
+      "position": 4,
+      "title": "Senior citizens in tier-2 cities struggle to find day care",
+      "source": {
+        "name": "Example Urban Affairs Weekly (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_04.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_04",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_04.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_04_small.jpeg",
+      "date": "08/20/2026, 10:18 PM, +0530 IST",
+      "iso_date": "2026-08-20T16:48:00Z"
+    },
+    {
+      "position": 5,
+      "title": "Insurance cover for elder care draws policy attention",
+      "source": {
+        "name": "Example Finance Review (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_05.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_05",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_05.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_05_small.jpeg",
+      "date": "08/17/2026, 12:42 AM, +0530 IST",
+      "iso_date": "2026-08-16T19:12:00Z"
+    },
+    {
+      "position": 6,
+      "title": "Families abroad turn to paid caretakers for ageing parents",
+      "source": {
+        "name": "Example Diaspora Report (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_06.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_06",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_06.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_06_small.jpeg",
+      "date": "08/12/2026, 10:18 AM, +0530 IST",
+      "iso_date": "2026-08-12T04:48:00Z"
+    },
+    {
+      "position": 7,
+      "title": "Elder abuse complaints rise in institutional care",
+      "source": {
+        "name": "Example Social Affairs Monitor (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_07.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_07",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_07.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_07_small.jpeg",
+      "date": "08/05/2026, 03:06 PM, +0530 IST",
+      "iso_date": "2026-08-05T09:36:00Z"
+    },
+    {
+      "position": 8,
+      "title": "Startups target the home-based elder care market",
+      "source": {
+        "name": "Example Startup Journal (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/IN_NEWS_08.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/in_news_08",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_08.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/IN_NEWS_08_small.jpeg",
+      "date": "07/31/2026, 10:18 AM, +0530 IST",
+      "iso_date": "2026-07-31T04:48:00Z"
+    }
+  ]
+}

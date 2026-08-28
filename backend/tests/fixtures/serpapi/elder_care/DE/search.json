@@ -1,0 +1,102 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_DE_SEARCH",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_SEARCH.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_SEARCH.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.de/search?q=Pflegedienst&gl=de&hl=de"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "Pflegedienst",
+    "google_domain": "google.de",
+    "hl": "de",
+    "gl": "de",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "Pflegedienst",
+    "total_results": 12700000,
+    "time_taken_displayed": 0.41
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Ambulanter Pflegedienst in Ihrer Nähe | Beispiel Pflegedienst Morgenstern (fiktiv)",
+      "link": "https://morgenstern-pflege.example.de/",
+      "displayed_link": "morgenstern-pflege.example.de",
+      "snippet": "Fiktiver ambulanter Pflegedienst mit Grundpflege, Behandlungspflege und Verhinderungspflege.",
+      "source": "morgenstern-pflege.example.de"
+    },
+    {
+      "position": 2,
+      "title": "Pflegedienste vergleichen und finden | Beispiel Pflegeportal (fiktiv)",
+      "link": "https://portal.example.de/pflegedienst-suche/",
+      "displayed_link": "portal.example.de › pflegedienst-suche",
+      "snippet": "Fiktives Portal zum Vergleich von Pflegediensten nach Postleitzahl, Leistungen und Kapazität.",
+      "source": "portal.example.de"
+    },
+    {
+      "position": 3,
+      "title": "Was macht ein ambulanter Pflegedienst? | Beispiel Pflegeratgeber (fiktiv)",
+      "link": "https://ratgeber.example.de/ambulante-pflege/",
+      "displayed_link": "ratgeber.example.de › ambulante-pflege",
+      "snippet": "Fiktiver Ratgeberartikel über Leistungen, Abrechnung und Auswahl eines Pflegedienstes.",
+      "source": "ratgeber.example.de"
+    },
+    {
+      "position": 4,
+      "title": "Pflegeleistungen beantragen | Beispiel Sozialamt (fiktiv)",
+      "link": "https://sozialamt.example.de/pflegeleistungen/",
+      "displayed_link": "sozialamt.example.de › pflegeleistungen",
+      "snippet": "Fiktive Behördenseite mit Antragswegen, Fristen und Beratungsstellen vor Ort.",
+      "source": "sozialamt.example.de"
+    },
+    {
+      "position": 5,
+      "title": "24-Stunden-Betreuung und häusliche Pflege | Beispiel Pflegedienst Lindenhof (fiktiv)",
+      "link": "https://lindenhof-pflege.example.de/",
+      "displayed_link": "lindenhof-pflege.example.de",
+      "snippet": "Fiktiver Pflegedienst mit Betreuung rund um die Uhr, Nachtpflege und Angehörigenberatung.",
+      "source": "lindenhof-pflege.example.de"
+    },
+    {
+      "position": 6,
+      "title": "Pflegedienst Kosten und Abrechnung erklärt | Beispiel Pflegewissen (fiktiv)",
+      "link": "https://pflegewissen.example.de/kosten-abrechnung/"
+    },
+    {
+      "position": 7,
+      "title": "Freie Pflegeplätze und Pflegedienste in der Region | Beispiel Pflegefinder (fiktiv)",
+      "link": "https://finder.example.de/freie-plaetze/",
+      "displayed_link": "finder.example.de › freie-plaetze",
+      "snippet": "Fiktive Suchplattform, die gemeldete freie Kapazitäten von Diensten und Heimen anzeigt.",
+      "source": "finder.example.de"
+    },
+    {
+      "position": 8,
+      "title": "Pflegestützpunkt: Beratung vor Ort | Beispiel Landkreis (fiktiv)",
+      "link": "https://landkreis.example.de/pflegestuetzpunkt/",
+      "displayed_link": "landkreis.example.de › pflegestuetzpunkt",
+      "snippet": "Fiktive Seite eines Landkreises mit Beratungsterminen und Ansprechpartnern zur Pflege.",
+      "source": "landkreis.example.de"
+    },
+    {
+      "position": 9,
+      "title": "Pflegedienst Sonnenblume – Grundpflege und Behandlungspflege (fiktiv)",
+      "link": "https://sonnenblume-pflege.example.de/"
+    },
+    {
+      "position": 10,
+      "title": "Pflegedienst wechseln: worauf achten? | Beispiel Pflegeblog (fiktiv)",
+      "link": "https://blog.example.de/pflegedienst-wechseln/",
+      "displayed_link": "blog.example.de › pflegedienst-wechseln",
+      "snippet": "Fiktiver Blogbeitrag zu Kündigungsfristen und Übergabe bei einem Wechsel des Pflegedienstes.",
+      "source": "blog.example.de"
+    }
+  ]
+}

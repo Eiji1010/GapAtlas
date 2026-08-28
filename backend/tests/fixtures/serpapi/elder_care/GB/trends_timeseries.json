@@ -1,0 +1,1271 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_GB_TRENDS_TIMESERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_TRENDS_TIMESERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_TRENDS_TIMESERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elderly care,care home,home care",
+    "hl": "en",
+    "geo": "GB",
+    "date": "today 12-m",
+    "data_type": "TIMESERIES"
+  },
+  "interest_over_time": {
+    "timeline_data": [
+      {
+        "date": "Aug 31, 2025 – Sep 6, 2025",
+        "timestamp": "1756598400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "90",
+            "extracted_value": 90
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "75",
+            "extracted_value": 75
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "45",
+            "extracted_value": 45
+          }
+        ]
+      },
+      {
+        "date": "Sep 7, 2025 – Sep 13, 2025",
+        "timestamp": "1757203200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "92",
+            "extracted_value": 92
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "77",
+            "extracted_value": 77
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "46",
+            "extracted_value": 46
+          }
+        ]
+      },
+      {
+        "date": "Sep 14, 2025 – Sep 20, 2025",
+        "timestamp": "1757808000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "94",
+            "extracted_value": 94
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "78",
+            "extracted_value": 78
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "47",
+            "extracted_value": 47
+          }
+        ]
+      },
+      {
+        "date": "Sep 21, 2025 – Sep 27, 2025",
+        "timestamp": "1758412800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "97",
+            "extracted_value": 97
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "84",
+            "extracted_value": 84
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "44",
+            "extracted_value": 44
+          }
+        ]
+      },
+      {
+        "date": "Sep 28, 2025 – Oct 4, 2025",
+        "timestamp": "1759017600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "94",
+            "extracted_value": 94
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "81",
+            "extracted_value": 81
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "47",
+            "extracted_value": 47
+          }
+        ]
+      },
+      {
+        "date": "Oct 5, 2025 – Oct 11, 2025",
+        "timestamp": "1759622400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "94",
+            "extracted_value": 94
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "83",
+            "extracted_value": 83
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "49",
+            "extracted_value": 49
+          }
+        ]
+      },
+      {
+        "date": "Oct 12, 2025 – Oct 18, 2025",
+        "timestamp": "1760227200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "95",
+            "extracted_value": 95
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "79",
+            "extracted_value": 79
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "49",
+            "extracted_value": 49
+          }
+        ]
+      },
+      {
+        "date": "Oct 19, 2025 – Oct 25, 2025",
+        "timestamp": "1760832000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "100",
+            "extracted_value": 100
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "45",
+            "extracted_value": 45
+          }
+        ]
+      },
+      {
+        "date": "Oct 26, 2025 – Nov 1, 2025",
+        "timestamp": "1761436800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "96",
+            "extracted_value": 96
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "85",
+            "extracted_value": 85
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "48",
+            "extracted_value": 48
+          }
+        ]
+      },
+      {
+        "date": "Nov 2, 2025 – Nov 8, 2025",
+        "timestamp": "1762041600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "100",
+            "extracted_value": 100
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "47",
+            "extracted_value": 47
+          }
+        ]
+      },
+      {
+        "date": "Nov 9, 2025 – Nov 15, 2025",
+        "timestamp": "1762646400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "98",
+            "extracted_value": 98
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "85",
+            "extracted_value": 85
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "46",
+            "extracted_value": 46
+          }
+        ]
+      },
+      {
+        "date": "Nov 16, 2025 – Nov 22, 2025",
+        "timestamp": "1763251200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "93",
+            "extracted_value": 93
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "84",
+            "extracted_value": 84
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "49",
+            "extracted_value": 49
+          }
+        ]
+      },
+      {
+        "date": "Nov 23, 2025 – Nov 29, 2025",
+        "timestamp": "1763856000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "96",
+            "extracted_value": 96
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "79",
+            "extracted_value": 79
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "45",
+            "extracted_value": 45
+          }
+        ]
+      },
+      {
+        "date": "Nov 30, 2025 – Dec 6, 2025",
+        "timestamp": "1764460800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "94",
+            "extracted_value": 94
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "75",
+            "extracted_value": 75
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "44",
+            "extracted_value": 44
+          }
+        ]
+      },
+      {
+        "date": "Dec 7, 2025 – Dec 13, 2025",
+        "timestamp": "1765065600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "93",
+            "extracted_value": 93
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "80",
+            "extracted_value": 80
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "47",
+            "extracted_value": 47
+          }
+        ]
+      },
+      {
+        "date": "Dec 14, 2025 – Dec 20, 2025",
+        "timestamp": "1765670400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "96",
+            "extracted_value": 96
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "74",
+            "extracted_value": 74
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "44",
+            "extracted_value": 44
+          }
+        ]
+      },
+      {
+        "date": "Dec 21, 2025 – Dec 27, 2025",
+        "timestamp": "1766275200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "89",
+            "extracted_value": 89
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "73",
+            "extracted_value": 73
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "42",
+            "extracted_value": 42
+          }
+        ]
+      },
+      {
+        "date": "Dec 28, 2025 – Jan 3, 2026",
+        "timestamp": "1766880000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "87",
+            "extracted_value": 87
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "77",
+            "extracted_value": 77
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "41",
+            "extracted_value": 41
+          }
+        ]
+      },
+      {
+        "date": "Jan 4, 2026 – Jan 10, 2026",
+        "timestamp": "1767484800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "93",
+            "extracted_value": 93
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "77",
+            "extracted_value": 77
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "42",
+            "extracted_value": 42
+          }
+        ]
+      },
+      {
+        "date": "Jan 11, 2026 – Jan 17, 2026",
+        "timestamp": "1768089600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "88",
+            "extracted_value": 88
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "76",
+            "extracted_value": 76
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "39",
+            "extracted_value": 39
+          }
+        ]
+      },
+      {
+        "date": "Jan 18, 2026 – Jan 24, 2026",
+        "timestamp": "1768694400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "86",
+            "extracted_value": 86
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "76",
+            "extracted_value": 76
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "42",
+            "extracted_value": 42
+          }
+        ]
+      },
+      {
+        "date": "Jan 25, 2026 – Jan 31, 2026",
+        "timestamp": "1769299200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "86",
+            "extracted_value": 86
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "70",
+            "extracted_value": 70
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "42",
+            "extracted_value": 42
+          }
+        ]
+      },
+      {
+        "date": "Feb 1, 2026 – Feb 7, 2026",
+        "timestamp": "1769904000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "85",
+            "extracted_value": 85
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "68",
+            "extracted_value": 68
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "40",
+            "extracted_value": 40
+          }
+        ]
+      },
+      {
+        "date": "Feb 8, 2026 – Feb 14, 2026",
+        "timestamp": "1770508800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "88",
+            "extracted_value": 88
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "68",
+            "extracted_value": 68
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "41",
+            "extracted_value": 41
+          }
+        ]
+      },
+      {
+        "date": "Feb 15, 2026 – Feb 21, 2026",
+        "timestamp": "1771113600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "73",
+            "extracted_value": 73
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "41",
+            "extracted_value": 41
+          }
+        ]
+      },
+      {
+        "date": "Feb 22, 2026 – Feb 28, 2026",
+        "timestamp": "1771718400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "81",
+            "extracted_value": 81
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "66",
+            "extracted_value": 66
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "39",
+            "extracted_value": 39
+          }
+        ]
+      },
+      {
+        "date": "Mar 1, 2026 – Mar 7, 2026",
+        "timestamp": "1772323200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "83",
+            "extracted_value": 83
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "65",
+            "extracted_value": 65
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "39",
+            "extracted_value": 39
+          }
+        ]
+      },
+      {
+        "date": "Mar 8, 2026 – Mar 14, 2026",
+        "timestamp": "1772928000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "64",
+            "extracted_value": 64
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "36",
+            "extracted_value": 36
+          }
+        ]
+      },
+      {
+        "date": "Mar 15, 2026 – Mar 21, 2026",
+        "timestamp": "1773532800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "83",
+            "extracted_value": 83
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "35",
+            "extracted_value": 35
+          }
+        ]
+      },
+      {
+        "date": "Mar 22, 2026 – Mar 28, 2026",
+        "timestamp": "1774137600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "62",
+            "extracted_value": 62
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "39",
+            "extracted_value": 39
+          }
+        ]
+      },
+      {
+        "date": "Mar 29, 2026 – Apr 4, 2026",
+        "timestamp": "1774742400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "78",
+            "extracted_value": 78
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "64",
+            "extracted_value": 64
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "35",
+            "extracted_value": 35
+          }
+        ]
+      },
+      {
+        "date": "Apr 5, 2026 – Apr 11, 2026",
+        "timestamp": "1775347200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "76",
+            "extracted_value": 76
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "62",
+            "extracted_value": 62
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "35",
+            "extracted_value": 35
+          }
+        ]
+      },
+      {
+        "date": "Apr 12, 2026 – Apr 18, 2026",
+        "timestamp": "1775952000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "79",
+            "extracted_value": 79
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "62",
+            "extracted_value": 62
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "38",
+            "extracted_value": 38
+          }
+        ]
+      },
+      {
+        "date": "Apr 19, 2026 – Apr 25, 2026",
+        "timestamp": "1776556800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "80",
+            "extracted_value": 80
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "65",
+            "extracted_value": 65
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "37",
+            "extracted_value": 37
+          }
+        ]
+      },
+      {
+        "date": "Apr 26, 2026 – May 2, 2026",
+        "timestamp": "1777161600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "73",
+            "extracted_value": 73
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "60",
+            "extracted_value": 60
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "May 3, 2026 – May 9, 2026",
+        "timestamp": "1777766400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "77",
+            "extracted_value": 77
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "64",
+            "extracted_value": 64
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "34",
+            "extracted_value": 34
+          }
+        ]
+      },
+      {
+        "date": "May 10, 2026 – May 16, 2026",
+        "timestamp": "1778371200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "77",
+            "extracted_value": 77
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "May 17, 2026 – May 23, 2026",
+        "timestamp": "1778976000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "75",
+            "extracted_value": 75
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "61",
+            "extracted_value": 61
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "May 24, 2026 – May 30, 2026",
+        "timestamp": "1779580800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "72",
+            "extracted_value": 72
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "61",
+            "extracted_value": 61
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "32",
+            "extracted_value": 32
+          }
+        ]
+      },
+      {
+        "date": "May 31, 2026 – Jun 6, 2026",
+        "timestamp": "1780185600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "74",
+            "extracted_value": 74
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "61",
+            "extracted_value": 61
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "34",
+            "extracted_value": 34
+          }
+        ]
+      },
+      {
+        "date": "Jun 7, 2026 – Jun 13, 2026",
+        "timestamp": "1780790400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "73",
+            "extracted_value": 73
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "60",
+            "extracted_value": 60
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "Jun 14, 2026 – Jun 20, 2026",
+        "timestamp": "1781395200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "70",
+            "extracted_value": 70
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "Jun 21, 2026 – Jun 27, 2026",
+        "timestamp": "1782000000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "72",
+            "extracted_value": 72
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "32",
+            "extracted_value": 32
+          }
+        ]
+      },
+      {
+        "date": "Jun 28, 2026 – Jul 4, 2026",
+        "timestamp": "1782604800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "69",
+            "extracted_value": 69
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "31",
+            "extracted_value": 31
+          }
+        ]
+      },
+      {
+        "date": "Jul 5, 2026 – Jul 11, 2026",
+        "timestamp": "1783209600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "67",
+            "extracted_value": 67
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "31",
+            "extracted_value": 31
+          }
+        ]
+      },
+      {
+        "date": "Jul 12, 2026 – Jul 18, 2026",
+        "timestamp": "1783814400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "68",
+            "extracted_value": 68
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "60",
+            "extracted_value": 60
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "34",
+            "extracted_value": 34
+          }
+        ]
+      },
+      {
+        "date": "Jul 19, 2026 – Jul 25, 2026",
+        "timestamp": "1784419200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "67",
+            "extracted_value": 67
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "56",
+            "extracted_value": 56
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "33",
+            "extracted_value": 33
+          }
+        ]
+      },
+      {
+        "date": "Jul 26, 2026 – Aug 1, 2026",
+        "timestamp": "1785024000",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "66",
+            "extracted_value": 66
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "32",
+            "extracted_value": 32
+          }
+        ]
+      },
+      {
+        "date": "Aug 2, 2026 – Aug 8, 2026",
+        "timestamp": "1785628800",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "67",
+            "extracted_value": 67
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "30",
+            "extracted_value": 30
+          }
+        ]
+      },
+      {
+        "date": "Aug 9, 2026 – Aug 15, 2026",
+        "timestamp": "1786233600",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "67",
+            "extracted_value": 67
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "56",
+            "extracted_value": 56
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "29",
+            "extracted_value": 29
+          }
+        ]
+      },
+      {
+        "date": "Aug 16, 2026 – Aug 22, 2026",
+        "timestamp": "1786838400",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "66",
+            "extracted_value": 66
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "29",
+            "extracted_value": 29
+          }
+        ]
+      },
+      {
+        "date": "Aug 23, 2026 – Aug 29, 2026",
+        "timestamp": "1787443200",
+        "values": [
+          {
+            "query": "elderly care",
+            "query_index": 0,
+            "value": "65",
+            "extracted_value": 65
+          },
+          {
+            "query": "care home",
+            "query_index": 1,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "home care",
+            "query_index": 2,
+            "value": "29",
+            "extracted_value": 29
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1271 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_JP_TRENDS_TIMESERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_TRENDS_TIMESERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_TRENDS_TIMESERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "介護,介護施設,在宅介護",
+    "hl": "ja",
+    "geo": "JP",
+    "date": "today 12-m",
+    "data_type": "TIMESERIES"
+  },
+  "interest_over_time": {
+    "timeline_data": [
+      {
+        "date": "Aug 31, 2025 – Sep 6, 2025",
+        "timestamp": "1756598400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "52",
+            "extracted_value": 52
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Sep 7, 2025 – Sep 13, 2025",
+        "timestamp": "1757203200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Sep 14, 2025 – Sep 20, 2025",
+        "timestamp": "1757808000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Sep 21, 2025 – Sep 27, 2025",
+        "timestamp": "1758412800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "21",
+            "extracted_value": 21
+          }
+        ]
+      },
+      {
+        "date": "Sep 28, 2025 – Oct 4, 2025",
+        "timestamp": "1759017600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Oct 5, 2025 – Oct 11, 2025",
+        "timestamp": "1759622400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "56",
+            "extracted_value": 56
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Oct 12, 2025 – Oct 18, 2025",
+        "timestamp": "1760227200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Oct 19, 2025 – Oct 25, 2025",
+        "timestamp": "1760832000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "35",
+            "extracted_value": 35
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Oct 26, 2025 – Nov 1, 2025",
+        "timestamp": "1761436800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "34",
+            "extracted_value": 34
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "21",
+            "extracted_value": 21
+          }
+        ]
+      },
+      {
+        "date": "Nov 2, 2025 – Nov 8, 2025",
+        "timestamp": "1762041600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "34",
+            "extracted_value": 34
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Nov 9, 2025 – Nov 15, 2025",
+        "timestamp": "1762646400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Nov 16, 2025 – Nov 22, 2025",
+        "timestamp": "1763251200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Nov 23, 2025 – Nov 29, 2025",
+        "timestamp": "1763856000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Nov 30, 2025 – Dec 6, 2025",
+        "timestamp": "1764460800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Dec 7, 2025 – Dec 13, 2025",
+        "timestamp": "1765065600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Dec 14, 2025 – Dec 20, 2025",
+        "timestamp": "1765670400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "51",
+            "extracted_value": 51
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Dec 21, 2025 – Dec 27, 2025",
+        "timestamp": "1766275200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "29",
+            "extracted_value": 29
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "17",
+            "extracted_value": 17
+          }
+        ]
+      },
+      {
+        "date": "Dec 28, 2025 – Jan 3, 2026",
+        "timestamp": "1766880000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "18",
+            "extracted_value": 18
+          }
+        ]
+      },
+      {
+        "date": "Jan 4, 2026 – Jan 10, 2026",
+        "timestamp": "1767484800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "29",
+            "extracted_value": 29
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "18",
+            "extracted_value": 18
+          }
+        ]
+      },
+      {
+        "date": "Jan 11, 2026 – Jan 17, 2026",
+        "timestamp": "1768089600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Jan 18, 2026 – Jan 24, 2026",
+        "timestamp": "1768694400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "52",
+            "extracted_value": 52
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Jan 25, 2026 – Jan 31, 2026",
+        "timestamp": "1769299200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "52",
+            "extracted_value": 52
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Feb 1, 2026 – Feb 7, 2026",
+        "timestamp": "1769904000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Feb 8, 2026 – Feb 14, 2026",
+        "timestamp": "1770508800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Feb 15, 2026 – Feb 21, 2026",
+        "timestamp": "1771113600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "21",
+            "extracted_value": 21
+          }
+        ]
+      },
+      {
+        "date": "Feb 22, 2026 – Feb 28, 2026",
+        "timestamp": "1771718400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Mar 1, 2026 – Mar 7, 2026",
+        "timestamp": "1772323200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "53",
+            "extracted_value": 53
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "19",
+            "extracted_value": 19
+          }
+        ]
+      },
+      {
+        "date": "Mar 8, 2026 – Mar 14, 2026",
+        "timestamp": "1772928000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "30",
+            "extracted_value": 30
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "21",
+            "extracted_value": 21
+          }
+        ]
+      },
+      {
+        "date": "Mar 15, 2026 – Mar 21, 2026",
+        "timestamp": "1773532800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Mar 22, 2026 – Mar 28, 2026",
+        "timestamp": "1774137600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "21",
+            "extracted_value": 21
+          }
+        ]
+      },
+      {
+        "date": "Mar 29, 2026 – Apr 4, 2026",
+        "timestamp": "1774742400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "56",
+            "extracted_value": 56
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Apr 5, 2026 – Apr 11, 2026",
+        "timestamp": "1775347200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Apr 12, 2026 – Apr 18, 2026",
+        "timestamp": "1775952000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "57",
+            "extracted_value": 57
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "31",
+            "extracted_value": 31
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Apr 19, 2026 – Apr 25, 2026",
+        "timestamp": "1776556800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "Apr 26, 2026 – May 2, 2026",
+        "timestamp": "1777161600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "34",
+            "extracted_value": 34
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "May 3, 2026 – May 9, 2026",
+        "timestamp": "1777766400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "58",
+            "extracted_value": 58
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "32",
+            "extracted_value": 32
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "20",
+            "extracted_value": 20
+          }
+        ]
+      },
+      {
+        "date": "May 10, 2026 – May 16, 2026",
+        "timestamp": "1778371200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "62",
+            "extracted_value": 62
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "35",
+            "extracted_value": 35
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "22",
+            "extracted_value": 22
+          }
+        ]
+      },
+      {
+        "date": "May 17, 2026 – May 23, 2026",
+        "timestamp": "1778976000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "33",
+            "extracted_value": 33
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "23",
+            "extracted_value": 23
+          }
+        ]
+      },
+      {
+        "date": "May 24, 2026 – May 30, 2026",
+        "timestamp": "1779580800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "34",
+            "extracted_value": 34
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "24",
+            "extracted_value": 24
+          }
+        ]
+      },
+      {
+        "date": "May 31, 2026 – Jun 6, 2026",
+        "timestamp": "1780185600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "37",
+            "extracted_value": 37
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "23",
+            "extracted_value": 23
+          }
+        ]
+      },
+      {
+        "date": "Jun 7, 2026 – Jun 13, 2026",
+        "timestamp": "1780790400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "63",
+            "extracted_value": 63
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "36",
+            "extracted_value": 36
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "23",
+            "extracted_value": 23
+          }
+        ]
+      },
+      {
+        "date": "Jun 14, 2026 – Jun 20, 2026",
+        "timestamp": "1781395200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "64",
+            "extracted_value": 64
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "37",
+            "extracted_value": 37
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "25",
+            "extracted_value": 25
+          }
+        ]
+      },
+      {
+        "date": "Jun 21, 2026 – Jun 27, 2026",
+        "timestamp": "1782000000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "67",
+            "extracted_value": 67
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "40",
+            "extracted_value": 40
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "23",
+            "extracted_value": 23
+          }
+        ]
+      },
+      {
+        "date": "Jun 28, 2026 – Jul 4, 2026",
+        "timestamp": "1782604800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "68",
+            "extracted_value": 68
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "41",
+            "extracted_value": 41
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "26",
+            "extracted_value": 26
+          }
+        ]
+      },
+      {
+        "date": "Jul 5, 2026 – Jul 11, 2026",
+        "timestamp": "1783209600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "74",
+            "extracted_value": 74
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "42",
+            "extracted_value": 42
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "26",
+            "extracted_value": 26
+          }
+        ]
+      },
+      {
+        "date": "Jul 12, 2026 – Jul 18, 2026",
+        "timestamp": "1783814400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "76",
+            "extracted_value": 76
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "42",
+            "extracted_value": 42
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "26",
+            "extracted_value": 26
+          }
+        ]
+      },
+      {
+        "date": "Jul 19, 2026 – Jul 25, 2026",
+        "timestamp": "1784419200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "81",
+            "extracted_value": 81
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "47",
+            "extracted_value": 47
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "28",
+            "extracted_value": 28
+          }
+        ]
+      },
+      {
+        "date": "Jul 26, 2026 – Aug 1, 2026",
+        "timestamp": "1785024000",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "82",
+            "extracted_value": 82
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "51",
+            "extracted_value": 51
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "30",
+            "extracted_value": 30
+          }
+        ]
+      },
+      {
+        "date": "Aug 2, 2026 – Aug 8, 2026",
+        "timestamp": "1785628800",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "90",
+            "extracted_value": 90
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "54",
+            "extracted_value": 54
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "31",
+            "extracted_value": 31
+          }
+        ]
+      },
+      {
+        "date": "Aug 9, 2026 – Aug 15, 2026",
+        "timestamp": "1786233600",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "95",
+            "extracted_value": 95
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "55",
+            "extracted_value": 55
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "34",
+            "extracted_value": 34
+          }
+        ]
+      },
+      {
+        "date": "Aug 16, 2026 – Aug 22, 2026",
+        "timestamp": "1786838400",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "94",
+            "extracted_value": 94
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "56",
+            "extracted_value": 56
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "36",
+            "extracted_value": 36
+          }
+        ]
+      },
+      {
+        "date": "Aug 23, 2026 – Aug 29, 2026",
+        "timestamp": "1787443200",
+        "values": [
+          {
+            "query": "介護",
+            "query_index": 0,
+            "value": "100",
+            "extracted_value": 100
+          },
+          {
+            "query": "介護施設",
+            "query_index": 1,
+            "value": "59",
+            "extracted_value": 59
+          },
+          {
+            "query": "在宅介護",
+            "query_index": 2,
+            "value": "37",
+            "extracted_value": 37
+          }
+        ]
+      }
+    ]
+  }
+}

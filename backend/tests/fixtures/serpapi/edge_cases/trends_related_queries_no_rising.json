@@ -1,0 +1,79 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_RELATED_QUERIES_NO_RISING",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_RELATED_QUERIES_NO_RISING.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_RELATED_QUERIES_NO_RISING.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elder care",
+    "hl": "en",
+    "geo": "US",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "top": [
+      {
+        "query": "elder care",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_01.json"
+      },
+      {
+        "query": "elder care services",
+        "value": "71",
+        "extracted_value": 71,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20services&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_02.json"
+      },
+      {
+        "query": "nursing home",
+        "value": "63",
+        "extracted_value": 63,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20home&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_03.json"
+      },
+      {
+        "query": "assisted living",
+        "value": "58",
+        "extracted_value": 58,
+        "link": "https://trends.google.com/trends/explore?q=assisted%20living&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_04.json"
+      },
+      {
+        "query": "home care",
+        "value": "44",
+        "extracted_value": 44,
+        "link": "https://trends.google.com/trends/explore?q=home%20care&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_05.json"
+      },
+      {
+        "query": "elder care near me",
+        "value": "31",
+        "extracted_value": 31,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20near%20me&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_06.json"
+      },
+      {
+        "query": "elder law",
+        "value": "24",
+        "extracted_value": 24,
+        "link": "https://trends.google.com/trends/explore?q=elder%20law&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_07.json"
+      },
+      {
+        "query": "elder care jobs",
+        "value": "18",
+        "extracted_value": 18,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20jobs&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/EDGE_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}

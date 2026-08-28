@@ -1,0 +1,75 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_NEWS_NO_ISO_DATE",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_NEWS_NO_ISO_DATE.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_NEWS_NO_ISO_DATE.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_news",
+    "q": "elder care staffing shortage",
+    "hl": "en",
+    "gl": "us"
+  },
+  "news_results": [
+    {
+      "position": 1,
+      "title": "Home care agencies turn away clients as aide shortage deepens",
+      "source": {
+        "name": "Example Health Wire (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_01.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_01",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_01.jpeg",
+      "date": "08/27/2026, 10:24 AM, -0400 EDT"
+    },
+    {
+      "position": 2,
+      "title": "Nursing homes cut beds amid staffing gaps",
+      "source": {
+        "name": "Example National Report (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_02.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_02",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_02.jpeg",
+      "date": "08/25/2026, 05:36 AM, -0400 EDT"
+    },
+    {
+      "position": 3,
+      "title": "Families wait months for in-home aides, survey finds",
+      "source": {
+        "name": "Example Policy Review (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_03.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_03",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_03.jpeg",
+      "date": "08/18/2026, 12:48 PM, -0400 EDT"
+    },
+    {
+      "position": 4,
+      "title": "State lawmakers weigh training grants for caregivers",
+      "source": {
+        "name": "Example Statehouse News (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_04.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_04",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_04.jpeg",
+      "date": "08/06/2026, 05:36 PM, -0400 EDT"
+    }
+  ]
+}

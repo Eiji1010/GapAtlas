@@ -1,0 +1,170 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_JP_MAPS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_MAPS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_MAPS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_maps",
+    "q": "介護 サービス",
+    "type": "search",
+    "ll": "@35.6812,139.7671,12z",
+    "google_domain": "google.co.jp",
+    "hl": "ja",
+    "gl": "jp"
+  },
+  "search_information": {
+    "local_results_state": "Results for exact spelling",
+    "query_displayed": "介護 サービス"
+  },
+  "local_results": [
+    {
+      "position": 1,
+      "title": "架空あおぞら介護サービス 中央事業所",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_01",
+      "data_id": "0xFIXTURE0001:0xFIXTURE0001",
+      "data_cid": "FIXTURE_CID_JP_PLACE_01",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_01_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_01_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.6821,
+        "longitude": 139.7702
+      },
+      "provider_id": "/g/FIXTURE0001",
+      "rating": 4.3,
+      "reviews": 48,
+      "type": "訪問介護事業所",
+      "types": [
+        "訪問介護事業所"
+      ],
+      "address": "架空県架空市中央1-2-3 架空ビル2F",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0001",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_01.jpeg"
+    },
+    {
+      "position": 2,
+      "title": "架空ひまわり在宅介護ステーション",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_02",
+      "data_id": "0xFIXTURE0002:0xFIXTURE0002",
+      "data_cid": "FIXTURE_CID_JP_PLACE_02",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_02_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_02_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.6905,
+        "longitude": 139.758
+      },
+      "provider_id": "/g/FIXTURE0002",
+      "rating": 4.1,
+      "reviews": 27,
+      "type": "訪問介護事業所",
+      "types": [
+        "訪問介護事業所"
+      ],
+      "address": "架空県架空市北町4-5-6",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0002",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_02.jpeg"
+    },
+    {
+      "position": 3,
+      "title": "架空こもれびデイサービスセンター",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_03",
+      "data_id": "0xFIXTURE0003:0xFIXTURE0003",
+      "data_cid": "FIXTURE_CID_JP_PLACE_03",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_03_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_03_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.6702,
+        "longitude": 139.7745
+      },
+      "provider_id": "/g/FIXTURE0003",
+      "rating": 4.5,
+      "reviews": 63,
+      "type": "通所介護事業所",
+      "types": [
+        "通所介護事業所"
+      ],
+      "address": "架空県架空市南町7-8-9",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0003",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_03.jpeg"
+    },
+    {
+      "position": 4,
+      "title": "架空みどりの丘 介護老人福祉施設",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_04",
+      "data_id": "0xFIXTURE0004:0xFIXTURE0004",
+      "data_cid": "FIXTURE_CID_JP_PLACE_04",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_04_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_04_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.6988,
+        "longitude": 139.7401
+      },
+      "provider_id": "/g/FIXTURE0004",
+      "rating": 3.8,
+      "reviews": 34,
+      "type": "特別養護老人ホーム",
+      "types": [
+        "特別養護老人ホーム"
+      ],
+      "address": "架空県架空市緑が丘10-11",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0004",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_04.jpeg"
+    },
+    {
+      "position": 5,
+      "title": "架空さくら訪問看護・介護ステーション",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_05",
+      "data_id": "0xFIXTURE0005:0xFIXTURE0005",
+      "data_cid": "FIXTURE_CID_JP_PLACE_05",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_05_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_05_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.665,
+        "longitude": 139.789
+      },
+      "provider_id": "/g/FIXTURE0005",
+      "rating": 4.0,
+      "reviews": 19,
+      "type": "訪問看護ステーション",
+      "types": [
+        "訪問看護ステーション"
+      ],
+      "address": "架空県架空市西町12-13",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0005",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_05.jpeg"
+    },
+    {
+      "position": 6,
+      "title": "架空やすらぎ小規模多機能ホーム",
+      "place_id": "FIXTURE_PLACE_ID_JP_PLACE_06",
+      "data_id": "0xFIXTURE0006:0xFIXTURE0006",
+      "data_cid": "FIXTURE_CID_JP_PLACE_06",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_06_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/JP_PLACE_06_photos.json",
+      "gps_coordinates": {
+        "latitude": 35.676,
+        "longitude": 139.7995
+      },
+      "provider_id": "/g/FIXTURE0006",
+      "rating": 4.2,
+      "reviews": 22,
+      "type": "小規模多機能型居宅介護",
+      "types": [
+        "小規模多機能型居宅介護"
+      ],
+      "address": "架空県架空市東町14-15",
+      "open_state": "営業中 ⋅ 18:00に閉店",
+      "phone": "03-0000-0006",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_PLACE_06.jpeg"
+    }
+  ]
+}
