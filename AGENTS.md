@@ -110,7 +110,7 @@ Login / User Account / Payment / Multi Tenant / ECS / EKS / EC2 / RDS / Redis / 
 
 | 担当 | 主なディレクトリ |
 |---|---|
-| ドメインモデル | `backend/src/gapatlas/domain/models` |
+| ドメインモデル | `backend/src/gapatlas/domain/models`, `backend/src/gapatlas/config`, `backend/tests/unit/{models,config}` |
 | スコアリング | `backend/src/gapatlas/domain/scoring`, `backend/tests/unit/scoring` |
 | SerpApiアダプタ | `backend/src/gapatlas/adapters/serpapi`, `backend/tests/fixtures` |
 | LLMアダプタ | `backend/src/gapatlas/adapters/llm` |
