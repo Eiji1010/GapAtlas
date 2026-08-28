@@ -1,0 +1,25 @@
+topic_id: elder_care
+country: GB
+language: en
+version: elder-care-gb-v1
+review_status: LLM_GENERATED
+
+serpapi:
+  geo: GB          # Trends は ISO 国コード
+  gl: uk           # Google Search / News の英国は "uk"
+  hl: en
+  google_domain: google.co.uk
+
+demand_queries:
+  - elderly care
+  - care home
+  - home care
+
+related_query_seed:
+  - elderly care
+
+solution_query:
+  - elderly care services
+
+news_query:
+  - social care crisis

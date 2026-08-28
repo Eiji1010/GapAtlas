@@ -1,0 +1,25 @@
+topic_id: elder_care
+country: JP
+language: ja
+version: elder-care-jp-v1
+review_status: LLM_GENERATED
+
+serpapi:
+  geo: JP          # Google Trends の地域指定
+  gl: jp           # Google Search / News の国指定
+  hl: ja           # 言語
+  google_domain: google.co.jp
+
+demand_queries:
+  - 介護
+  - 介護施設
+  - 在宅介護
+
+related_query_seed:
+  - 介護
+
+solution_query:
+  - 介護 サービス
+
+news_query:
+  - 介護 人手不足

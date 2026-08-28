@@ -1,0 +1,25 @@
+topic_id: elder_care
+country: US
+language: en
+version: elder-care-us-v1
+review_status: LLM_GENERATED
+
+serpapi:
+  geo: US
+  gl: us
+  hl: en
+  google_domain: google.com
+
+demand_queries:
+  - elder care
+  - nursing home
+  - home care for seniors
+
+related_query_seed:
+  - elder care
+
+solution_query:
+  - elder care services
+
+news_query:
+  - elder care staffing shortage

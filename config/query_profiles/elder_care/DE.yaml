@@ -1,0 +1,25 @@
+topic_id: elder_care
+country: DE
+language: de
+version: elder-care-de-v1
+review_status: LLM_GENERATED
+
+serpapi:
+  geo: DE
+  gl: de
+  hl: de
+  google_domain: google.de
+
+demand_queries:
+  - Pflege
+  - Pflegeheim
+  - häusliche Pflege
+
+related_query_seed:
+  - Pflege
+
+solution_query:
+  - Pflegedienst
+
+news_query:
+  - Pflegenotstand

@@ -1,0 +1,25 @@
+topic_id: elder_care
+country: IN
+language: en
+version: elder-care-in-v1
+review_status: LLM_GENERATED
+
+serpapi:
+  geo: IN
+  gl: in
+  hl: en
+  google_domain: google.co.in
+
+demand_queries:
+  - elder care
+  - old age home
+  - home nursing
+
+related_query_seed:
+  - elder care
+
+solution_query:
+  - elder care services
+
+news_query:
+  - elderly care india
