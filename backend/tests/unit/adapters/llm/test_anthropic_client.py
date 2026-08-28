@@ -113,8 +113,17 @@ def test_classifies_news_articles(profile):
     assert results[0].classification is NewsRelevance.RELATED
 
 
+_PARTIAL_RESULTS = {"results": [{"index": 0, "classification": "SHORTAGE", "confidence": 0.9}]}
+"""index 0 だけ解決できる応答。全滅ではないので既定値の補完だけが起きる。"""
+
+
+def _one_result(category: str) -> dict[str, object]:
+    """index 0 だけを解決する応答を作る。全滅にならないようにするため。"""
+    return {"results": [{"index": 0, "classification": category, "confidence": 0.9}]}
+
+
 def test_forces_a_single_tool_and_uses_the_configured_model(profile):
-    client, messages = make_client(response=tool_response({"results": []}))
+    client, messages = make_client(response=tool_response(_PARTIAL_RESULTS))
     client.classify_rising_queries(RISING, profile)
     call = messages.calls[0]
     assert call["model"] == "claude-test-model"
@@ -125,11 +134,19 @@ def test_forces_a_single_tool_and_uses_the_configured_model(profile):
 
 
 def test_the_request_carries_no_growth_position_or_date(profile):
-    client, messages = make_client(response=tool_response({"results": []}))
-    client.classify_rising_queries(RISING, profile)
-    client.classify_search_results(SEARCH, profile)
-    client.classify_news_articles(NEWS, profile)
-    for call in messages.calls:
+    """プロンプトへ成長率・順位・日付を渡さない(分類をスコアへ汚染させないため)。"""
+    calls = []
+    for category, classify, items in [
+        ("SHORTAGE", "classify_rising_queries", RISING),
+        ("NEWS", "classify_search_results", SEARCH),
+        ("RELATED", "classify_news_articles", NEWS),
+    ]:
+        client, messages = make_client(response=tool_response(_one_result(category)))
+        getattr(client, classify)(items, profile)
+        calls.extend(messages.calls)
+
+    assert len(calls) == 3
+    for call in calls:
         user_content = call["messages"][0]["content"]
         assert "growth" not in user_content
         assert "position" not in user_content
@@ -137,10 +154,25 @@ def test_the_request_carries_no_growth_position_or_date(profile):
 
 
 def test_missing_results_are_padded_to_the_input_length(profile):
-    client, _ = make_client(response=tool_response({"results": []}))
+    """一部だけ返ってきた場合、残りは既定値で埋めて入力と同数にする。"""
+    client, _ = make_client(response=tool_response(_PARTIAL_RESULTS))
     results = client.classify_rising_queries(RISING, profile)
     assert len(results) == len(RISING)
-    assert all(item.classification is PainCategory.NEUTRAL for item in results)
+    assert results[0].classification is PainCategory.SHORTAGE
+    assert all(item.classification is PainCategory.NEUTRAL for item in results[1:])
+    assert all(item.confidence == 0.0 for item in results[1:])
+
+
+def test_a_total_fallback_raises_instead_of_returning_defaults(profile):
+    """1件も分類できなければ例外にする。
+
+    既定値で全件を埋めた結果を返すと、`pain = 0` や `solution_gap = 100` が
+    実際の観測値としてスコアへ入り、Confidence にも反映されない
+    (docs/llm-prompts.md「分類が全滅した場合、その成分は None(欠損)として扱う」)。
+    """
+    client, _ = make_client(response=tool_response({"results": []}))
+    with pytest.raises(LlmResponseError):
+        client.classify_rising_queries(RISING, profile)
 
 
 def test_a_text_only_response_is_parsed_strictly(profile):

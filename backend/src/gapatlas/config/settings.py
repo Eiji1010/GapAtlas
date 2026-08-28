@@ -53,6 +53,11 @@ class Settings(BaseModel):
     llm_mode: LlmMode = LlmMode.STUB
     anthropic_api_key: SecretStr | None = None
     anthropic_model: str = Field(default="claude-sonnet-5", min_length=1)
+    anthropic_timeout_seconds: float = Field(default=30.0, gt=0.0)
+    """LLM 1リクエストの上限。SDK 既定(read 600秒)は SLO と2桁乖離するため明示する。"""
+
+    anthropic_max_retries: int = Field(default=2, ge=0)
+    """SDK のリトライ回数。SerpApi 側(既定2回)と方針を揃える。"""
 
     aws_region: str = Field(default="ap-northeast-1", min_length=1)
     dynamodb_table_name: str = Field(default="gapatlas", min_length=1)
@@ -158,6 +163,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             llm_mode=_get_enum(source, "LLM_MODE", LlmMode, LlmMode.STUB),
             anthropic_api_key=_get_secret(source, "ANTHROPIC_API_KEY"),
             anthropic_model=_get(source, "ANTHROPIC_MODEL") or "claude-sonnet-5",
+            anthropic_timeout_seconds=_get_float(source, "ANTHROPIC_TIMEOUT_SECONDS", 30.0),
+            anthropic_max_retries=_get_int(source, "ANTHROPIC_MAX_RETRIES", 2),
             aws_region=_get(source, "AWS_REGION") or "ap-northeast-1",
             dynamodb_table_name=_get(source, "DYNAMODB_TABLE_NAME") or "gapatlas",
             s3_bucket_name=_get(source, "S3_BUCKET_NAME") or "gapatlas-data",

@@ -32,6 +32,9 @@ URL_PATTERN: Final[re.Pattern[str]] = re.compile(r"https?://\S*")
 
 _WHITESPACE_PATTERN: Final[re.Pattern[str]] = re.compile(r"[ \t]{2,}")
 
+_ORPHAN_PUNCTUATION_PATTERN: Final[re.Pattern[str]] = re.compile(r"\s+([.,;:!?)\]、。])")
+"""URL を除去した跡に残る、前に空白が付いた句読点。"""
+
 CITED_SECTIONS: Final[tuple[str, ...]] = (
     "why_now",
     "what_people_are_struggling_with",
@@ -55,21 +58,26 @@ METHODOLOGY_LIMITATION_KEYWORDS: Final[tuple[str, ...]] = (
     "相対値",
     "報道量",
     "測定していない",
+    "実際の供給",
     # en
     "search-visible",
     "search visible",
-    "visibility",
+    "search visibility",
     "actual supply",
-    "severity",
-    "relative",
-    "media coverage",
     "does not measure",
     "not a measure",
+    "does not prove",
+    "not evidence of",
+    "media coverage",
 )
 """`what_this_does_not_prove` が方法論上の限界に触れているかの判定語。
 
 日本語・英語のどちらで生成されても判定できるよう両方を持つ。追加・変更する場合は
 docs/methodology.md「何を示さないか」と対応させること。
+
+**単独では限界を意味しない一般語(`visibility` / `severity` / `relative` など)を
+入れないこと。** "relatively few articles were found" のような、限界に触れて
+いない文が検証を通ってしまう。
 """
 
 
@@ -79,7 +87,9 @@ def _strip_urls(text: str) -> str:
 
 
 def _tidy(text: str) -> str:
-    return _WHITESPACE_PATTERN.sub(" ", text).strip()
+    """空白を畳み、URL 除去で孤立した句読点の前の空白を取り除く。"""
+    collapsed = _WHITESPACE_PATTERN.sub(" ", text)
+    return _ORPHAN_PUNCTUATION_PATTERN.sub(r"\1", collapsed).strip()
 
 
 def _strip_unknown_citations(text: str, valid_ids: frozenset[str]) -> str:

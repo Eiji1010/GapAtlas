@@ -26,6 +26,8 @@ make typecheck        # mypy(strict)
 make scan COUNTRY=JP  # fixture モードで単一国のスキャンを実行し JSON を出力
 ```
 
+> **`make scan` はまだ動きません。** `backend/src/gapatlas/cli.py` が未実装のため `ModuleNotFoundError` になります。Phase 6(Country Scan Service)で有効になります。
+
 ## Terraform
 
 ```bash
@@ -49,6 +51,6 @@ make tf-plan          # terraform plan
 cp .env.example .env
 ```
 
-既定は `SERPAPI_MODE=fixture` と `LLM_MODE=stub` です。この状態で外部通信なしに全てのテストとスキャンが動作します。
+既定は `SERPAPI_MODE=fixture` と `LLM_MODE=stub` です。この状態で外部通信なしに全てのテストが動作します(`make scan` は Phase 6 の CLI 実装後)。
 
 `LLM_MODE=anthropic` を使う場合は `anthropic` パッケージが必要です。`make setup` は `uv sync --all-extras` を実行するため通常は入っていますが、未インストールの環境では起動時に `LlmError` になります。

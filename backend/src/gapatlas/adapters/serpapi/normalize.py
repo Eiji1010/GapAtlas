@@ -15,6 +15,7 @@ I/O・現在時刻取得・乱数を持たない。
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any, Final
@@ -29,6 +30,8 @@ from gapatlas.domain.models.normalized import (
     TrendsSeries,
     TrendsTimeseries,
 )
+
+_LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 BREAKOUT_GROWTH_PERCENT: Final[float] = 5000.0
 """`value` を数値化できない場合に使う成長率(%)。
@@ -350,6 +353,13 @@ def _flatten_news_entries(items: Sequence[Any]) -> list[Mapping[str, Any]]:
     for item in _mappings(items):
         stories = _mappings(_get_list(item, "stories"))
         if stories:
+            # 実構造が推定と違えば、ここで記事が無言で落ちる。live 移行時に
+            # 最初に確認する項目なので警告を残す(docs/serpapi-schema.md 7章)。
+            _LOGGER.warning(
+                "google news response contains a 'stories' group (%d entries); "
+                "the nested structure is unverified",
+                len(stories),
+            )
             flattened.extend(stories)
         else:
             flattened.append(item)

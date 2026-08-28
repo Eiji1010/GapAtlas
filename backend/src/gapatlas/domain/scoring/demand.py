@@ -14,6 +14,7 @@ from gapatlas.domain.scoring.constants import (
     CHANGE_SENSITIVITY,
     PREVIOUS_WEEKS,
     RATIO_SCORE_WEIGHT,
+    RECENT_WEEKS,
     SCORE_MAX,
     SCORE_MIDPOINT,
     SCORE_MIN,
@@ -24,18 +25,22 @@ from gapatlas.domain.scoring.constants import (
 from gapatlas.domain.scoring.rounding import clip
 
 
-def _ratio_score(window: Sequence[float]) -> float:
+def compute_ratio_score(window: Sequence[float]) -> float:
     """直近4週と前8週の比からスコアを出す。
+
+    `compute_query_demand_score` の内部成分だが、docs/scoring.md 9章が
+    `ratio_score` と `slope_score` を**個別に**押さえることを求めているため
+    公開している(合成値だけを見ると、2成分が打ち消し合う誤りを検出できない)。
 
     `SMOOTHING` により分母は常に 5 以上となるためゼロ除算は発生しない。
     """
     previous_mean = fmean(window[:PREVIOUS_WEEKS])
-    recent_mean = fmean(window[PREVIOUS_WEEKS:])
+    recent_mean = fmean(window[-RECENT_WEEKS:])
     ratio = (recent_mean + SMOOTHING) / (previous_mean + SMOOTHING)
     return clip(SCORE_MIDPOINT + CHANGE_SENSITIVITY * (ratio - 1.0), SCORE_MIN, SCORE_MAX)
 
 
-def _slope_score(window: Sequence[float]) -> float:
+def compute_slope_score(window: Sequence[float]) -> float:
     """最小二乗法の傾きを窓全体の相対変化へ変換してスコアにする。
 
     `x` は 0..n-1 の定数列ではないので分母は常に正(n=12 のとき 143.0)。
@@ -63,7 +68,9 @@ def compute_query_demand_score(points: Sequence[float]) -> float | None:
     if len(points) < WINDOW_WEEKS:
         return None
     window = list(points[-WINDOW_WEEKS:])
-    score = RATIO_SCORE_WEIGHT * _ratio_score(window) + SLOPE_SCORE_WEIGHT * _slope_score(window)
+    score = RATIO_SCORE_WEIGHT * compute_ratio_score(
+        window
+    ) + SLOPE_SCORE_WEIGHT * compute_slope_score(window)
     # 各項は clip 済みなので定義上 0〜100 に収まる。浮動小数誤差で
     # 100 をわずかに超えることがあるため最後にもう一度 clip する。
     return clip(score, SCORE_MIN, SCORE_MAX)

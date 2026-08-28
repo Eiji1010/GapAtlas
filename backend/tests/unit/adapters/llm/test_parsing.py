@@ -22,13 +22,19 @@ from gapatlas.domain.models.classification import (
 )
 
 
-def parse_pain(payload, expected_count=3):
+def parse_pain_raw(payload, expected_count=3):
+    """`ParsedClassifications` をそのまま返す。"""
     return parse_classification_results(
         payload,
         expected_count=expected_count,
         category=PainCategory,
         default=PainCategory.NEUTRAL,
     )
+
+
+def parse_pain(payload, expected_count=3):
+    """`(category, confidence)` のリストだけを返す。"""
+    return parse_pain_raw(payload, expected_count).items
 
 
 def test_parses_a_well_formed_response():
@@ -192,11 +198,21 @@ def test_zero_and_negative_expected_count_return_empty():
 
 
 def test_typed_helpers_use_the_documented_defaults():
-    empty = {"results": []}
-    assert parse_pain_classifications(empty, 1)[0].classification is PainCategory.NEUTRAL
-    assert parse_solution_classifications(empty, 1)[0].classification is SolutionCategory.OTHER
-    assert parse_news_classifications(empty, 1)[0].classification is NewsRelevance.UNRELATED
-    assert parse_pain_classifications(empty, 1)[0].confidence == 0.0
+    """一部だけ欠落した場合は既定値で補完する(例外にしない)。"""
+    partial = {"results": [{"index": 0, "classification": "SHORTAGE", "confidence": 0.9}]}
+    pain = parse_pain_classifications(partial, 2)
+    assert pain[1].classification is PainCategory.NEUTRAL
+    assert pain[1].confidence == 0.0
+
+    solution = parse_solution_classifications(
+        {"results": [{"index": 0, "classification": "NEWS", "confidence": 0.7}]}, 2
+    )
+    assert solution[1].classification is SolutionCategory.OTHER
+
+    news = parse_news_classifications(
+        {"results": [{"index": 0, "classification": "RELATED", "confidence": 0.7}]}, 2
+    )
+    assert news[1].classification is NewsRelevance.UNRELATED
 
 
 def test_typed_helpers_return_the_expected_count():
@@ -213,3 +229,64 @@ def test_parsing_does_not_log_the_classified_content(caplog):
         parse_pain(payload)
     joined = " ".join(record.getMessage() for record in caplog.records)
     assert "MADE_UP" not in joined
+
+
+# --- 分類の全滅(docs/llm-prompts.md「分類が全滅した場合」) ------------------------------
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},
+        {"results": []},
+        {"results": "not-a-list"},
+        {"results": [{"index": 0, "classification": "MADE_UP", "confidence": 0.9}]},
+        {"results": [{"index": 99, "classification": "SHORTAGE", "confidence": 0.9}]},
+        '{"results": []}',
+    ],
+    ids=[
+        "empty-object",
+        "empty-results",
+        "results-not-list",
+        "unknown-category",
+        "out-of-range-index",
+        "json-string",
+    ],
+)
+def test_typed_helpers_reject_a_total_fallback(payload):
+    """1件も解決できなかった場合は LlmError にする。
+
+    既定値で全件を埋めた結果を返すと `solution_gap = 100`(最大値)が実際の
+    観測値としてスコアへ入り、Confidence にも反映されない。
+    """
+    with pytest.raises(LlmResponseError, match="all"):
+        parse_pain_classifications(payload, 3)
+    with pytest.raises(LlmResponseError, match="all"):
+        parse_solution_classifications(payload, 3)
+    with pytest.raises(LlmResponseError, match="all"):
+        parse_news_classifications(payload, 3)
+
+
+def test_partial_fallback_is_not_rejected():
+    """一部でも解決できていれば例外にしない(件数は Sample sufficiency で評価する)。"""
+    payload = {"results": [{"index": 1, "classification": "COST", "confidence": 0.8}]}
+    parsed = parse_pain_classifications(payload, 3)
+    assert len(parsed) == 3
+    assert parsed[1].classification is PainCategory.COST
+
+
+def test_empty_input_is_not_a_total_fallback():
+    """入力が0件なら「全滅」ではない。"""
+    assert parse_pain_classifications({"results": []}, 0) == []
+
+
+def test_resolved_count_counts_only_llm_resolved_entries():
+    payload = {
+        "results": [
+            {"index": 0, "classification": "SHORTAGE", "confidence": 0.9},
+            {"index": 1, "classification": "MADE_UP", "confidence": 0.9},
+        ]
+    }
+    parsed = parse_pain_raw(payload, 3)
+    assert parsed.resolved_count == 1
+    assert parsed.is_total_fallback is False

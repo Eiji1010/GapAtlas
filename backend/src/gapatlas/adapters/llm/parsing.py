@@ -20,6 +20,7 @@ import json
 import logging
 import math
 from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Final
 
@@ -44,6 +45,26 @@ CONFIDENCE_KEY: Final[str] = "confidence"
 
 FALLBACK_CONFIDENCE: Final[float] = 0.0
 """既定値で補完した項目の confidence。スコアへ寄与させないため 0.0 とする。"""
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedClassifications[CategoryT: StrEnum]:
+    """分類結果と、そのうち何件が実際に LLM から解決できたか。
+
+    `resolved_count == 0` は「分類が全滅した」状態を表す。既定値で埋めた結果を
+    そのままスコアへ流すと、たとえば `solution_gap` が 100(最大値)として
+    正規の観測値のように見えてしまう。呼び出し側が欠損として扱えるよう、
+    件数を区別できる形で返す(docs/llm-prompts.md「共通のレスポンス規約」の
+    「分類が全滅した場合、その成分は None(欠損)として扱い、Confidence へ反映する」)。
+    """
+
+    items: list[tuple[CategoryT, float]]
+    resolved_count: int
+
+    @property
+    def is_total_fallback(self) -> bool:
+        """1件も解決できなかったか。入力が空の場合は False。"""
+        return bool(self.items) and self.resolved_count == 0
 
 
 def _clip_confidence(value: object) -> float:
@@ -94,7 +115,7 @@ def parse_classification_results[CategoryT: StrEnum](
     expected_count: int,
     category: type[CategoryT],
     default: CategoryT,
-) -> list[tuple[CategoryT, float]]:
+) -> ParsedClassifications[CategoryT]:
     """分類結果を `expected_count` 件の `(category, confidence)` へ変換する。
 
     **必ず `expected_count` 件を返す。** 呼び出し側は入力と `zip` してよい。
@@ -125,14 +146,15 @@ def parse_classification_results[CategoryT: StrEnum](
 
     decoded = _decode_payload(payload)
     if decoded is None:
-        return parsed
+        return ParsedClassifications(parsed, 0)
 
     raw_results = decoded.get(RESULTS_KEY)
     if not isinstance(raw_results, list):
         logger.warning("LLM response has no '%s' array; filling %d defaults", RESULTS_KEY, count)
-        return parsed
+        return ParsedClassifications(parsed, 0)
 
     filled: set[int] = set()
+    resolved_count = 0
     for entry in raw_results:
         if not isinstance(entry, Mapping):
             logger.warning("LLM result entry is not an object; ignored")
@@ -145,21 +167,25 @@ def parse_classification_results[CategoryT: StrEnum](
             logger.warning("LLM returned a duplicate index %d; keeping the first one", index)
             continue
         filled.add(index)
-        parsed[index] = _resolve_entry(entry, index, category, default)
+        value, confidence, resolved = _resolve_entry(entry, index, category, default)
+        parsed[index] = (value, confidence)
+        if resolved:
+            resolved_count += 1
 
     missing = count - len(filled)
     if missing > 0:
         logger.warning("LLM omitted %d of %d results; filled with defaults", missing, count)
-    return parsed
+    return ParsedClassifications(parsed, resolved_count)
 
 
 def _resolve_entry[CategoryT: StrEnum](
     entry: Mapping[str, Any], index: int, category: type[CategoryT], default: CategoryT
-) -> tuple[CategoryT, float]:
-    """1件の結果を `(category, confidence)` へ変換する。
+) -> tuple[CategoryT, float, bool]:
+    """1件の結果を `(category, confidence, 解決できたか)` へ変換する。
 
     未知カテゴリ・非文字列カテゴリは既定値へフォールバックし、confidence は 0.0 にする
-    (信用できない分類にスコア上の重みを与えないため)。
+    (信用できない分類にスコア上の重みを与えないため)。3要素目は「LLM の値として
+    解決できたか」で、既定値へのフォールバックは False になる。
     """
     raw = entry.get(CLASSIFICATION_KEY)
     if not isinstance(raw, str):
@@ -169,7 +195,7 @@ def _resolve_entry[CategoryT: StrEnum](
             index,
             default.value,
         )
-        return default, FALLBACK_CONFIDENCE
+        return default, FALLBACK_CONFIDENCE, False
     try:
         resolved = category(raw.strip().upper())
     except ValueError:
@@ -179,22 +205,24 @@ def _resolve_entry[CategoryT: StrEnum](
             index,
             default.value,
         )
-        return default, FALLBACK_CONFIDENCE
-    return resolved, _clip_confidence(entry.get(CONFIDENCE_KEY))
+        return default, FALLBACK_CONFIDENCE, False
+    return resolved, _clip_confidence(entry.get(CONFIDENCE_KEY)), True
 
 
 def parse_pain_classifications(
     payload: str | Mapping[str, Any], expected_count: int
 ) -> list[PainClassification]:
     """rising query の分類結果へ変換する。既定値は `NEUTRAL`。"""
+    parsed = parse_classification_results(
+        payload,
+        expected_count=expected_count,
+        category=PainCategory,
+        default=PainCategory.NEUTRAL,
+    )
+    _reject_total_fallback(parsed)
     return [
         PainClassification(classification=value, confidence=confidence)
-        for value, confidence in parse_classification_results(
-            payload,
-            expected_count=expected_count,
-            category=PainCategory,
-            default=PainCategory.NEUTRAL,
-        )
+        for value, confidence in parsed.items
     ]
 
 
@@ -202,14 +230,16 @@ def parse_solution_classifications(
     payload: str | Mapping[str, Any], expected_count: int
 ) -> list[SolutionClassification]:
     """検索結果の分類結果へ変換する。既定値は `OTHER`。"""
+    parsed = parse_classification_results(
+        payload,
+        expected_count=expected_count,
+        category=SolutionCategory,
+        default=SolutionCategory.OTHER,
+    )
+    _reject_total_fallback(parsed)
     return [
         SolutionClassification(classification=value, confidence=confidence)
-        for value, confidence in parse_classification_results(
-            payload,
-            expected_count=expected_count,
-            category=SolutionCategory,
-            default=SolutionCategory.OTHER,
-        )
+        for value, confidence in parsed.items
     ]
 
 
@@ -217,12 +247,38 @@ def parse_news_classifications(
     payload: str | Mapping[str, Any], expected_count: int
 ) -> list[NewsClassification]:
     """ニュース記事の分類結果へ変換する。既定値は `UNRELATED`。"""
+    parsed = parse_classification_results(
+        payload,
+        expected_count=expected_count,
+        category=NewsRelevance,
+        default=NewsRelevance.UNRELATED,
+    )
+    _reject_total_fallback(parsed)
     return [
         NewsClassification(classification=value, confidence=confidence)
-        for value, confidence in parse_classification_results(
-            payload,
-            expected_count=expected_count,
-            category=NewsRelevance,
-            default=NewsRelevance.UNRELATED,
-        )
+        for value, confidence in parsed.items
     ]
+
+
+def _reject_total_fallback[CategoryT: StrEnum](parsed: ParsedClassifications[CategoryT]) -> None:
+    """1件も分類できなかった場合に例外にする。
+
+    既定値で全件を埋めた結果をスコアへ流すと、`solution_gap = 100`(最大値)や
+    `pain = 0` が「実際に観測された値」として NeedGapScore へ入り、Evidence
+    Confidence にも反映されない。docs/llm-prompts.md は「分類が全滅した場合、
+    その成分は None(欠損)として扱い、Confidence へ反映する」と定めているため、
+    application 層が該当ソースを MISSING として扱えるよう例外で知らせる。
+
+    部分的な欠落(一部の index だけ埋めた場合)は例外にしない。既定値の
+    confidence が 0.0 なのでスコアへ寄与せず、件数は Sample sufficiency で
+    評価されるためである。
+
+    Raises:
+        LlmResponseError: 入力が1件以上あり、そのすべてが既定値だった場合。
+    """
+    if parsed.is_total_fallback:
+        message = (
+            f"LLM classification failed for all {len(parsed.items)} items; "
+            "treat this source as missing"
+        )
+        raise LlmResponseError(message)

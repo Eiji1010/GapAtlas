@@ -69,6 +69,8 @@ APIキーが未取得のため live での実検証は行っていません。**
 
 **未確認**: 複数キーワード時の完全なサンプル JSON は公式ページに掲載がない。`values` 配列が各クエリ分の要素を持つと推定されるが、live で再検証が必要。
 
+> **実装はこの推定に依存しています。** 5か国すべての `demand_queries` が3語のため、Trends の正規化は常にこの経路を通ります。正規化は `values[].query`(文字列一致)→ `values[].query_index`(添字)の順で系列を解決し、どちらでも解決できない値は捨てます。構造が推定と違った場合、**例外は出ず系列が空になり、全国が `INSUFFICIENT_EVIDENCE` になります**(無言の全滅)。live 移行時に最初に確認してください。
+
 ## 2. Google Trends RELATED_QUERIES
 
 `engine=google_trends`, `data_type=RELATED_QUERIES`
@@ -195,4 +197,5 @@ APIキー取得後、次を実データで確認し本文書を更新する。
 - [ ] RELATED_QUERIES の `rising[].value` に `"Record"` が実際に出るか
 - [ ] Google News の `stories` ネストの発生条件とキー構造
 - [ ] Maps の `search_metadata` / `search_parameters` に Maps 固有キーがあるか
+- [ ] `local_results[]` に `link`(事業者サイトの URL)が含まれるか。**確認済みキー一覧には無い**が、正規化は存在すれば読む防御的実装になっている。実データに無ければ `MapsPlace.link` は常に `None` なので、読み取り自体を削除するか本文へ追記する
 - [ ] 各エンジンの実レスポンスと fixture の差分

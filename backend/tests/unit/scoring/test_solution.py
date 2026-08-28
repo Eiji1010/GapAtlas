@@ -16,6 +16,33 @@ def test_coverage_weight_table_covers_all_members():
     assert set(SOLUTION_COVERAGE_WEIGHTS) == set(SolutionCategory)
 
 
+# docs/scoring.md 4章「カバレッジ重み」の表。**実装の定数を参照せずリテラルで書く。**
+SPEC_COVERAGE_WEIGHTS = [
+    (SolutionCategory.DIRECT_PROVIDER, 1.0),
+    (SolutionCategory.MARKETPLACE, 0.7),
+    (SolutionCategory.GOVERNMENT, 0.4),
+    (SolutionCategory.INFORMATION, 0.0),
+    (SolutionCategory.NEWS, 0.0),
+    (SolutionCategory.OTHER, 0.0),
+]
+
+
+@pytest.mark.parametrize(("category", "weight"), SPEC_COVERAGE_WEIGHTS)
+def test_each_coverage_weight_matches_the_spec_table(category, weight):
+    """全6カテゴリの重みを実測で固定する。
+
+    position 1 の1件のみなら分母と順位重みが約分され
+    `solution_gap == 100 * (1 - w)`。
+    """
+    entries = [make_search(1, category)]
+    assert compute_solution_gap(entries) == pytest.approx(100.0 * (1.0 - weight))
+
+
+@pytest.mark.parametrize(("category", "weight"), SPEC_COVERAGE_WEIGHTS)
+def test_constant_table_matches_the_spec_table(category, weight):
+    assert SOLUTION_COVERAGE_WEIGHTS[category] == pytest.approx(weight)
+
+
 def test_empty_results_is_none():
     """`organic_results` が空 → `solution_gap = None`(docs/scoring.md 9章)。"""
     assert compute_solution_gap([]) is None
@@ -85,7 +112,10 @@ def test_denominator_uses_all_top_n_results_not_only_classified_ones():
     assert compute_solution_gap(provider_only) == pytest.approx(0.0)
     gap = compute_solution_gap(with_information)
     assert gap is not None
-    assert gap > 0.0
+    # 分母は 1/log2(2) + 1/log2(3) = 1 + 0.63093。分子は DIRECT_PROVIDER の 1.0 のみ。
+    expected = 100.0 - 100.0 * 1.0 / (1.0 + 1.0 / math.log2(3.0))
+    assert expected == pytest.approx(38.685281)
+    assert gap == pytest.approx(expected)
 
 
 def test_only_top_n_results_are_used():

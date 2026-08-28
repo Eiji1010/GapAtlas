@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from gapatlas.adapters.serpapi.errors import SerpApiError
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.adapters.serpapi.live_client import LiveSerpApiClient
 from gapatlas.adapters.serpapi.protocol import SerpApiClient
@@ -25,3 +26,6 @@ def create_serpapi_client(settings: Settings) -> SerpApiClient:
             return FixtureSerpApiClient()
         case SerpApiMode.LIVE:
             return LiveSerpApiClient(settings)
+        case _:
+            # モードを追加して case を書き忘れたときに無言で None を返さない。
+            raise SerpApiError(f"unsupported serpapi mode: {settings.serpapi_mode}")

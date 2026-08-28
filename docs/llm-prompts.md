@@ -32,6 +32,7 @@ LLM の役割は **分類** と **説明** の2つだけです。この文書は
 - 未知の `classification` 値が返ってきた場合も同様に既定値へフォールバックし、警告ログを出す
 - `confidence` が数値でない、または範囲外の場合は `0.0〜1.0` に clip する
 - **LLM の失敗でスキャン全体を止めない。** 分類が全滅した場合、その成分は `None`（欠損）として扱い、Confidence へ反映する
+- **「全滅」はアダプタが `LlmError` を送出して知らせる。** application 層はこれを捕捉して該当ソースを `MISSING` にする。既定値で全件を埋めた結果を返してはいけない（`solution_gap = 100` が最大値として観測値のように扱われ、Confidence にも反映されない）。**部分的な欠落は例外にしない**（既定値の `confidence = 0.0` はスコアへ寄与せず、件数は Sample sufficiency が評価する）
 
 ## 1. Related Queries の分類（Pain Signal 用）
 

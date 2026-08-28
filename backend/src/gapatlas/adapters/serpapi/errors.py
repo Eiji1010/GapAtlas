@@ -17,21 +17,29 @@ from typing import Any, Final
 
 from gapatlas.domain.models.errors import GapAtlasError
 
-_API_KEY_QUERY_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"(api_key=)[^&\s]*", flags=re.IGNORECASE
-)
-"""クエリ文字列中の `api_key=...` を捕捉する。"""
-
 API_KEY_MASK: Final[str] = "***"
+
+_API_KEY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
+    # クエリ文字列: ...&api_key=VALUE&...
+    re.compile(r"(api_key=)[^&\s\"']*", flags=re.IGNORECASE),
+    # dict / JSON 表記: {"api_key": "VALUE"} / 'api_key': 'VALUE'
+    re.compile(r"""(["']?api_key["']?\s*[:=]\s*["'])[^"']*(["'])""", flags=re.IGNORECASE),
+)
+"""API キーが現れうる表記。URL だけでなく dict の repr も捕捉する。
+
+`params` dict をそのままログ・例外へ載せる実装が後から入っても漏れないよう、
+関数名から期待される範囲(「API キーをマスクする」)を満たす広さにしている。
+"""
 
 
 def mask_api_key(text: str) -> str:
-    """文字列中の `api_key=...` の値をマスクする。
+    """文字列中の API キーの値をマスクする。
 
-    URL をそのまま例外メッセージやログへ載せると API キーが漏れる。載せる必要が
-    ある場合は必ずこの関数を通す。
+    URL や params の dict をそのまま例外メッセージやログへ載せると API キーが
+    漏れる。載せる必要がある場合は必ずこの関数を通す。
     """
-    return _API_KEY_QUERY_PATTERN.sub(rf"\1{API_KEY_MASK}", text)
+    masked = _API_KEY_PATTERNS[0].sub(rf"\1{API_KEY_MASK}", text)
+    return _API_KEY_PATTERNS[1].sub(rf"\1{API_KEY_MASK}\2", masked)
 
 
 class SerpApiError(GapAtlasError):

@@ -9,7 +9,12 @@ import pytest
 from conftest import make_series, make_trends
 
 from gapatlas.domain.models.normalized import TrendsSeries, TrendsTimeseries
-from gapatlas.domain.scoring.demand import compute_demand, compute_query_demand_score
+from gapatlas.domain.scoring.demand import (
+    compute_demand,
+    compute_query_demand_score,
+    compute_ratio_score,
+    compute_slope_score,
+)
 
 # --- 手計算の基準系列 -------------------------------------------------------
 # y = [10]*8 + [12]*4
@@ -29,9 +34,13 @@ RISING_QUERY_SCORE = 0.70 * RISING_RATIO_SCORE + 0.30 * RISING_SLOPE_SCORE
 
 
 def test_hand_calculated_query_demand_score():
-    """既知の12点系列に対する値を、仕様の式から手で導いた定数と比較する。"""
-    assert pytest.approx(63.333333333333336) == RISING_RATIO_SCORE
-    assert pytest.approx(65.71194762684124) == RISING_SLOPE_SCORE
+    """既知の12点系列に対する値を、仕様の式から手で導いた定数と比較する。
+
+    **2成分を個別に実装と突き合わせる。** 合成値だけを見ると、`ratio_score` と
+    `slope_score` が打ち消し合う誤りを検出できない。
+    """
+    assert compute_ratio_score(RISING_SERIES) == pytest.approx(63.333333333333336)
+    assert compute_slope_score(RISING_SERIES) == pytest.approx(65.71194762684124)
     assert compute_query_demand_score(RISING_SERIES) == pytest.approx(64.0469176213857)
 
 
@@ -54,8 +63,36 @@ def test_all_zero_series_scores_fifty():
     """全て 0 → r = 1 → ratio_score = 50、slope = 0 → slope_score = 50、demand = 50。
 
     ゼロ除算が起きないこと(`SMOOTHING` により分母は常に 5 以上)。
+    docs/scoring.md 9章は2成分それぞれが 50 であることを求めている。
     """
-    assert compute_query_demand_score([0.0] * 12) == pytest.approx(50.0)
+    zeros = [0.0] * 12
+    assert compute_ratio_score(zeros) == pytest.approx(50.0)
+    assert compute_slope_score(zeros) == pytest.approx(50.0)
+    assert compute_query_demand_score(zeros) == pytest.approx(50.0)
+
+
+def test_ratio_and_slope_move_independently():
+    """2成分が別々に動くことを、片方だけが 50 になる入力で固定する。
+
+    合成値だけを見ていると、2成分が打ち消し合う誤り(重みの入れ替えなど)を
+    検出できない。
+
+    `x = 5.5` について対称な系列は最小二乗の傾きが厳密に 0 になる
+    (`(x_i - 5.5)` と `(x_{11-i} - 5.5)` が符号だけ違い `y` が等しいため相殺)。
+    一方 `previous_mean = 5.0` / `recent_mean = 0.0` なので比は動く。
+
+        r = (0 + 5) / (5 + 5) = 0.5  ->  ratio_score = 50 + 100 * (-0.5) = 0
+    """
+    symmetric = [0.0, 0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0]
+    assert compute_slope_score(symmetric) == pytest.approx(50.0)
+    assert compute_ratio_score(symmetric) == pytest.approx(0.0)
+    # 合成は 0.70 * 0 + 0.30 * 50 = 15.0
+    assert compute_query_demand_score(symmetric) == pytest.approx(15.0)
+
+    # 単調増加ならどちらも 50 を超える
+    rising = [float(index) for index in range(12)]
+    assert compute_slope_score(rising) > 50.0
+    assert compute_ratio_score(rising) > 50.0
 
 
 def test_flat_series_scores_fifty_at_any_level():

@@ -183,6 +183,7 @@ def make_profile(
     country: Country = Country.JP,
     language: str = "ja",
     review_status: ReviewStatus = ReviewStatus.MANUAL_REVIEWED,
+    demand_queries: Sequence[str] | None = None,
 ) -> QueryProfile:
     return QueryProfile(
         topic_id=TopicId.ELDER_CARE,
@@ -191,7 +192,7 @@ def make_profile(
         version="elder-care-test-v1",
         review_status=review_status,
         serpapi=SerpApiParams(geo="JP", gl="jp", hl="ja", google_domain="google.co.jp"),
-        demand_queries=["介護"],
+        demand_queries=list(demand_queries) if demand_queries else ["介護"],
         related_query_seed=["介護"],
         solution_query=["介護 サービス"],
         news_query=["介護"],

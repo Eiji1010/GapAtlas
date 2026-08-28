@@ -60,6 +60,19 @@ from gapatlas.domain.models.result import OpportunityBrief
 
 logger = logging.getLogger(__name__)
 
+_PROGRAMMING_ERRORS: Final[tuple[type[BaseException], ...]] = (
+    AttributeError,
+    TypeError,
+    NameError,
+    ImportError,
+)
+"""外部 API 障害として扱ってはいけない例外。
+
+これらは呼び出し側の実装バグ(SDK のシグネチャ変更、属性名の誤りなど)であり、
+`LlmRequestError` へ変換すると `write_brief` がそれを握って `None` を返し、
+Opportunity Brief が無言で欠落したまま原因が追えなくなる。
+"""
+
 CLASSIFICATION_TOOL_NAME: Final[str] = "record_classifications"
 BRIEF_TOOL_NAME: Final[str] = "record_opportunity_brief"
 
@@ -144,7 +157,8 @@ class AnthropicLlmClient:
         """クライアントを組み立てる。
 
         Args:
-            settings: `anthropic_model` と `anthropic_api_key` を読む。
+            settings: `anthropic_model` / `anthropic_api_key` /
+                `anthropic_timeout_seconds` / `anthropic_max_retries` を読む。
             client: 注入するクライアント。テストは必ずフェイクを渡すこと
                 (単体テストで実 API を呼ばない。API キーが無い前提)。
 
@@ -160,7 +174,11 @@ class AnthropicLlmClient:
         if api_key is None:
             message = "ANTHROPIC_API_KEY is required when LLM_MODE=anthropic"
             raise LlmError(message)
-        self._client = _build_default_client(api_key.get_secret_value())
+        self._client = _build_default_client(
+            api_key.get_secret_value(),
+            timeout=settings.anthropic_timeout_seconds,
+            max_retries=settings.anthropic_max_retries,
+        )
 
     # --- 分類 -------------------------------------------------------------------------
 
@@ -271,6 +289,9 @@ class AnthropicLlmClient:
                     "disable_parallel_tool_use": True,
                 },
             )
+        except _PROGRAMMING_ERRORS:
+            # 実装バグを外部 API 障害として隠さない。そのまま上へ投げる。
+            raise
         except Exception as exc:
             # 原因例外の本文は載せない(秘密情報が混ざらないようにする)。
             message = f"Anthropic Messages API request failed ({type(exc).__name__})"
@@ -278,7 +299,7 @@ class AnthropicLlmClient:
         return _extract_payload(response, tool_name)
 
 
-def _build_default_client(api_key: str) -> Any:
+def _build_default_client(api_key: str, *, timeout: float, max_retries: int) -> Any:
     """`anthropic` を遅延 import してクライアントを作る。
 
     optional extra(`llm`)なので、未インストール環境で本モジュールの import 自体が
@@ -295,7 +316,10 @@ def _build_default_client(api_key: str) -> Any:
             "install the 'llm' optional extra to use LLM_MODE=anthropic"
         )
         raise LlmError(message) from exc
-    return anthropic.Anthropic(api_key=api_key)
+    # タイムアウトを明示する。SDK 既定は read 600 秒かつリトライ2回で、
+    # 1呼び出しが最悪 30 分近くブロックしうる(docs/requirements.md の
+    # 「AI Insight は Ranking 完了後 +5 sec 以内」と2桁乖離する)。
+    return anthropic.Anthropic(api_key=api_key, timeout=timeout, max_retries=max_retries)
 
 
 def _extract_payload(response: Any, tool_name: str) -> Mapping[str, Any] | str:

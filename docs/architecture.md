@@ -196,8 +196,11 @@ MVP では最低限「国ごとの Need Gap Score 履歴」を Athena から取�
 
 - SerpApi timeout 8秒、リトライ最大2回、Exponential backoff
 - **リトライ対象は 429 / 500 / 503 とネットワークエラーのみ。** その他の 4xx はリトライしない
+- **LLM(Anthropic API)も timeout を明示する。** `ANTHROPIC_TIMEOUT_SECONDS`(既定 30秒)と `ANTHROPIC_MAX_RETRIES`(既定 2)で制御し、SDK の既定値(read 600秒)に委ねない。委ねると1呼び出しが最悪30分近くブロックし、Lambda Worker のタイムアウト経由で SQS の `maxReceiveCount` を消費して DLQ へ落ちる
+- **分類が全滅した場合(1件も分類できなかった場合)は、そのソースを `MISSING` として扱う。** 既定値で全件を埋めた結果をスコアへ流すと `solution_gap = 100`(最大値)が観測値として入り、Confidence にも反映されない
 - 1つのソースが失敗しても他のソースの結果でスコアを算出し、Confidence へ反映する
 - `trends` の失敗のみ Need Gap Score を出さない扱いとする
+- **レスポンス本文にサイズ上限を設ける。** 上限が無いと、障害時の巨大な本文でメモリを使い切り「1ソースの失敗」ではなくプロセス強制終了になる
 
 ## Observability
 
@@ -206,6 +209,10 @@ CloudWatch Structured Logging(JSON1行)。全ログに次を含める。
 `scan_id` / `country` / `topic` / `source`
 
 **API key をログへ書かない。** ログ出力前にマスクする。
+
+これは**自分が書くログだけでなく、プロセスが出すログ全体**に対する要件である。SerpApi は認証をクエリパラメータ(`api_key=...`)でしか受け付けないため URL そのものが秘密情報であり、httpx はリクエストごとに完全な URL を INFO で出力する。外部ライブラリのロガーへマスク用のフィルタを装着すること(`adapters/serpapi/logging_guard.py`)。
+
+**ログのコンテキスト伝播は Phase 6 で決める。** アダプタ層は `scan_id` を知りえないため、現状のログには `source` / `country` / `topic` しか入っていない。`contextvars` か `LoggerAdapter` で `scan_id` を伝播させる方式を、application 層の実装前に確定させること。後から決めると全ログ呼び出しの書き換えになる。
 
 Metrics: `scan_duration_ms` / `serpapi_latency_ms` / `serpapi_calls` / `serpapi_errors` / `cache_hits` / `cache_misses` / `llm_latency` / `country_completed` / `scan_completed`
 

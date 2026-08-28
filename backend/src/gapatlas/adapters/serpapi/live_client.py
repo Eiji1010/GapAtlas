@@ -30,6 +30,7 @@ from gapatlas.adapters.serpapi.errors import (
     mask_api_key,
     raise_for_error_payload,
 )
+from gapatlas.adapters.serpapi.logging_guard import install_api_key_log_guard
 from gapatlas.adapters.serpapi.params import build_params
 from gapatlas.config.settings import Settings
 from gapatlas.domain.models.common import SourceName
@@ -49,6 +50,15 @@ RETRYABLE_STATUS_CODES: Final[frozenset[int]] = frozenset({429, 500, 503})
 """リトライしてよい HTTP ステータス。429 以外の 4xx はリトライしない。"""
 
 HTTP_STATUS_OK: Final[int] = 200
+
+MAX_RESPONSE_BYTES: Final[int] = 8 * 1024 * 1024
+"""受け入れるレスポンス本文の上限。
+
+SerpApi の実レスポンスは未検証(docs/serpapi-schema.md 7章)であり、障害時に
+巨大な HTML を返す可能性がある。上限が無いと本文のデコードと JSON 解析で
+メモリを使い切り、「1ソースの失敗」ではなくプロセス強制終了になる
+(docs/requirements.md「Reliability」)。
+"""
 
 
 def _is_retryable(error: SerpApiRequestError | SerpApiStatusError) -> bool:
@@ -85,6 +95,10 @@ class LiveSerpApiClient:
         """
         if settings.serpapi_api_key is None:
             raise SerpApiError("SERPAPI_API_KEY is required for live mode")
+
+        # httpx はリクエストごとに完全な URL を INFO で出力する。SerpApi は
+        # クエリパラメータ認証のため、これを止めないと API キーがログへ残る。
+        install_api_key_log_guard()
 
         self._api_key = settings.serpapi_api_key
         self._timeout = settings.serpapi_timeout_seconds
@@ -140,6 +154,9 @@ class LiveSerpApiClient:
             response = client.get(SERPAPI_ENDPOINT, params=params, timeout=self._timeout)
         except httpx.RequestError as exc:
             # 例外の文言をそのまま連結しない。URL を含む実装があり API キーが漏れうる。
+            # `from exc` で残る原因例外はトレースバックに現れるため、原因側の
+            # メッセージもマスクしてから連結する。
+            exc.args = tuple(mask_api_key(arg) if isinstance(arg, str) else arg for arg in exc.args)
             raise SerpApiRequestError(f"serpapi request failed: {type(exc).__name__}") from exc
 
         if response.status_code != HTTP_STATUS_OK:
@@ -158,6 +175,12 @@ def _parse_json_object(response: httpx.Response) -> dict[str, Any]:
     HTTP 200 でも本文に `{"error": ...}` が返ることがある
     (docs/serpapi-schema.md 6章)。この場合はリトライせず即失敗させる。
     """
+    body = response.content
+    if len(body) > MAX_RESPONSE_BYTES:
+        raise SerpApiResponseError(
+            f"serpapi response body exceeds {MAX_RESPONSE_BYTES} bytes (got {len(body)} bytes)"
+        )
+
     try:
         loaded: object = json.loads(response.text)
     except json.JSONDecodeError as exc:

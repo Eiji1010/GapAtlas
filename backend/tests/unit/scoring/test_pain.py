@@ -21,6 +21,54 @@ def test_category_weight_table_covers_all_members():
     assert set(PAIN_CATEGORY_WEIGHTS) == set(PainCategory)
 
 
+# docs/scoring.md 3章「カテゴリ重み」の表。**実装の定数を参照せずリテラルで書く。**
+# 実装側を参照すると自己参照になり、値を書き換えても検出できない。
+SPEC_PAIN_WEIGHTS = [
+    (PainCategory.SHORTAGE, 1.00),
+    (PainCategory.WAIT_TIME, 1.00),
+    (PainCategory.ACCESS, 0.90),
+    (PainCategory.WORKFORCE, 0.80),
+    (PainCategory.COST, 0.70),
+    (PainCategory.QUALITY, 0.60),
+    (PainCategory.NEUTRAL, 0.00),
+]
+
+
+@pytest.mark.parametrize(("category", "weight"), SPEC_PAIN_WEIGHTS)
+def test_each_category_weight_matches_the_spec_table(category, weight):
+    """全7カテゴリの重みを実測で固定する。
+
+    1件だけなら `g` が約分されるので `pain == 100 * w * c`(confidence 1.0)。
+    """
+    assert compute_pain([make_rising(300.0, category)]) == pytest.approx(100.0 * weight)
+
+
+@pytest.mark.parametrize(("category", "weight"), SPEC_PAIN_WEIGHTS)
+def test_constant_table_matches_the_spec_table(category, weight):
+    """定数表そのものも仕様のリテラルと突き合わせる。"""
+    assert PAIN_CATEGORY_WEIGHTS[category] == pytest.approx(weight)
+
+
+def test_growth_cap_constant_matches_the_spec():
+    """docs/scoring.md 3章 定数表: `GROWTH_CAP_PERCENT = 5000.0`。"""
+    assert GROWTH_CAP_PERCENT == 5000.0
+    assert BREAKOUT_GROWTH_PERCENT == 5000.0
+
+
+def test_growth_above_the_cap_is_clipped_to_five_thousand():
+    """上限超えの成長率が 5000 と同じ `g` になること。
+
+    `edge_cases/trends_related_queries_breakout.json` には
+    `extracted_value: 12000` が実在する。cap がずれると両者の重みが食い違い、
+    SHORTAGE と NEUTRAL 各1件でも 50.0 にならない。
+    """
+    entries = [
+        make_rising(12000.0, PainCategory.SHORTAGE),
+        make_rising(5000.0, PainCategory.NEUTRAL),
+    ]
+    assert compute_pain(entries) == pytest.approx(50.0)
+
+
 def test_empty_rising_is_none():
     """rising が空 → `pain = None`(docs/scoring.md 9章)。"""
     assert compute_pain([]) is None

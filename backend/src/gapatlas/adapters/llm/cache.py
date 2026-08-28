@@ -8,7 +8,7 @@ docs/llm-prompts.md「分類結果は入力ハッシュでキャッシュする(
 キー材料:
 
 - 分類対象の内容(LLM へ実際に渡すペイロード。成長率・`position`・日付は含まれない)
-- `QueryProfile` の `version` / `country` / `language`
+- `QueryProfile` の `topic_id` / `version` / `country` / `language`
 - `CLASSIFIER_VERSION` / `PROMPT_VERSION`
 
 プロセス内メモリキャッシュで十分とする(永続キャッシュは別 Phase)。
@@ -43,6 +43,7 @@ def build_cache_key(kind: str, items: Sequence[ItemPayload], profile: QueryProfi
         {
             "kind": kind,
             "items": items,
+            "topic_id": profile.topic_id.value,
             "country": profile.country.value,
             "language": profile.language,
             "query_profile_version": profile.version,

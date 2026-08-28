@@ -32,6 +32,7 @@ from gapatlas.domain.scoring.constants import (
     TRENDS_ZERO_RATIO_CAP,
 )
 from gapatlas.domain.scoring.engine import CountryEvaluation, evaluate_country
+from gapatlas.domain.scoring.rounding import round_half_up
 
 RISING_SERIES = [10.0] * 8 + [12.0] * 4
 
@@ -77,7 +78,10 @@ def test_public_representation_is_rounded_half_up():
     """公開表現は内部 float を四捨五入(round half up)した整数。"""
     result = _evaluate()
     assert result.need_gap.score is not None
-    assert result.public_need_gap_score == pytest.approx(round(result.need_gap.score), abs=1)
+    # 許容ゼロで比較する。`abs=1` だと floor でも ceil でも通ってしまう。
+    # 比較対象も組み込みの `round()`(偶数丸め)ではなく `round_half_up` を使う。
+    assert result.public_need_gap_score == round_half_up(result.need_gap.score)
+    assert result.public_confidence == round_half_up(result.confidence.score)
     assert isinstance(result.public_need_gap_score, int)
     assert isinstance(result.public_confidence, int)
     assert 0 <= result.public_confidence <= 100

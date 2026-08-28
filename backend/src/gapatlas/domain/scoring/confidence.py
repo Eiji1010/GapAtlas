@@ -17,6 +17,7 @@ from gapatlas.domain.models.common import (
     SourceName,
     ensure_utc,
 )
+from gapatlas.domain.models.errors import DomainValidationError
 from gapatlas.domain.models.normalized import NormalizedEvidence
 from gapatlas.domain.models.query_profile import QueryProfile
 from gapatlas.domain.models.scores import (
@@ -68,31 +69,49 @@ def compute_data_completeness(evidence: NormalizedEvidence) -> float:
     return SCORE_SCALE * len(evidence.ok_core_sources()) / len(CORE_SOURCES)
 
 
-def _sample_count(evidence: NormalizedEvidence, source: SourceName) -> int:
+def _trends_sample_count(evidence: NormalizedEvidence, profile: QueryProfile) -> int:
+    """**各 demand query** の系列長のうち最小値(docs/scoring.md 6章)。
+
+    数える対象は「レスポンスに現れた系列」ではなく「QueryProfile が要求した
+    クエリ」である。Google Trends は検索ボリュームが閾値未満のキーワードを
+    結果から落とすため、要求した3クエリのうち1つが返らないことがある。
+    現れた系列だけで最小値を取ると、そのクエリの Demand を計算できないのに
+    Sample sufficiency が満点になり、Confidence を過大評価する。
+
+    要求クエリに対応する系列が無い場合、その系列長は 0 とする。系列が1つも
+    無い場合も 0(同章「系列が1つも無い場合は 0 とします」)。
+    """
+    if evidence.trends is None or not evidence.trends.series:
+        return 0
+    lengths = {series.query: len(series.points) for series in evidence.trends.series}
+    return min(lengths.get(query, 0) for query in profile.demand_queries)
+
+
+def _sample_count(evidence: NormalizedEvidence, source: SourceName, profile: QueryProfile) -> int:
     """Sample sufficiency で数える件数。"""
     if source is SourceName.TRENDS:
-        # 各 demand query の系列長のうち最小値。1系列でも 12 点未満なら
-        # そのクエリの Demand が計算できないため、最小値を代表値にする。
-        if evidence.trends is None or not evidence.trends.series:
-            return 0
-        return min(len(series.points) for series in evidence.trends.series)
+        return _trends_sample_count(evidence, profile)
     if source is SourceName.RELATED_QUERIES:
         return len(evidence.rising_queries)
     if source is SourceName.SEARCH:
         return len(evidence.search_results)
     if source is SourceName.NEWS:
         return sum(1 for article in evidence.news_articles if article.published_at is not None)
-    return 0
+    # `compute_sample_sufficiency` は CORE_SOURCES しか渡さないため到達しない。
+    # 将来 Core Source が増えたときに 0 を返して静かに満点を割らないよう例外にする。
+    message = f"sample count is not defined for source: {source.value}"
+    raise DomainValidationError(message)
 
 
-def compute_sample_sufficiency(evidence: NormalizedEvidence) -> float:
+def compute_sample_sufficiency(evidence: NormalizedEvidence, profile: QueryProfile) -> float:
     """`100 * mean([clip(count_s / target_s, 0, 1) for s in 4つの Core Source])`。
 
     MISSING(= OK でない)のソースは ratio 0。平均は常に4ソース固定で取る。
+    `profile` は trends の件数を「各 demand query」基準で数えるために使う。
     """
     ok_sources = set(evidence.ok_core_sources())
     ratios = [
-        clip(_sample_count(evidence, source) / SAMPLE_TARGETS[source], 0.0, 1.0)
+        clip(_sample_count(evidence, source, profile) / SAMPLE_TARGETS[source], 0.0, 1.0)
         if source in ok_sources
         else 0.0
         for source in CORE_SOURCES
@@ -135,7 +154,13 @@ def compute_source_agreement(components: ScoreComponents) -> float:
 
 
 def _cache_age_days(evidence: NormalizedEvidence, source: SourceName) -> float:
-    """キャッシュ経過時間(日)。`fetches` に無ければ 0(新規取得扱い)。"""
+    """キャッシュ経過時間(日)。`fetches` に無ければ 0(新規取得扱い)。
+
+    `compute_freshness` は `ok_core_sources()` の結果しか渡さず、`fetches` に
+    無いソースは `NOT_REQUESTED` になるため、実際には `None` にならない
+    (到達不能な防御)。別経路から呼ぶ場合は「0 = 最新扱い」で Freshness が
+    過大評価される点に注意すること。
+    """
     fetch = evidence.fetches.get(source)
     if fetch is None:
         return NO_DATA_AGE_DAYS
@@ -267,7 +292,7 @@ def compute_confidence(
 
     breakdown = ConfidenceBreakdown(
         data_completeness=compute_data_completeness(evidence),
-        sample_sufficiency=compute_sample_sufficiency(evidence),
+        sample_sufficiency=compute_sample_sufficiency(evidence, profile),
         localization_quality=compute_localization_quality(profile),
         source_agreement=compute_source_agreement(components),
         freshness=compute_freshness(evidence, scan_time),

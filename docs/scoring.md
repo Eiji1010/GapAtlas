@@ -17,7 +17,7 @@
 - `median(xs)` = 中央値。要素数が偶数の場合は中央2つの算術平均
 - `pstdev(xs)` = 母標準偏差(N で割る)
 - `log1p(x)` = `ln(1 + x)`
-- 公開スコアは **0〜100 の整数**。内部では float を保持し、最終出力時に **四捨五入(round half up)** する
+- 公開スコアは **0〜100 の整数**。内部では float を保持し、最終出力時に **四捨五入(round half up)** する。負値は 0 から遠い側へ丸める(`decimal.ROUND_HALF_UP`)。ただし公開スコアは clip 済みのため負値は発生しない
 - 計算不能な下位スコアは `None` とし、0 で代替しない
 
 ## 1. Need Gap Signal Score
@@ -42,6 +42,8 @@ NeedGapScore = Σ(w_i * s_i) / Σ(w_i)   ※ i は s_i が None でない成分�
 ```
 
 再正規化を行った場合、`score_components_used` に使用した成分名を記録する。欠損を 0 として扱ってはいけない(欠損と「値が0」は別である)。
+
+`need_gap_score = None` の場合も `score_components_used` は非空になりうる。これは「算出できた成分」を示すものであり、**スコアの算出根拠ではない**。UI や API 消費側が、この値の非空をスコアの存在判定に使ってはいけない。
 
 - Core Source が2つ以上欠損した場合、成分の再正規化にかかわらず `status = INSUFFICIENT_EVIDENCE` とし `need_gap_score = None` とする
 
@@ -96,6 +98,8 @@ slope_score = clip(50 + 100 * relative_change, 0, 100)
 ```
 
 `ratio_score` と同じ感度になる(窓全体で +50% の変化 → 100、-50% → 0)。
+
+**厳密な水準非依存ではない。** `SMOOTHING` を分母へ加えるため、検索ボリュームが小さい系列では同じ変化率でも 50 寄りに減衰する。これは意図した設計であり、母数が小さいときに極端なスコアを出さないための緩衝である。系列を定数倍しても同じ値になるのは `SMOOTHING` が無視できる高水準の極限だけである。
 
 #### 合成
 
@@ -313,6 +317,8 @@ data_completeness = 100 * (OK の Core Source 数) / 4
 
 `trends` が最小値なのは、Demand Momentum が**各クエリについて 12 点を必要とする**ためです。1つでも 12 点に満たない系列があれば、そのクエリの Demand は計算できません。系列が1つも無い場合は 0 とします。
 
+数える対象は「レスポンスに現れた系列」ではなく **QueryProfile の `demand_queries` が要求したクエリ**です。Google Trends は検索ボリュームが閾値未満のキーワードを結果から落とすため、要求したクエリに対応する系列が返らないことがあります。**その場合、そのクエリの系列長は 0 として数えます。** 現れた系列だけで最小値を取ると、そのクエリの Demand を計算できないのに Sample sufficiency が満点になり、Confidence を過大評価します。
+
 ```text
 ratio_s = clip(count_s / target_s, 0, 1)      # MISSING のソースは ratio_s = 0
 sample_sufficiency = 100 * mean([ratio_s for s in 4つの Core Source])
@@ -383,6 +389,8 @@ zero_ratio = (全系列の全データ点のうち値が 0 のものの数) / (�
 
 クエリごとに個別判定するのではなく、Trends データ全体で1つの比率を出します。分母が 0 の場合（データ点が1つも無い）、`trends` は `MISSING` であり Hard Rule 1 が先に適用されるため、この規則は評価しません。
 5. `localization_quality` の上限は Localization quality 節の表に従う(算出時点で適用済み)
+
+Hard Rules 1・2 は `status` と `need_gap_score` を決める規則であり、**Confidence に上限を課さない**。上限規則は 3・4 のみである。1・2 に該当した事実は `applied_caps` へ記録する。
 
 `status = INSUFFICIENT_EVIDENCE` の場合も **Evidence Confidence は算出して返す**。何がどれだけ欠けているかを利用者へ示すためである。
 

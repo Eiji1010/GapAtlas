@@ -44,9 +44,24 @@ from gapatlas.domain.scoring.constants import (
     MISSING_ONE_CORE_SOURCE_CAP,
     SAMPLE_TARGETS,
     TRENDS_ZERO_RATIO_CAP,
+    ZERO_RATIO_THRESHOLD,
 )
 
 RISING_SERIES = [10.0] * 8 + [12.0] * 4
+
+
+DEMAND_QUERIES = ["q0", "q1", "q2"]
+"""`make_trends` が付ける系列名と一致させる。
+
+Sample sufficiency の trends は「各 demand query の系列長のうち最小値」なので、
+QueryProfile が要求するクエリ名と系列名が一致していないと 0 件になる。
+"""
+
+
+def _profile(**kwargs):
+    """`_full_evidence` の trends と整合する QueryProfile。"""
+    kwargs.setdefault("demand_queries", DEMAND_QUERIES)
+    return make_profile(**kwargs)
 
 
 def _full_evidence(**kwargs):
@@ -116,7 +131,7 @@ def test_sample_targets():
 
 
 def test_sample_sufficiency_full():
-    assert compute_sample_sufficiency(_full_evidence()) == pytest.approx(100.0)
+    assert compute_sample_sufficiency(_full_evidence(), _profile()) == pytest.approx(100.0)
 
 
 def test_sample_sufficiency_trends_uses_minimum_series_length():
@@ -128,19 +143,19 @@ def test_sample_sufficiency_trends_uses_minimum_series_length():
     trends = make_trends([50.0] * 52, [50.0] * 11, [50.0] * 52)
     evidence = _full_evidence(trends=trends)
     expected = 100.0 * ((11 / 12) + 1 + 1 + 1) / 4
-    assert compute_sample_sufficiency(evidence) == pytest.approx(expected)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(expected)
 
 
 def test_sample_sufficiency_trends_without_series_is_zero():
     """系列が1つも無ければ 0。"""
     evidence = _full_evidence(trends=TrendsTimeseries(series=[]))
-    assert compute_sample_sufficiency(evidence) == pytest.approx(100.0 * 3 / 4)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(100.0 * 3 / 4)
 
 
 def test_sample_sufficiency_missing_source_ratio_is_zero():
     """MISSING のソースは ratio 0。平均は常に4ソース固定で取る。"""
     evidence = _full_evidence(statuses={SourceName.NEWS: SourceStatus.MISSING})
-    assert compute_sample_sufficiency(evidence) == pytest.approx(75.0)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(75.0)
 
 
 def test_sample_sufficiency_counts_only_dated_news():
@@ -152,15 +167,30 @@ def test_sample_sufficiency_counts_only_dated_news():
     ]
     evidence = _full_evidence(news_articles=articles)
     expected = 100.0 * (1 + 1 + 1 + (2 / 5)) / 4
-    assert compute_sample_sufficiency(evidence) == pytest.approx(expected)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(expected)
 
 
 def test_sample_sufficiency_ratio_is_capped_at_one():
     """目標件数を超えても ratio は 1 を超えない。"""
     articles = [make_news(SCAN_TIME, position=index).item for index in range(1, 30)]
-    assert compute_sample_sufficiency(_full_evidence(news_articles=articles)) == pytest.approx(
-        100.0
-    )
+    evidence = _full_evidence(news_articles=articles)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(100.0)
+
+
+def test_sample_sufficiency_counts_a_requested_query_without_series_as_zero():
+    """Trends が返さなかった demand query は系列長 0 として数える。
+
+    Google Trends は検索ボリュームが閾値未満のキーワードを結果から落とす。
+    現れた系列だけで最小値を取ると、そのクエリの Demand を計算できないのに
+    Sample sufficiency が満点になり Confidence を過大評価する
+    (docs/scoring.md 6章「各 demand query の系列長のうち最小値」)。
+    """
+    trends = make_trends([50.0] * 52, [50.0] * 52)  # q0 / q1 のみ。q2 は返らなかった
+    evidence = _full_evidence(trends=trends)
+    assert compute_sample_sufficiency(evidence, _profile()) == pytest.approx(100.0 * 3 / 4)
+    # 要求クエリが2件だけなら満点に戻る
+    two_queries = _profile(demand_queries=["q0", "q1"])
+    assert compute_sample_sufficiency(evidence, two_queries) == pytest.approx(100.0)
 
 
 # --------------------------------------------------------------------------
@@ -359,6 +389,33 @@ def test_zero_ratio_counts_all_series_and_points():
     trends = make_trends([0.0] * 52, [50.0] * 52, [50.0] * 52)
     assert compute_trends_zero_ratio(make_evidence(trends=trends)) == pytest.approx(1 / 3)
 
+    # クエリ単位で判定する実装だと、全ゼロの1系列が Hard Rule 4 を誤発動させる。
+    # Hard Rule のレベルまで確認しないとその改変を検出できない。
+    result = compute_confidence(
+        _full_evidence(trends=trends), _profile(), ScoreComponents(), SCAN_TIME
+    )
+    assert CAP_TRENDS_ZERO_RATIO not in result.applied_caps
+
+
+def test_zero_ratio_just_below_fifty_percent_does_not_trigger_hard_rule_4():
+    """しきい値の**下側**を固定する。49% では発動しない。
+
+    40% までしか試さないと、しきい値を 0.45 や 0.42 へ緩める改変を検出できない
+    (docs/scoring.md 6章「ゼロ率が 50% 以上」)。
+    """
+    trends = make_trends([0.0] * 49 + [50.0] * 51)
+    evidence = _full_evidence(trends=trends)
+    assert compute_trends_zero_ratio(evidence) == pytest.approx(0.49)
+    result = compute_confidence(
+        evidence, _profile(demand_queries=["q0"]), ScoreComponents(), SCAN_TIME
+    )
+    assert CAP_TRENDS_ZERO_RATIO not in result.applied_caps
+
+
+def test_zero_ratio_threshold_constant_matches_the_spec():
+    """docs/scoring.md 6章 Hard Rule 4: ゼロ率 50% 以上。"""
+    assert ZERO_RATIO_THRESHOLD == 0.5
+
 
 def test_zero_ratio_forty_percent_does_not_trigger_hard_rule_4():
     """3系列 * 52 点のうち 0 が 40% → Hard Rule 4 は発動しない。"""
@@ -368,7 +425,7 @@ def test_zero_ratio_forty_percent_does_not_trigger_hard_rule_4():
     ratio = compute_trends_zero_ratio(evidence)
     assert ratio is not None
     assert 0.4 <= ratio < 0.5
-    result = compute_confidence(evidence, make_profile(), ScoreComponents(), SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), ScoreComponents(), SCAN_TIME)
     assert CAP_TRENDS_ZERO_RATIO not in result.applied_caps
 
 
@@ -377,7 +434,7 @@ def test_zero_ratio_exactly_fifty_percent_triggers_hard_rule_4():
     trends = make_trends([0.0] * 26 + [50.0] * 26)
     evidence = _full_evidence(trends=trends)
     assert compute_trends_zero_ratio(evidence) == pytest.approx(0.5)
-    result = compute_confidence(evidence, make_profile(), ScoreComponents(), SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), ScoreComponents(), SCAN_TIME)
     assert CAP_TRENDS_ZERO_RATIO in result.applied_caps
     assert result.score <= TRENDS_ZERO_RATIO_CAP
 
@@ -396,7 +453,7 @@ def test_confidence_hand_calculated_no_caps():
     confidence_raw = 30 + 25 + 20 + 0.15*55.2786405 + 10 = 93.2917961
     """
     components = ScoreComponents(demand=80.0, pain=60.0, solution_gap=40.0, news_urgency=20.0)
-    result = compute_confidence(_full_evidence(), make_profile(), components, SCAN_TIME)
+    result = compute_confidence(_full_evidence(), _profile(), components, SCAN_TIME)
 
     assert result.breakdown.data_completeness == pytest.approx(100.0)
     assert result.breakdown.sample_sufficiency == pytest.approx(100.0)
@@ -411,7 +468,7 @@ def test_confidence_is_capped_when_one_core_source_is_missing():
     """Core Source 1つ欠損 → `confidence <= 69`(docs/scoring.md 9章)。"""
     components = ScoreComponents(demand=80.0, pain=60.0, solution_gap=40.0)
     evidence = _full_evidence(statuses={SourceName.NEWS: SourceStatus.MISSING})
-    result = compute_confidence(evidence, make_profile(), components, SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), components, SCAN_TIME)
     assert result.score <= MISSING_ONE_CORE_SOURCE_CAP
     assert result.score == pytest.approx(MISSING_ONE_CORE_SOURCE_CAP)
     assert result.applied_caps == [CAP_MISSING_ONE_CORE_SOURCE]
@@ -424,7 +481,7 @@ def test_confidence_records_multiple_missing_core_sources():
         SourceName.SEARCH: SourceStatus.MISSING,
     }
     evidence = _full_evidence(statuses=statuses)
-    result = compute_confidence(evidence, make_profile(), ScoreComponents(), SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), ScoreComponents(), SCAN_TIME)
     assert CAP_MULTIPLE_MISSING_CORE_SOURCES in result.applied_caps
     assert CAP_MISSING_ONE_CORE_SOURCE not in result.applied_caps
 
@@ -432,7 +489,7 @@ def test_confidence_records_multiple_missing_core_sources():
 def test_confidence_records_missing_trends():
     """Hard Rule 1 も `applied_caps` に記録する。"""
     evidence = _full_evidence(statuses={SourceName.TRENDS: SourceStatus.MISSING})
-    result = compute_confidence(evidence, make_profile(), ScoreComponents(), SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), ScoreComponents(), SCAN_TIME)
     assert CAP_TRENDS_MISSING in result.applied_caps
     assert CAP_MISSING_ONE_CORE_SOURCE in result.applied_caps
 
@@ -441,7 +498,7 @@ def test_all_zero_series_caps_confidence_at_fifty_nine():
     """週次データ点が全て 0 → Hard Rule 4 により `confidence <= 59`。"""
     evidence = _full_evidence(trends=make_trends([0.0] * 52, [0.0] * 52, [0.0] * 52))
     components = ScoreComponents(demand=50.0, pain=50.0, solution_gap=50.0, news_urgency=50.0)
-    result = compute_confidence(evidence, make_profile(), components, SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), components, SCAN_TIME)
     assert result.score <= TRENDS_ZERO_RATIO_CAP
     assert result.applied_caps == [CAP_TRENDS_ZERO_RATIO]
 
@@ -451,7 +508,7 @@ def test_hard_rules_are_applied_in_order():
     zeros = make_trends([0.0] * 52, [0.0] * 52)
     evidence = _full_evidence(trends=zeros, statuses={SourceName.NEWS: SourceStatus.MISSING})
     components = ScoreComponents(demand=50.0, pain=50.0, solution_gap=50.0)
-    result = compute_confidence(evidence, make_profile(), components, SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), components, SCAN_TIME)
     assert result.score == pytest.approx(TRENDS_ZERO_RATIO_CAP)
     assert result.applied_caps == [CAP_MISSING_ONE_CORE_SOURCE, CAP_TRENDS_ZERO_RATIO]
 
@@ -468,7 +525,7 @@ def test_confidence_is_returned_even_when_everything_is_missing():
         SourceStatus.MISSING,
     )
     evidence = make_evidence(trends=None, statuses=statuses)
-    result = compute_confidence(evidence, make_profile(), ScoreComponents(), SCAN_TIME)
+    result = compute_confidence(evidence, _profile(), ScoreComponents(), SCAN_TIME)
     # localization だけが残る: 0.20 * 100 = 20
     assert result.score == pytest.approx(20.0)
     assert result.breakdown.data_completeness == pytest.approx(0.0)
@@ -478,12 +535,12 @@ def test_confidence_is_returned_even_when_everything_is_missing():
 def test_confidence_rejects_naive_scan_time():
     naive = datetime(2026, 8, 28)
     with pytest.raises(InvalidTemporalValueError):
-        compute_confidence(_full_evidence(), make_profile(), ScoreComponents(), naive)
+        compute_confidence(_full_evidence(), _profile(), ScoreComponents(), naive)
 
 
 def test_confidence_score_is_float_not_rounded():
     """`ConfidenceResult.score` は Hard Rules 適用後の float(丸めは engine の責務)。"""
     components = ScoreComponents(demand=80.0, pain=60.0, solution_gap=40.0, news_urgency=20.0)
-    result = compute_confidence(_full_evidence(), make_profile(), components, SCAN_TIME)
+    result = compute_confidence(_full_evidence(), _profile(), components, SCAN_TIME)
     assert isinstance(result.score, float)
     assert result.score != pytest.approx(round(result.score))
