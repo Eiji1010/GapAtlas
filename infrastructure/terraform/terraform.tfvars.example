@@ -1,0 +1,46 @@
+# terraform.tfvars の記入例。
+#
+# **実値(特に API キー)をこのファイルへ書かないこと。**
+# API キーは Secrets Manager に置く(infrastructure/README.md「秘密情報の渡し方」)。
+# terraform.tfvars 自体は .gitignore 済み(*.tfvars)。
+#
+# すべての変数に既定値があるため、このファイルが無くても
+# `terraform validate` は通る。
+
+# ---- 基本 ----
+# project_name = "gapatlas"
+# environment  = "dev"
+# aws_region   = "ap-northeast-1"
+
+# ---- DynamoDB / S3 ----
+# dynamodb_table_name = "gapatlas"
+
+# S3 のバケット名はグローバルに一意。必ず一意な名前へ変えること。
+# s3_bucket_name             = "gapatlas-data-000000000000"
+# athena_results_bucket_name = "gapatlas-athena-results-000000000000"
+
+# ---- Lambda ----
+# uv でビルドしたパッケージの展開先ディレクトリ(絶対パス推奨)。
+# 空のままだと placeholder/ をダミーとして zip 化する。
+# lambda_package_source_dir = "/absolute/path/to/build/lambda"
+
+# worker_reserved_concurrency = 2
+
+# ---- API Gateway ----
+# Frontend(Cloudflare Pages)の origin。ワイルドカードは不可。
+# cors_allowed_origins = [
+#   "http://localhost:5173",
+#   "https://gapatlas.pages.dev",
+# ]
+
+# ---- 動作モード ----
+# fixture / stub のままなら外部 API キーは不要。
+# serpapi_mode = "fixture"
+# llm_mode     = "stub"
+# log_level    = "INFO"
+
+# ---- Glue / Athena ----
+# 国やトピックを増やすときは backend の Country / TopicId Enum も同時に更新する。
+# partition_countries        = ["JP", "US", "GB", "DE", "IN"]
+# partition_topics           = ["elder_care"]
+# partition_date_range_start = "2026-01-01"

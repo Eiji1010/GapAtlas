@@ -1,0 +1,2 @@
+# archive_file が生成する zip。ビルド成果物なのでコミットしない。
+build/
