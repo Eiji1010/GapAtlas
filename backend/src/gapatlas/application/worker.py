@@ -99,22 +99,26 @@ from gapatlas.application.scan_service import (
     MAPS_COUNTRY_LIMIT,
     RANKABLE_STATUSES,
     _ranking_key,
-    _scan_status,
-    _summary_versions,
-    _to_ranking_entry,
+    build_scan_summary,
     to_public_component,
 )
 from gapatlas.config.errors import ConfigError
 from gapatlas.config.query_profile_loader import load_query_profile
 from gapatlas.domain.models.classification import ClassifiedEvidence
-from gapatlas.domain.models.common import Country, CountryStatus, SourceName, SourceStatus, TopicId
+from gapatlas.domain.models.common import (
+    Country,
+    CountryStatus,
+    ScanStatus,
+    SourceName,
+    SourceStatus,
+    TopicId,
+)
 from gapatlas.domain.models.normalized import NormalizedEvidence
 from gapatlas.domain.models.query_profile import QueryProfile
 from gapatlas.domain.models.result import (
     CountryResult,
     Evidence,
     OpportunityBrief,
-    ScanProgress,
     ScanSummary,
 )
 from gapatlas.domain.models.scores import ConfidenceResult, NeedGapResult
@@ -236,6 +240,30 @@ class ScanWorker:
 
     # --- 完了判定と確定処理 -----------------------------------------------------------
 
+    def _save_interim_summary(self, job: ScanJob, results: Sequence[CountryResult]) -> None:
+        """処理中の概要を保存する。
+
+        Worker が最後の1国でしか概要を書かないと、`GET /scans/{id}` の
+        `ranking` が完了まで空のままになり、**2秒 Polling で進捗が動かない**
+        (docs/api.md の例は `status: processing` で部分的なランキングを示す)。
+        国が1つ終わるたびに、そこまでの結果で概要を上書きする。
+
+        Opportunity Brief は付けない(全国完了後に Top1 へ生成するため)。
+
+        保存に失敗して結果を1件も読めない場合は何も書かない。空の概要で
+        API が作った初期 META を上書きすると、対象国の情報まで失われる。
+        """
+        if not results:
+            return
+        summary = build_scan_summary(
+            scan_id=job.scan_id,
+            topic_id=job.topic_id,
+            total=len(job.countries),
+            results=results,
+            status=ScanStatus.PROCESSING,
+        )
+        self._persist_summary(summary)
+
     def _finalize_if_last(self, job: ScanJob) -> None:
         """自分が最後の1国なら、スキャン全体を確定する。
 
@@ -248,6 +276,8 @@ class ScanWorker:
         expected = set(job.countries)
         results = [result for result in stored if result.country in expected]
         if expected - {result.country for result in results}:
+            # まだ揃っていない。2秒 Polling で進捗が見えるよう途中経過を保存する
+            self._save_interim_summary(job, results)
             return
         self._finalize(job, results)
 
@@ -260,24 +290,18 @@ class ScanWorker:
             return None
 
     def _finalize(self, job: ScanJob, results: Sequence[CountryResult]) -> None:
-        """ランキング確定 → Top2 Maps → Top1 Brief → 概要の保存。"""
+        """ランキング確定 -> Top2 Maps -> Top1 Brief -> 概要の保存。"""
         ordered = sorted(results, key=_ranking_key)
         enriched = self._attach_maps_to_top_countries(job, ordered)
         final = [enriched.get(result.country, result) for result in ordered]
 
         brief = self._write_brief(job.topic_id, final)
-        completed = [
-            result.country for result in final if result.status is not CountryStatus.FAILED
-        ]
-        summary = ScanSummary(
+        summary = build_scan_summary(
             scan_id=job.scan_id,
             topic_id=job.topic_id,
-            status=_scan_status(final),
-            progress=ScanProgress(total=len(job.countries), completed=len(completed)),
-            completed_countries=completed,
-            ranking=[_to_ranking_entry(result) for result in final],
-            opportunity_brief=brief,
-            versions=_summary_versions(final),
+            total=len(job.countries),
+            results=final,
+            brief=brief,
         )
         _LOGGER.info(
             "scan completed",

@@ -23,7 +23,7 @@ from http import HTTPStatus
 from typing import Any, Final
 
 from gapatlas.adapters.dynamodb.factory import create_scan_repository
-from gapatlas.adapters.sqs.memory import InMemoryJobQueue
+from gapatlas.adapters.sqs.factory import create_job_queue
 from gapatlas.adapters.sqs.protocol import JobQueue
 from gapatlas.api.errors import (
     ApiError,
@@ -65,15 +65,14 @@ def new_scan_id() -> str:
     return f"scan_{uuid.uuid4().hex[:SCAN_ID_LENGTH]}"
 
 
-def build_job_queue() -> JobQueue:
+def build_job_queue(settings: Settings) -> JobQueue:
     """ジョブキューを組み立てる。
 
-    現時点では `adapters/sqs` に SQS 実装とファクトリが無いため、インメモリ実装
-    しか返せない。**この実装ではプロセスをまたいでジョブが届かない。** SQS 実装
-    (`create_job_queue(settings)`)が入り次第ここを差し替えること
-    (完了報告「担当範囲外の変更要望」)。
+    `PERSISTENCE_MODE` で切り替わる。既定の `memory` では**プロセスをまたいで
+    ジョブが届かない**(ローカル実行と単体テスト用)。Lambda では
+    `PERSISTENCE_MODE=aws` と `SQS_QUEUE_URL` が必要。
     """
-    return InMemoryJobQueue()
+    return create_job_queue(settings)
 
 
 def build_service(settings: Settings | None = None) -> ApiService:
@@ -87,7 +86,7 @@ def build_service(settings: Settings | None = None) -> ApiService:
     """
     resolved = load_settings() if settings is None else settings
     configure_logging(resolved.log_level.value)
-    return ApiService(create_scan_repository(resolved), build_job_queue(), resolved)
+    return ApiService(create_scan_repository(resolved), build_job_queue(resolved), resolved)
 
 
 @lru_cache(maxsize=1)

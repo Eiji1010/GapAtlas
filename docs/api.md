@@ -99,6 +99,8 @@ SLO: p95 < 800ms。
   - 全国が `INSUFFICIENT_EVIDENCE` になるのは外形障害の可能性が高い。監視はログの `rankable_countries` / `insufficient_countries` を見る
 - `ranking` は `need_gap_score` の降順。`need_gap_score` が `null` の国(`INSUFFICIENT_EVIDENCE`)は末尾へ回す。`need_gap_score = 0` は有効なスコアであり `null` より上に来る。末尾側は `INSUFFICIENT_EVIDENCE` → `FAILED` の順
 - `opportunity_brief` は全国完了後、Top1 の国について生成されたら入る。**ランキング可能(`COMPLETED`)な国が1つも無ければ `null`**
+- **処理中も部分的なランキングを返す。** Worker は1国終わるたびに概要を `status = processing` で上書きするため、2秒 Polling で `ranking` と `progress` が進む
+- `progress` は**保存済みの国から算出**する。`completed` は「終了済みかつ `FAILED` でない国」の数で、`insufficient_evidence` は完了として数える(エラーではないため)。**`FAILED` の国は数えない**ので、1か国失敗したスキャンの進捗は 4/5 で止まる
 - スキャン単位の `versions.query_profile_version` は、**スキャンに使った国別プロファイル版を昇順で連結した文字列**(例 `elder-care-de-v2,elder-care-jp-v2`)。国別の正確な値は `GET /scans/{scan_id}/countries/{country}` の `versions` を見ること
 - `versions.classifier_version` / `prompt_version` は**実際に使った LLM アダプタ**の版。stub モードでは `-stub` が付く(結果が実 LLM と変わるため区別する)
 
@@ -160,13 +162,21 @@ SLO: p95 < 800ms。
 - `evidence[].url` は **SerpApi のレスポンスに含まれていた URL のみ**。LLM に生成させない
 - `status = insufficient_evidence` の場合、`need_gap_score` は `null` だが `confidence` と `confidence_breakdown` は返す
 
+> **未実装のフィールド。** `trends` / `related_queries` / `search_results` / `news_results` / `maps_results` は `CountryResult`(永続化と API の凍結契約)に存在しないため、現在の API は返しません。UI の Screen 2 が要求する情報なので、返すには **`CountryResult` へフィールドを追加する契約変更**が必要です。DynamoDB の項目サイズが増える点も判断材料になります。**推測でフィールドを捏造しないこと。**
+
+`computed_at` は `CountryResult` に存在し、レスポンスにも含めます(上の例には記載がありませんが実装は返します)。
+
 ## エラー
 
 | HTTP | code | 条件 |
 |---:|---|---|
-| 400 | `INVALID_REQUEST` | topic_id / country が不正 |
-| 404 | `SCAN_NOT_FOUND` | scan_id が存在しない |
+| 400 | `INVALID_REQUEST` | topic_id / country / リクエスト本文が不正 |
+| 404 | `SCAN_NOT_FOUND` | scan_id が存在しない。**形式が不正な scan_id もここへ倒す**(400 は topic_id / country 専用) |
 | 404 | `COUNTRY_NOT_FOUND` | そのスキャンに該当国がない |
-| 500 | `INTERNAL_ERROR` | 想定外の例外 |
+| 404 | `ROUTE_NOT_FOUND` | 定義されていないパス |
+| 405 | `METHOD_NOT_ALLOWED` | パスは存在するがメソッドが違う |
+| 500 | `INTERNAL_ERROR` | 想定外の例外。**本文にトレースバックを出さない** |
+
+エラー本文に利用者の入力を反射させない(`scan_id` やパスを本文へ含めない)。値は構造化ログにのみ残す。
 
 外部APIの失敗は 5xx にしない。国単位の `status` と Confidence で表現する。

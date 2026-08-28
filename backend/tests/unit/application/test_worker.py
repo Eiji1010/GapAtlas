@@ -87,18 +87,33 @@ def _scores(summary: ScanSummary) -> list[tuple[str, int | None, int]]:
 # --- 完了判定 -----------------------------------------------------------------------------
 
 
-def test_the_summary_is_written_only_after_the_last_country():
-    """4件目までは概要を書かない。5件目で書く。"""
+def test_the_summary_is_updated_after_every_country():
+    """途中経過は `processing`、最後の1国で確定する。
+
+    最後まで概要を書かないと `GET /scans/{id}` の `ranking` が完了まで空の
+    ままになり、2秒 Polling で進捗が動かない(docs/api.md)。
+    """
     repository = InMemoryScanRepository()
     worker = _worker(repository)
     jobs = _jobs()
 
-    for job in jobs[:-1]:
+    for index, job in enumerate(jobs[:-1], start=1):
         worker.handle(job)
-        assert repository.get_scan(SCAN_ID) is None
+        interim = repository.get_scan(SCAN_ID)
+        assert interim is not None
+        assert interim.status is ScanStatus.PROCESSING
+        assert len(interim.ranking) == index
+        assert interim.progress.total == len(Country)
+        assert interim.progress.completed == index
+        # Brief は全国完了後に Top1 へ生成する
+        assert interim.opportunity_brief is None
 
     worker.handle(jobs[-1])
-    assert repository.get_scan(SCAN_ID) is not None
+    final = repository.get_scan(SCAN_ID)
+    assert final is not None
+    assert final.status is ScanStatus.COMPLETED
+    assert len(final.ranking) == len(Country)
+    assert final.opportunity_brief is not None
 
 
 def test_every_country_is_saved():
@@ -140,7 +155,12 @@ def test_another_scan_id_does_not_complete_this_one():
         worker.handle(job)
     worker.handle(_jobs()[0])
 
-    assert repository.get_scan(SCAN_ID) is None
+    summary = repository.get_scan(SCAN_ID)
+    assert summary is not None
+    # 1国しか終わっていないので確定しない
+    assert summary.status is ScanStatus.PROCESSING
+    assert len(summary.ranking) == 1
+    assert summary.opportunity_brief is None
 
 
 # --- Top2 Maps / Top1 Brief ---------------------------------------------------------------
@@ -427,7 +447,7 @@ class BrokenArchive(InMemoryScanArchive):
 
 def test_a_failing_country_write_does_not_fail_the_job():
     """算出済みの結果を捨てない(docs/requirements.md「Reliability」)。"""
-    worker = _worker(BrokenRepository(fail_country=True))
+    worker = _worker(BrokenRepository(fail_country=True, fail_scan=True))
     outcome = worker.handle(_jobs()[0])
     assert outcome.result.status is CountryStatus.COMPLETED
 

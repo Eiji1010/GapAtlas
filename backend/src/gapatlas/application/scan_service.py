@@ -54,6 +54,9 @@ from gapatlas.domain.scoring.rounding import round_half_up
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
+UNKNOWN_VERSION: Final[str] = "unknown"
+"""版を1つも解決できなかったときに記録する値。実在の版と区別できる文字列。"""
+
 MAPS_COUNTRY_LIMIT: Final[int] = 2
 """Maps を取得する国数。docs/requirements.md「Top 2 countries についてのみ取得」。"""
 
@@ -119,6 +122,39 @@ def to_public_component(value: float | None) -> int | None:
     return None if value is None else round_half_up(value)
 
 
+def build_scan_summary(
+    *,
+    scan_id: str,
+    topic_id: TopicId,
+    total: int,
+    results: Sequence[CountryResult],
+    brief: OpportunityBrief | None = None,
+    status: ScanStatus | None = None,
+) -> ScanSummary:
+    """スキャン概要を組み立てる。
+
+    同期実行(`ScanService`)と非同期実行(`ScanWorker`)の両方から使う。
+    **同じ並べ替え・同じ status 判定を2度書かない。**
+
+    Args:
+        total: 対象国の総数。処理中は `results` より多くなる。
+        status: 明示したい状態。省略時は `results` から判定する。処理中の
+            スキャンは `ScanStatus.PROCESSING` を渡す。
+    """
+    ordered = sorted(results, key=_ranking_key)
+    completed = [result.country for result in ordered if result.status is not CountryStatus.FAILED]
+    return ScanSummary(
+        scan_id=scan_id,
+        topic_id=topic_id,
+        status=status if status is not None else _scan_status(ordered),
+        progress=ScanProgress(total=max(total, len(ordered)), completed=len(completed)),
+        completed_countries=completed,
+        ranking=[_to_ranking_entry(result) for result in ordered],
+        opportunity_brief=brief,
+        versions=_summary_versions(ordered),
+    )
+
+
 def maps_targets(ordered: Sequence[CountryResult]) -> list[Country]:
     """Maps を取得する国。**ランキング可能な国の上位 `MAPS_COUNTRY_LIMIT` 件**。
 
@@ -164,7 +200,10 @@ def _summary_versions(results: Sequence[CountryResult]) -> Versions:
     """
 
     def joined(values: Sequence[str]) -> str:
-        return ",".join(sorted(set(values)))
+        # 1件も無い場合は空文字になり `Versions` の `min_length=1` に落ちる。
+        # 保存に失敗して結果を1件も読めない状況でも概要を組み立てられるよう、
+        # 「不明」を表す値へ倒す(実在の版と区別できる文字列にする)。
+        return ",".join(sorted(set(values))) or UNKNOWN_VERSION
 
     return Versions(
         query_profile_version=joined([result.versions.query_profile_version for result in results]),
@@ -250,18 +289,12 @@ class ScanService:
                 brief = self._write_brief(outcomes, ordered, topic_id)
 
             results = [outcomes[result.country].result for result in ordered]
-            completed = [
-                result.country for result in results if result.status is not CountryStatus.FAILED
-            ]
-            summary = ScanSummary(
+            summary = build_scan_summary(
                 scan_id=scan_id,
                 topic_id=topic_id,
-                status=_scan_status(results),
-                progress=ScanProgress(total=len(countries), completed=len(completed)),
-                completed_countries=completed,
-                ranking=[_to_ranking_entry(result) for result in results],
-                opportunity_brief=brief,
-                versions=_summary_versions(results),
+                total=len(countries),
+                results=results,
+                brief=brief,
             )
             rankable = [result for result in results if result.status in RANKABLE_STATUSES]
             _LOGGER.info(
