@@ -151,9 +151,13 @@ def _public_scores(values: Mapping[str, float | None]) -> dict[str, int | None]:
 def country_payload(result: CountryResult) -> dict[str, Any]:
     """`GET /scans/{scan_id}/countries/{country}` の本文。
 
-    docs/api.md の例のうち `trends` / `related_queries` / `search_results` /
-    `news_results` / `maps_results` は `CountryResult` に無いため返せない。
-    値を推測して埋めない(AGENTS.md「Evidence に存在しない事実を断定しない」)。
+    Screen 2 が表示する詳細(`trends` / `related_queries` / `search_results` /
+    `news_results` / `maps_results`)も返す。値はすべて `CountryResult` に
+    保存されているものであり、**ここで推測して埋めない**
+    (AGENTS.md「Evidence に存在しない事実を断定しない」)。
+
+    `maps_results` は **Top 2 countries のみ非 `null`**。`null` は「取得して
+    いない」を意味し、空配列(「取得したが0件」)とは区別する。
     """
     components = result.components
     breakdown = result.confidence_breakdown
@@ -185,7 +189,17 @@ def country_payload(result: CountryResult) -> dict[str, Any]:
             source.value: status.value for source, status in result.source_status.items()
         },
         "evidence": [item.model_dump(mode="json") for item in result.evidence],
+        "trends": result.trends.model_dump(mode="json") if result.trends is not None else None,
+        "related_queries": [item.model_dump(mode="json") for item in result.related_queries],
+        "search_results": [item.model_dump(mode="json") for item in result.search_results],
+        "news_results": [item.model_dump(mode="json") for item in result.news_results],
+        "maps_results": (
+            [place.model_dump(mode="json") for place in result.maps_results]
+            if result.maps_results is not None
+            else None
+        ),
         "versions": result.versions.model_dump(mode="json"),
+        "computed_at": result.computed_at.isoformat(),
     }
 
 

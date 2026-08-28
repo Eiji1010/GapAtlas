@@ -10,6 +10,11 @@ from typing import Final, Self
 
 from pydantic import BaseModel, Field, model_validator
 
+from gapatlas.domain.models.classification import (
+    ClassifiedNewsArticle,
+    ClassifiedRisingQuery,
+    ClassifiedSearchResult,
+)
 from gapatlas.domain.models.common import (
     MODEL_CONFIG,
     Country,
@@ -21,6 +26,7 @@ from gapatlas.domain.models.common import (
     UtcDatetime,
 )
 from gapatlas.domain.models.errors import ModelConsistencyError
+from gapatlas.domain.models.normalized import MapsPlace, TrendsTimeseries
 from gapatlas.domain.models.scores import ConfidenceBreakdown, ScoreComponents
 
 PUBLIC_SCORE_MIN: Final[int] = 0
@@ -80,6 +86,25 @@ class CountryResult(BaseModel):
     confidence_breakdown: ConfidenceBreakdown
     source_status: dict[SourceName, SourceStatus] = Field(default_factory=dict)
     evidence: list[Evidence] = Field(default_factory=list)
+
+    # --- Screen 2(Country Evidence)が表示する詳細 -----------------------------------
+    #
+    # docs/api.md の `GET /scans/{scan_id}/countries/{country}` が返す内容。
+    # **分類結果ごと持つ**のは、UI が「この検索結果は DIRECT_PROVIDER と分類された」
+    # を示すため(docs/requirements.md の Screen 2)。スコアの再計算には使わない
+    # (数値計算は domain/scoring が済ませている)。
+
+    trends: TrendsTimeseries | None = None
+    """Trends の週次系列。取得できなかった場合は None。"""
+
+    related_queries: list[ClassifiedRisingQuery] = Field(default_factory=list)
+    search_results: list[ClassifiedSearchResult] = Field(default_factory=list)
+    news_results: list[ClassifiedNewsArticle] = Field(default_factory=list)
+
+    maps_results: list[MapsPlace] | None = None
+    """**Top 2 countries のみ非 None。** None は「取得していない」を意味する。
+    空リストは「取得したが0件」であり、意味が違う。"""
+
     versions: Versions
     computed_at: UtcDatetime
 

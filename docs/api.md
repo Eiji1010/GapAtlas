@@ -162,9 +162,20 @@ SLO: p95 < 800ms。
 - `evidence[].url` は **SerpApi のレスポンスに含まれていた URL のみ**。LLM に生成させない
 - `status = insufficient_evidence` の場合、`need_gap_score` は `null` だが `confidence` と `confidence_breakdown` は返す
 
-> **未実装のフィールド。** `trends` / `related_queries` / `search_results` / `news_results` / `maps_results` は `CountryResult`(永続化と API の凍結契約)に存在しないため、現在の API は返しません。UI の Screen 2 が要求する情報なので、返すには **`CountryResult` へフィールドを追加する契約変更**が必要です。DynamoDB の項目サイズが増える点も判断材料になります。**推測でフィールドを捏造しないこと。**
+`trends` / `related_queries` / `search_results` / `news_results` は **分類結果を添えて**返します。UI が「この検索結果は `DIRECT_PROVIDER` と分類された」を示せるようにするためです。形は次のとおり。
 
-`computed_at` は `CountryResult` に存在し、レスポンスにも含めます(上の例には記載がありませんが実装は返します)。
+```json
+{
+  "related_queries": [
+    { "item": { "query": "...", "growth_percent": 4500.0, "is_breakout": false, "link": "..." },
+      "classification": { "classification": "SHORTAGE", "confidence": 0.9 } }
+  ]
+}
+```
+
+- `maps_results` の `null` は「**取得していない**」(Top2 以外)、`[]` は「取得したが 0 件」。意味が違うので UI で区別すること
+- `computed_at` は `CountryResult` に存在し、レスポンスにも含めます(上の例には記載がありませんが実装は返します)
+- fixture 5か国での `CountryResult` の JSON は約 22KB(Maps 込み)。DynamoDB の項目上限 400KB に対して十分な余裕があり、テストで 200KB 未満を固定しています
 
 ## エラー
 

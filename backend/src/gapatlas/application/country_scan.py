@@ -283,6 +283,11 @@ class CountryScanner:
                 for source in (*CORE_SOURCES, SourceName.MAPS)
             },
             evidence=build_evidence(evidence, classified),
+            trends=evidence.trends,
+            related_queries=classified.rising_queries,
+            search_results=classified.search_results,
+            news_results=classified.news_articles,
+            maps_results=evidence.maps_places,
             versions=build_versions(
                 profile.version,
                 classifier_version=self._classifier.classifier_version,
@@ -354,6 +359,7 @@ class CountryScanner:
                     "evidence": [
                         item.model_dump() for item in build_evidence(evidence, outcome.classified)
                     ],
+                    "maps_results": [place.model_dump() for place in places],
                 }
             )
             return CountryScanOutcome(

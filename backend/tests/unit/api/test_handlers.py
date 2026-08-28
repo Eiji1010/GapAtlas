@@ -17,12 +17,16 @@ from conftest import (
 )
 
 from gapatlas.adapters.dynamodb.memory import InMemoryScanRepository
+from gapatlas.adapters.llm.stub_client import StubLlmClient
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.adapters.serpapi.live_client import LiveSerpApiClient
 from gapatlas.adapters.sqs.memory import InMemoryJobQueue
 from gapatlas.api.errors import CountryNotFoundError, InvalidRequestError, ScanNotFoundError
 from gapatlas.api.handlers import UNRESOLVED_VERSION, ApiService
+from gapatlas.application.country_scan import CountryScanner
+from gapatlas.config.query_profile_loader import load_query_profile
 from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus, TopicId
+from gapatlas.domain.models.result import CountryResult
 from gapatlas.domain.scoring.constants import SCORE_VERSION
 
 # --- GET /api/v1/topics -----------------------------------------------------------------
@@ -346,12 +350,18 @@ COUNTRY_KEYS = {
     "confidence_breakdown",
     "source_status",
     "evidence",
+    "trends",
+    "related_queries",
+    "search_results",
+    "news_results",
+    "maps_results",
     "versions",
+    "computed_at",
 }
-"""docs/api.md の国別レスポンスのうち `CountryResult` が返せるキー。
+"""docs/api.md の国別レスポンスのキー。
 
-`trends` / `related_queries` / `search_results` / `news_results` /
-`maps_results` はモデルに無いため返せない(完了報告に記載)。
+Screen 2 が表示する詳細も含む。`computed_at` は docs/api.md の例には
+無いが `CountryResult` が持つため返す(docs/api.md に明記済み)。
 """
 
 
@@ -476,3 +486,56 @@ def test_the_not_found_message_does_not_echo_the_requested_scan_id(service: ApiS
         service.get_scan("../../etc/passwd")
 
     assert "etc/passwd" not in str(excinfo.value)
+
+
+# --------------------------------------------------------------------------
+# Screen 2 が表示する詳細(W7 の契約変更)
+# --------------------------------------------------------------------------
+
+
+def test_get_country_returns_the_screen_two_details(
+    service: ApiService, repository: InMemoryScanRepository
+):
+    """fixture を通した実結果で、Screen 2 の表示に必要な内容が返ること。"""
+    profile = load_query_profile(TopicId.ELDER_CARE, Country.JP)
+    scanner = CountryScanner(FixtureSerpApiClient(), StubLlmClient())
+    outcome = scanner.scan(profile, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    repository.save_country(outcome.result)
+
+    payload = service.get_country(SCAN_ID, "JP")
+
+    assert payload["trends"] is not None
+    assert len(payload["trends"]["series"]) == 3
+    assert len(payload["trends"]["series"][0]["points"]) == 52
+    assert len(payload["related_queries"]) == 12
+    assert len(payload["search_results"]) == 10
+    assert len(payload["news_results"]) == 9
+    # 分類結果を添えて返す(UI が「DIRECT_PROVIDER と分類された」を示せる)
+    assert payload["search_results"][0]["classification"]["classification"]
+    assert payload["related_queries"][0]["item"]["query"]
+    # Maps は Top2 のみ。ここでは取得していないので null
+    assert payload["maps_results"] is None
+
+
+def test_maps_results_distinguishes_not_requested_from_empty(
+    service: ApiService, repository: InMemoryScanRepository
+):
+    """`null`(取得していない)と `[]`(取得したが0件)は意味が違う。"""
+    repository.save_country(make_country_result(Country.JP))
+    assert service.get_country(SCAN_ID, "JP")["maps_results"] is None
+
+    result = make_country_result(Country.US)
+    with_empty = CountryResult.model_validate(result.model_dump() | {"maps_results": []})
+    repository.save_country(with_empty)
+    assert service.get_country(SCAN_ID, "US")["maps_results"] == []
+
+
+def test_a_country_result_stays_well_below_the_dynamodb_item_limit():
+    """DynamoDB の項目上限は 400KB。詳細を持たせても余裕があること。"""
+    profile = load_query_profile(TopicId.ELDER_CARE, Country.JP)
+    scanner = CountryScanner(FixtureSerpApiClient(), StubLlmClient())
+    outcome = scanner.scan(profile, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    with_maps = scanner.attach_maps(outcome, profile, scan_time=SCAN_TIME)
+
+    size = len(with_maps.result.model_dump_json().encode("utf-8"))
+    assert size < 200 * 1024, f"CountryResult が {size} バイトに増えている"

@@ -386,6 +386,11 @@ class ScanWorker:
             | {
                 "source_status": {**result.source_status, SourceName.MAPS: maps_status},
                 "evidence": [item.model_dump() for item in merged_evidence],
+                # Screen 2 の Maps 表示。`None` は「取得していない」なので、
+                # 取得を試みた国では必ず配列(0件でも空配列)にする。
+                "maps_results": [
+                    place.model_dump() for place in (fetched.evidence.maps_places or [])
+                ],
             }
         )
         return CountryScanOutcome(
