@@ -24,7 +24,9 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any, Final
 
+from gapatlas.adapters.dynamodb.factory import create_scan_repository
 from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classifier
+from gapatlas.adapters.s3.factory import create_scan_archive
 from gapatlas.adapters.serpapi.factory import create_serpapi_client
 from gapatlas.application.logging_context import configure_logging
 from gapatlas.application.scan_service import ScanOutput, ScanService
@@ -199,6 +201,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             create_serpapi_client(settings),
             create_llm_classifier(settings),
             create_brief_writer(settings),
+            repository=create_scan_repository(settings),
+            archive=create_scan_archive(settings),
         )
         output = service.scan(
             TopicId(args.topic),

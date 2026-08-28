@@ -61,6 +61,8 @@ make tf-plan          # terraform plan
 cp .env.example .env
 ```
 
-既定は `SERPAPI_MODE=fixture` と `LLM_MODE=stub` です。この状態で外部通信なしに全てのテストとスキャンが動作します。
+既定は `SERPAPI_MODE=fixture` / `LLM_MODE=stub` / `PERSISTENCE_MODE=memory` です。この状態で外部通信なしに全てのテストとスキャンが動作します。
+
+`PERSISTENCE_MODE=aws` にすると DynamoDB と S3 へ書き込みます。AWS 認証情報と `aws` extra(`make setup` で入ります)が必要です。**保存に失敗してもスキャン自体は完了します**(算出済みの結果を捨てないため)。
 
 `LLM_MODE=anthropic` を使う場合は `anthropic` パッケージが必要です。`make setup` は `uv sync --all-extras` を実行するため通常は入っていますが、未インストールの環境では起動時に `LlmError` になります。

@@ -1,26 +1,30 @@
 """`Settings` から `ScanArchive` を組み立てるファクトリ。
 
-application 層は `ScanArchive`(Protocol)だけを見る
-(docs/architecture.md「依存の向き」)。
-
-**現時点では S3 実装しか返さない。** `Settings` に永続化のモードが無いため、
-「AWS へ繋がない既定」(`SERPAPI_MODE=fixture` と同じ思想)へ切り替える判断が
-できない。`InMemoryScanArchive` との切り替えは、設定項目を追加する統合担当が
-この関数へ入れること。それまでは、AWS へ繋がない経路が必要な呼び出し側が
-`InMemoryScanArchive` を直接組み立てる。
+`PERSISTENCE_MODE` の分岐をここへ閉じ込め、application 層は `ScanArchive`
+(Protocol)だけを見る。**既定は `memory`** で、外部通信ゼロで全機能が動く
+状態を保つ(AGENTS.md 絶対ルール)。
 """
 
 from __future__ import annotations
 
+from typing import assert_never
+
 from gapatlas.adapters.s3.client import S3ScanArchive
+from gapatlas.adapters.s3.memory import InMemoryScanArchive
 from gapatlas.adapters.s3.protocol import ScanArchive
-from gapatlas.config.settings import Settings
+from gapatlas.config.settings import PersistenceMode, Settings
 
 
 def create_scan_archive(settings: Settings) -> ScanArchive:
-    """S3 の `ScanArchive` を返す。
+    """`settings.persistence_mode` に応じたアーカイブを返す。
 
-    Raises:
-        ArchiveError: `boto3` が未インストールの場合。
+    モードを増やして `case` を書き忘れると、実行時ではなく **mypy が**
+    気付く(`assert_never`)。
     """
-    return S3ScanArchive(settings)
+    match settings.persistence_mode:
+        case PersistenceMode.MEMORY:
+            return InMemoryScanArchive()
+        case PersistenceMode.AWS:
+            return S3ScanArchive(settings)
+        case unsupported:  # pragma: no cover - Enum を増やしたときに型検査で気付く
+            assert_never(unsupported)

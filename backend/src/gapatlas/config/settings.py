@@ -30,6 +30,20 @@ class SerpApiMode(StrEnum):
     """SerpApi へ実際にリクエストする。"""
 
 
+class PersistenceMode(StrEnum):
+    """永続化の動作モード。
+
+    `SERPAPI_MODE=fixture` / `LLM_MODE=stub` と同じ思想で、**既定は外部通信
+    ゼロ**にする(AGENTS.md「fixture mode を常に維持する」)。
+    """
+
+    MEMORY = "memory"
+    """プロセス内メモリ。AWS へ接続しない。"""
+
+    AWS = "aws"
+    """DynamoDB と S3 へ書き込む。`uv sync --all-extras`(aws extra)が必要。"""
+
+
 class LogLevel(StrEnum):
     """`logging` が受け付けるレベル名。"""
 
@@ -69,6 +83,7 @@ class Settings(BaseModel):
     anthropic_max_retries: int = Field(default=2, ge=0)
     """SDK のリトライ回数。SerpApi 側(既定2回)と方針を揃える。"""
 
+    persistence_mode: PersistenceMode = PersistenceMode.MEMORY
     aws_region: str = Field(default="ap-northeast-1", min_length=1)
     dynamodb_table_name: str = Field(default="gapatlas", min_length=1)
     s3_bucket_name: str = Field(default="gapatlas-data", min_length=1)
@@ -194,6 +209,9 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             anthropic_model=_get(source, "ANTHROPIC_MODEL") or "claude-sonnet-5",
             anthropic_timeout_seconds=_get_float(source, "ANTHROPIC_TIMEOUT_SECONDS", 30.0),
             anthropic_max_retries=_get_int(source, "ANTHROPIC_MAX_RETRIES", 2),
+            persistence_mode=_get_enum(
+                source, "PERSISTENCE_MODE", PersistenceMode, PersistenceMode.MEMORY
+            ),
             aws_region=_get(source, "AWS_REGION") or "ap-northeast-1",
             dynamodb_table_name=_get(source, "DYNAMODB_TABLE_NAME") or "gapatlas",
             s3_bucket_name=_get(source, "S3_BUCKET_NAME") or "gapatlas-data",

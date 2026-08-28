@@ -19,7 +19,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Final
 
+from gapatlas.adapters.dynamodb.protocol import ScanRepository
 from gapatlas.adapters.llm.protocol import BriefWriter, LlmClassifier
+from gapatlas.adapters.s3.protocol import ScanArchive
 from gapatlas.adapters.serpapi.protocol import SerpApiClient
 from gapatlas.application.country_scan import (
     CountryScanner,
@@ -161,10 +163,19 @@ class ScanService:
         brief_writer: BriefWriter,
         *,
         profiles_dir: Path | None = None,
+        repository: ScanRepository | None = None,
+        archive: ScanArchive | None = None,
     ) -> None:
+        """
+        Args:
+            repository: 最新結果の保存先(DynamoDB / インメモリ)。省略すると保存しない。
+            archive: 履歴の保存先(S3 / インメモリ)。省略すると保存しない。
+        """
         self._scanner = CountryScanner(serpapi, classifier)
         self._brief_writer = brief_writer
         self._profiles_dir = profiles_dir
+        self._repository = repository
+        self._archive = archive
 
     def scan(
         self,
@@ -199,12 +210,18 @@ class ScanService:
                 for country, profile in profiles.items()
             }
 
+            for outcome in outcomes.values():
+                self._persist_country(outcome, scan_time=scan_time)
+
             ordered = sorted((outcome.result for outcome in outcomes.values()), key=_ranking_key)
             brief: OpportunityBrief | None = None
             if enrich:
                 outcomes = self._attach_maps_to_top_countries(
                     outcomes, ordered, profiles, scan_time=scan_time
                 )
+                # Maps を足した国は Evidence と source_status が変わるので保存し直す
+                for result in ordered[:MAPS_COUNTRY_LIMIT]:
+                    self._persist_country(outcomes[result.country], scan_time=scan_time)
                 brief = self._write_brief(outcomes, ordered, topic_id)
 
             results = [outcomes[result.country].result for result in ordered]
@@ -242,7 +259,89 @@ class ScanService:
                     ),
                 },
             )
+            self._persist_summary(summary)
             return ScanOutput(summary=summary, outcomes=outcomes)
+
+    # --- 永続化 -----------------------------------------------------------------------
+
+    def _persist_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
+        """1国分を保存する。**失敗してもスキャンを止めない。**
+
+        保存はスコア算出の後段であり、ここで例外を通すと算出済みの結果を
+        捨てることになる(docs/requirements.md「Reliability」)。
+        """
+        result = outcome.result
+        with log_context(country=result.country.value):
+            self._archive_country(outcome, scan_time=scan_time)
+            if self._repository is not None:
+                repository = self._repository
+                try:
+                    repository.save_country(result)
+                except Exception:
+                    _LOGGER.exception(
+                        "persistence failed", extra={"operation": "country repository"}
+                    )
+
+    def _archive_country(self, outcome: CountryScanOutcome, *, scan_time: datetime) -> None:
+        """S3 相当のアーカイブへ raw / normalized / curated を書き出す。"""
+        if self._archive is None:
+            return
+        archive = self._archive
+        result = outcome.result
+        topic_id = result.topic_id
+        country = result.country
+        scan_id = result.scan_id
+
+        for source, payload in outcome.raw.payloads.items():
+            try:
+                archive.put_raw(
+                    source=source,
+                    topic_id=topic_id,
+                    country=country,
+                    scan_time=scan_time,
+                    scan_id=scan_id,
+                    payload=payload,
+                )
+            except Exception:
+                _LOGGER.exception(
+                    "persistence failed",
+                    extra={"operation": "raw archive", "source": source.value},
+                )
+        try:
+            archive.put_normalized(
+                topic_id=topic_id,
+                country=country,
+                scan_time=scan_time,
+                scan_id=scan_id,
+                evidence=outcome.evidence,
+            )
+        except Exception:
+            _LOGGER.exception("persistence failed", extra={"operation": "normalized archive"})
+        try:
+            archive.put_curated(
+                topic_id=topic_id,
+                country=country,
+                scan_time=scan_time,
+                scan_id=scan_id,
+                result=result,
+            )
+        except Exception:
+            _LOGGER.exception("persistence failed", extra={"operation": "curated archive"})
+
+    def _persist_summary(self, summary: ScanSummary) -> None:
+        """スキャン概要を保存する。**失敗してもスキャンを止めない。**
+
+        例外の型を絞らない。アダプタは独自の例外階層を持つが、boto3 由来の
+        想定外の例外も同じく「保存に失敗しただけ」として扱う。算出済みの
+        結果を捨てないことを優先する。
+        """
+        if self._repository is None:
+            return
+        repository = self._repository
+        try:
+            repository.save_scan(summary)
+        except Exception:
+            _LOGGER.exception("persistence failed", extra={"operation": "scan repository"})
 
     # --- 内部 -------------------------------------------------------------------------
 

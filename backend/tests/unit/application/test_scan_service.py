@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from datetime import UTC, datetime
 
@@ -19,8 +20,10 @@ from conftest import (
     TrendsKillClient,
 )
 
+from gapatlas.adapters.dynamodb.memory import InMemoryScanRepository
 from gapatlas.adapters.llm.errors import LlmRequestError
 from gapatlas.adapters.llm.stub_client import StubLlmClient
+from gapatlas.adapters.s3.memory import InMemoryScanArchive
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.application.scan_service import (
     MAPS_COUNTRY_LIMIT,
@@ -409,3 +412,108 @@ def test_expected_scores_for_every_country():
         "GB": (58, 90),
         "US": (55, 90),
     }
+
+
+# --------------------------------------------------------------------------
+# 永続化(Phase 7)
+# --------------------------------------------------------------------------
+
+
+def _persisting_service(repository=None, archive=None, serpapi=None, brief_writer=None):
+    return ScanService(
+        serpapi or FixtureSerpApiClient(),
+        StubLlmClient(),
+        brief_writer or StubLlmClient(),
+        repository=repository,
+        archive=archive,
+    )
+
+
+def test_every_country_result_and_the_summary_are_saved():
+    repository = InMemoryScanRepository()
+    output = _run(_persisting_service(repository=repository))
+
+    assert repository.get_scan(SCAN_ID) is not None
+    stored = repository.list_countries(SCAN_ID)
+    assert {result.country for result in stored} == set(Country)
+    for result in stored:
+        assert result.model_dump() == output.outcomes[result.country].result.model_dump()
+
+
+def test_raw_normalized_and_curated_objects_are_archived():
+    archive = InMemoryScanArchive()
+    _run(_persisting_service(archive=archive))
+
+    prefixes = {key.split("/", 1)[0] for key in archive.objects}
+    assert prefixes == {"raw", "normalized", "curated"}
+    # Core Source 4種 x 5か国 + Top2 の Maps
+    raw_keys = [key for key in archive.objects if key.startswith("raw/")]
+    assert len(raw_keys) == len(Country) * 4 + MAPS_COUNTRY_LIMIT
+    assert any("source=trends" in key for key in raw_keys)
+    assert any("source=maps" in key for key in raw_keys)
+
+
+def test_archived_raw_payloads_are_unmodified():
+    """`raw/` は SerpApi のレスポンスを JSON のまま保存する。"""
+    archive = InMemoryScanArchive()
+    output = _run(_persisting_service(archive=archive))
+
+    outcome = output.outcomes[Country.JP]
+    key = next(
+        key
+        for key in archive.objects
+        if key.startswith("raw/source=trends/") and "country=JP" in key
+    )
+    assert json.loads(archive.objects[key]) == outcome.raw.payloads[SourceName.TRENDS]
+
+
+def test_archived_curated_objects_restore_to_the_country_result():
+    archive = InMemoryScanArchive()
+    output = _run(_persisting_service(archive=archive))
+    key = next(key for key in archive.objects if key.startswith("curated/") and "country=JP" in key)
+    restored = CountryResult.model_validate_json(archive.objects[key])
+    assert restored.model_dump() == output.outcomes[Country.JP].result.model_dump()
+
+
+def test_the_top_two_countries_are_saved_again_after_maps():
+    """Maps を足すと Evidence と source_status が変わるので保存し直す。"""
+    repository = InMemoryScanRepository()
+    output = _run(_persisting_service(repository=repository))
+    top = output.summary.ranking[0].country
+    stored = repository.get_country(SCAN_ID, top)
+    assert stored is not None
+    assert stored.source_status[SourceName.MAPS] is SourceStatus.OK
+    assert any(item.source is SourceName.MAPS for item in stored.evidence)
+
+
+@pytest.mark.parametrize("failing", ["repository", "archive"])
+def test_a_persistence_failure_does_not_lose_the_scan(failing):
+    """保存の失敗で算出済みの結果を捨てない(docs/requirements.md Reliability)。"""
+
+    class ExplodingRepository(InMemoryScanRepository):
+        def save_country(self, result):
+            message = "repository down"
+            raise RuntimeError(message)
+
+        def save_scan(self, summary):
+            message = "repository down"
+            raise RuntimeError(message)
+
+    class ExplodingArchive(InMemoryScanArchive):
+        def put_raw(self, **kwargs):
+            message = "archive down"
+            raise RuntimeError(message)
+
+    service = _persisting_service(
+        repository=ExplodingRepository() if failing == "repository" else None,
+        archive=ExplodingArchive() if failing == "archive" else None,
+    )
+    output = _run(service)
+    assert len(output.summary.ranking) == len(Country)
+    assert all(entry.need_gap_score is not None for entry in output.summary.ranking)
+
+
+def test_persistence_is_optional():
+    """リポジトリもアーカイブも渡さなければ何も保存しない。"""
+    output = _run(_persisting_service())
+    assert output.summary.status is ScanStatus.COMPLETED

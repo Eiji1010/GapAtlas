@@ -24,7 +24,8 @@ from gapatlas.adapters.s3.client import (
 from gapatlas.adapters.s3.errors import ArchiveError, ArchiveWriteError
 from gapatlas.adapters.s3.factory import create_scan_archive
 from gapatlas.adapters.s3.keys import curated_key, normalized_key, raw_key
-from gapatlas.config.settings import Settings
+from gapatlas.adapters.s3.memory import InMemoryScanArchive
+from gapatlas.config.settings import PersistenceMode, Settings
 from gapatlas.domain.models.common import (
     Country,
     CountryStatus,
@@ -511,18 +512,26 @@ def test_factory_also_reports_the_missing_dependency(monkeypatch: pytest.MonkeyP
     monkeypatch.setitem(sys.modules, "boto3", None)
 
     with pytest.raises(ArchiveError):
-        create_scan_archive(Settings(s3_bucket_name=BUCKET))
+        create_scan_archive(Settings(s3_bucket_name=BUCKET, persistence_mode=PersistenceMode.AWS))
+
+
+def test_the_default_mode_never_touches_aws():
+    """既定は `memory`。外部通信ゼロで全機能が動く(AGENTS.md 絶対ルール)。"""
+    assert isinstance(create_scan_archive(Settings(s3_bucket_name=BUCKET)), InMemoryScanArchive)
 
 
 def test_factory_returns_the_s3_archive(monkeypatch: pytest.MonkeyPatch):
-    """実 AWS へ繋がずにファクトリの分岐だけを検証する。"""
+    """`PERSISTENCE_MODE=aws` のときだけ S3 実装を返す。実 AWS へは繋がない。"""
 
     def fake_builder(*, region: str) -> FakeS3Client:
         return FakeS3Client()
 
     monkeypatch.setattr("gapatlas.adapters.s3.client._build_default_client", fake_builder)
 
-    assert isinstance(create_scan_archive(Settings(s3_bucket_name=BUCKET)), S3ScanArchive)
+    archive = create_scan_archive(
+        Settings(s3_bucket_name=BUCKET, persistence_mode=PersistenceMode.AWS)
+    )
+    assert isinstance(archive, S3ScanArchive)
 
 
 def test_injected_client_is_used_without_touching_boto3(monkeypatch: pytest.MonkeyPatch):

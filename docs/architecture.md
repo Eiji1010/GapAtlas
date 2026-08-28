@@ -125,16 +125,22 @@ COUNTRY item の例:
 
 ```json
 {
+  "PK": "SCAN#scan_abc123",
+  "SK": "COUNTRY#JP",
   "country": "JP",
   "status": "completed",
   "need_gap_score": 86,
   "confidence": 92,
-  "demand": 91,
-  "pain": 84,
-  "solution_gap": 78,
-  "news_urgency": 83
+  "components": { "demand": 91, "pain": 84, "solution_gap": 78, "news_urgency": 83 },
+  "ttl": 1790000000
 }
 ```
+
+`CountryResult` のフィールドを属性へ展開して保存する(JSON 1属性に固めない)。障害調査でコンソールから読めること、将来 `status` で `FilterExpression` を使えることを優先する。下位スコアは `components` 配下にネストする(`CountryResult` の形が正本)。
+
+`ttl` は**保存時刻**から算出する(既定 30 日)。`ScanSummary` には時刻フィールドが無く `computed_at` を基準にできないため、また TTL の目的が「デモ後に自動削除する」ことであるため。Terraform の `ttl { attribute_name = "ttl" }` と属性名を一致させること。
+
+**永続化のモードは `PERSISTENCE_MODE`**(`memory` / `aws`、既定 `memory`)。`SERPAPI_MODE=fixture` と同じ思想で、既定では AWS へ接続しない。テーブル名やバケット名の有無から AWS 利用を推測してはいけない(どちらも既定値を持つ必須項目なので「未設定」を表現できない)。
 
 アクセスパターン:
 
@@ -166,7 +172,8 @@ curated/
 Partition key は `topic` / `country` / `dt`。
 
 - `raw/` は SerpApi のレスポンスを **JSON のまま**保存する
-- `normalized/` `curated/` は可能なら Parquet を使う
+- `normalized/` `curated/` は **JSON Lines**(1オブジェクト1レコード)。Parquet は `pyarrow` の追加が必要で、Lambda のパッケージサイズが 40〜60MB 増えるため MVP では採用しない。切り替える場合は Glue の `ROW FORMAT SERDE` / `STORED AS` も同時に変更する
+- Glue は**パーティション射影**を使う。`MSCK REPAIR TABLE` 方式は新しい `dt` ごとに実行が必要で、忘れると**エラーではなく 0 件**が返る(デモで最も危険な失敗モード)。代償として、射影範囲外の `dt` と `Country` Enum に無い国は不可視になる。**国やトピックを増やすときはテーブル定義の更新が必須**
 
 ## Athena
 
