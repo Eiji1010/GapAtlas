@@ -1,0 +1,102 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_US_SEARCH",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_US_SEARCH.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_US_SEARCH.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.com/search?q=elder%20care%20services&gl=us&hl=en"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "elder care services",
+    "google_domain": "google.com",
+    "hl": "en",
+    "gl": "us",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "elder care services",
+    "total_results": 96300000,
+    "time_taken_displayed": 0.41
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Find Elder Care Services Near You | Example Care Finder (fictional)",
+      "link": "https://finder.example.com/elder-care/",
+      "displayed_link": "finder.example.com › elder-care",
+      "snippet": "Fictional directory. Search in-home care, adult day programs and assisted living by ZIP code.",
+      "source": "finder.example.com"
+    },
+    {
+      "position": 2,
+      "title": "In-Home Elder Care Services | Example Home Care Group (fictional)",
+      "link": "https://homecare.example.com/services/",
+      "displayed_link": "homecare.example.com › services",
+      "snippet": "Fictional agency providing personal care, companion care and 24-hour live-in support.",
+      "source": "homecare.example.com"
+    },
+    {
+      "position": 3,
+      "title": "Assisted Living and Memory Care | Example Senior Living (fictional)",
+      "link": "https://seniorliving.example.com/",
+      "displayed_link": "seniorliving.example.com",
+      "snippet": "Fictional operator of assisted living communities with on-site nursing and memory care.",
+      "source": "seniorliving.example.com"
+    },
+    {
+      "position": 4,
+      "title": "Local Aging Services and Benefits | Example County Aging Office (fictional)",
+      "link": "https://agingservices.example.org/",
+      "displayed_link": "agingservices.example.org",
+      "snippet": "Fictional public agency page listing meal programs, transport and caregiver support benefits.",
+      "source": "agingservices.example.org"
+    },
+    {
+      "position": 5,
+      "title": "Compare Home Care Agencies by ZIP | Example Care Marketplace (fictional)",
+      "link": "https://marketplace.example.com/home-care/",
+      "displayed_link": "marketplace.example.com › home-care",
+      "snippet": "Fictional marketplace comparing hourly rates, availability and services of local agencies.",
+      "source": "marketplace.example.com"
+    },
+    {
+      "position": 6,
+      "title": "What Elder Care Services Cost in 2026 | Example Senior Guide (fictional)",
+      "link": "https://guide.example.org/elder-care-costs/",
+      "displayed_link": "guide.example.org › elder-care-costs",
+      "snippet": "Fictional editorial guide explaining typical hourly and monthly costs by type of care.",
+      "source": "guide.example.org"
+    },
+    {
+      "position": 7,
+      "title": "Adult Day Health Program | Example Community Care (fictional)",
+      "link": "https://communitycare.example.com/adult-day/"
+    },
+    {
+      "position": 8,
+      "title": "Browse Verified Caregivers | Example Caregiver Match (fictional)",
+      "link": "https://match.example.com/caregivers/",
+      "displayed_link": "match.example.com › caregivers",
+      "snippet": "Fictional platform where families book background-checked caregivers by the hour.",
+      "source": "match.example.com"
+    },
+    {
+      "position": 9,
+      "title": "Skilled Nursing and Respite Care | Example Valley Care Services (fictional)",
+      "link": "https://valleycare.example.com/",
+      "displayed_link": "valleycare.example.com",
+      "snippet": "Fictional provider offering skilled nursing visits, respite stays and post-hospital care.",
+      "source": "valleycare.example.com"
+    },
+    {
+      "position": 10,
+      "title": "Elder Care Checklist for Families | Example Family Guide (fictional)",
+      "link": "https://familyguide.example.org/elder-care-checklist/"
+    }
+  ]
+}

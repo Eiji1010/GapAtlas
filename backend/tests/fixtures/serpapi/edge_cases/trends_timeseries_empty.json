@@ -1,0 +1,22 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_TRENDS_TIMESERIES_EMPTY",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_TRENDS_TIMESERIES_EMPTY.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_TRENDS_TIMESERIES_EMPTY.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elder care,nursing home,home care for seniors",
+    "hl": "en",
+    "geo": "US",
+    "date": "today 12-m",
+    "data_type": "TIMESERIES"
+  },
+  "interest_over_time": {
+    "timeline_data": []
+  }
+}

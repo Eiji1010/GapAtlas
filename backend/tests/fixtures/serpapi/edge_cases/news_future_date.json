@@ -1,0 +1,94 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_EDGE_NEWS_FUTURE_DATE",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_NEWS_FUTURE_DATE.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_EDGE_NEWS_FUTURE_DATE.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_news",
+    "q": "elder care staffing shortage",
+    "hl": "en",
+    "gl": "us"
+  },
+  "news_results": [
+    {
+      "position": 1,
+      "title": "Care summit scheduled as staffing gaps widen",
+      "source": {
+        "name": "Example Health Wire (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_01.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_01",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_01.jpeg",
+      "date": "08/29/2026, 08:00 AM, -0400 EDT",
+      "iso_date": "2026-08-29T12:00:00Z"
+    },
+    {
+      "position": 2,
+      "title": "Embargoed report on caregiver pay to be released",
+      "source": {
+        "name": "Example Policy Review (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_02.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_02",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_02.jpeg",
+      "date": "08/28/2026, 02:00 AM, -0400 EDT",
+      "iso_date": "2026-08-28T06:00:00Z"
+    },
+    {
+      "position": 3,
+      "title": "Home care agencies turn away clients as aide shortage deepens",
+      "source": {
+        "name": "Example National Report (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_03.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_03",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_03.jpeg",
+      "date": "08/27/2026, 12:48 AM, -0400 EDT",
+      "iso_date": "2026-08-27T04:48:00Z"
+    },
+    {
+      "position": 4,
+      "title": "Wages rise but elder care vacancies stay near record highs",
+      "source": {
+        "name": "Example Business Daily (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_04.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_04",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_04.jpeg",
+      "date": "08/21/2026, 10:24 AM, -0400 EDT",
+      "iso_date": "2026-08-21T14:24:00Z"
+    },
+    {
+      "position": 5,
+      "title": "Adult day centers reopen slowly as staff shortages persist",
+      "source": {
+        "name": "Example Care Business Journal (fictional)",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/EDGE_NEWS_05.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/edge_news_05",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/EDGE_NEWS_05.jpeg",
+      "date": "08/02/2026, 03:12 PM, -0400 EDT",
+      "iso_date": "2026-08-02T19:12:00Z"
+    }
+  ]
+}

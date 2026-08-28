@@ -1,0 +1,102 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_JP_SEARCH",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_SEARCH.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_SEARCH.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.co.jp/search?q=%E4%BB%8B%E8%AD%B7%20%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9&gl=jp&hl=ja"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "介護 サービス",
+    "google_domain": "google.co.jp",
+    "hl": "ja",
+    "gl": "jp",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "介護 サービス",
+    "total_results": 18400000,
+    "time_taken_displayed": 0.41
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "介護サービス情報公表システム（架空版） | 架空厚生福祉ポータル",
+      "link": "https://www.example.go.jp/kaigo/service-search/",
+      "displayed_link": "www.example.go.jp › kaigo",
+      "snippet": "架空の公的ポータルです。事業所の所在地・サービス種別・空き状況の公表情報を検索できます。",
+      "source": "www.example.go.jp"
+    },
+    {
+      "position": 2,
+      "title": "介護保険で使えるサービス一覧 | 架空市 福祉課",
+      "link": "https://www.example.lg.jp/fukushi/kaigo-service/",
+      "displayed_link": "www.example.lg.jp › fukushi",
+      "snippet": "架空市が提供する介護保険サービスの種類、自己負担割合、申請窓口をまとめた案内ページです。",
+      "source": "www.example.lg.jp"
+    },
+    {
+      "position": 3,
+      "title": "介護サービスの種類と選び方を解説 | 介護まるわかりガイド（架空）",
+      "link": "https://kaigo-guide.example.co.jp/service-types/",
+      "displayed_link": "kaigo-guide.example.co.jp",
+      "snippet": "訪問介護・通所介護・施設サービスの違いと、家族が選ぶときの比較ポイントを解説した記事です。",
+      "source": "kaigo-guide.example.co.jp"
+    },
+    {
+      "position": 4,
+      "title": "全国の介護サービスを条件で探す | 介護ナビ（架空）",
+      "link": "https://kaigo-navi.example.co.jp/search/",
+      "displayed_link": "kaigo-navi.example.co.jp › search",
+      "snippet": "地域・サービス種別・費用帯から介護事業所を検索し、複数事業所へまとめて問い合わせできます。",
+      "source": "kaigo-navi.example.co.jp"
+    },
+    {
+      "position": 5,
+      "title": "在宅介護で受けられるサービスまとめ | 架空シニア情報室",
+      "link": "https://senior-lab.example.co.jp/home-care/"
+    },
+    {
+      "position": 6,
+      "title": "訪問介護・デイサービス | 架空あおぞら介護サービス",
+      "link": "https://aozora-care.example.co.jp/",
+      "displayed_link": "aozora-care.example.co.jp",
+      "snippet": "架空の在宅介護事業所です。訪問介護、通所介護、福祉用具貸与を同一法人で提供しています。",
+      "source": "aozora-care.example.co.jp"
+    },
+    {
+      "position": 7,
+      "title": "地域包括支援センターのご案内（架空市）",
+      "link": "https://www.example.lg.jp/fukushi/houkatsu/",
+      "displayed_link": "www.example.lg.jp › fukushi",
+      "snippet": "介護に関する初回相談の窓口案内です。担当地区、受付時間、相談の流れを掲載しています。",
+      "source": "www.example.lg.jp"
+    },
+    {
+      "position": 8,
+      "title": "介護サービス費用の目安 | 架空くらし相談室",
+      "link": "https://kurashi-soudan.example.co.jp/kaigo-cost/"
+    },
+    {
+      "position": 9,
+      "title": "架空ひまわり在宅介護ステーション | 24時間対応の訪問介護",
+      "link": "https://himawari-care.example.co.jp/",
+      "displayed_link": "himawari-care.example.co.jp",
+      "snippet": "架空の訪問介護ステーションです。夜間対応型訪問介護と定期巡回サービスを実施しています。",
+      "source": "himawari-care.example.co.jp"
+    },
+    {
+      "position": 10,
+      "title": "介護サービスの利用者負担見直しを議論 | 架空福祉ニュース",
+      "link": "https://news.example.co.jp/welfare/kaigo-futan-2026/",
+      "displayed_link": "news.example.co.jp › welfare",
+      "snippet": "架空の報道記事です。次期制度改定に向けた利用者負担の議論の経緯をまとめています。",
+      "source": "news.example.co.jp"
+    }
+  ]
+}

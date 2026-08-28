@@ -1,0 +1,165 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_JP_TRENDS_RELATED_QUERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_TRENDS_RELATED_QUERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_TRENDS_RELATED_QUERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "介護",
+    "hl": "ja",
+    "geo": "JP",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "rising": [
+      {
+        "query": "特養 待機期間",
+        "value": "+180%",
+        "extracted_value": 180,
+        "link": "https://trends.google.com/trends/explore?q=%E7%89%B9%E9%A4%8A%20%E5%BE%85%E6%A9%9F%E6%9C%9F%E9%96%93&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_01.json"
+      },
+      {
+        "query": "介護施設 空きがない",
+        "value": "Breakout",
+        "extracted_value": 5000,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E6%96%BD%E8%A8%AD%20%E7%A9%BA%E3%81%8D%E3%81%8C%E3%81%AA%E3%81%84&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_02.json"
+      },
+      {
+        "query": "訪問介護 断られた",
+        "value": "+450%",
+        "extracted_value": 450,
+        "link": "https://trends.google.com/trends/explore?q=%E8%A8%AA%E5%95%8F%E4%BB%8B%E8%AD%B7%20%E6%96%AD%E3%82%89%E3%82%8C%E3%81%9F&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_03.json"
+      },
+      {
+        "query": "ヘルパー 人手不足",
+        "value": "+320%",
+        "extracted_value": 320,
+        "link": "https://trends.google.com/trends/explore?q=%E3%83%98%E3%83%AB%E3%83%91%E3%83%BC%20%E4%BA%BA%E6%89%8B%E4%B8%8D%E8%B6%B3&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_04.json"
+      },
+      {
+        "query": "ショートステイ 予約 取れない",
+        "value": "+260%",
+        "extracted_value": 260,
+        "link": "https://trends.google.com/trends/explore?q=%E3%82%B7%E3%83%A7%E3%83%BC%E3%83%88%E3%82%B9%E3%83%86%E3%82%A4%20%E4%BA%88%E7%B4%84%20%E5%8F%96%E3%82%8C%E3%81%AA%E3%81%84&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_05.json"
+      },
+      {
+        "query": "介護費用 払えない",
+        "value": "+210%",
+        "extracted_value": 210,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E8%B2%BB%E7%94%A8%20%E6%89%95%E3%81%88%E3%81%AA%E3%81%84&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_06.json"
+      },
+      {
+        "query": "介護 待機 順番",
+        "value": "+120%",
+        "extracted_value": 120,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%20%E5%BE%85%E6%A9%9F%20%E9%A0%86%E7%95%AA&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_07.json"
+      },
+      {
+        "query": "老人ホーム 費用 相場",
+        "value": "+140%",
+        "extracted_value": 140,
+        "link": "https://trends.google.com/trends/explore?q=%E8%80%81%E4%BA%BA%E3%83%9B%E3%83%BC%E3%83%A0%20%E8%B2%BB%E7%94%A8%20%E7%9B%B8%E5%A0%B4&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_08.json"
+      },
+      {
+        "query": "地方 介護施設 少ない",
+        "value": "+90%",
+        "extracted_value": 90,
+        "link": "https://trends.google.com/trends/explore?q=%E5%9C%B0%E6%96%B9%20%E4%BB%8B%E8%AD%B7%E6%96%BD%E8%A8%AD%20%E5%B0%91%E3%81%AA%E3%81%84&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_09.json"
+      },
+      {
+        "query": "介護士 離職率",
+        "value": "+75%",
+        "extracted_value": 75,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E5%A3%AB%20%E9%9B%A2%E8%81%B7%E7%8E%87&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_10.json"
+      },
+      {
+        "query": "介護施設 対応 悪い",
+        "value": "+60%",
+        "extracted_value": 60,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E6%96%BD%E8%A8%AD%20%E5%AF%BE%E5%BF%9C%20%E6%82%AA%E3%81%84&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_11.json"
+      },
+      {
+        "query": "介護保険 申請 方法",
+        "value": "+40%",
+        "extracted_value": 40,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E4%BF%9D%E9%99%BA%20%E7%94%B3%E8%AB%8B%20%E6%96%B9%E6%B3%95&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_RISING_12.json"
+      }
+    ],
+    "top": [
+      {
+        "query": "介護",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_01.json"
+      },
+      {
+        "query": "介護保険",
+        "value": "78",
+        "extracted_value": 78,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E4%BF%9D%E9%99%BA&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_02.json"
+      },
+      {
+        "query": "介護施設",
+        "value": "64",
+        "extracted_value": 64,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%E6%96%BD%E8%A8%AD&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_03.json"
+      },
+      {
+        "query": "老人ホーム",
+        "value": "55",
+        "extracted_value": 55,
+        "link": "https://trends.google.com/trends/explore?q=%E8%80%81%E4%BA%BA%E3%83%9B%E3%83%BC%E3%83%A0&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_04.json"
+      },
+      {
+        "query": "介護 求人",
+        "value": "48",
+        "extracted_value": 48,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%20%E6%B1%82%E4%BA%BA&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_05.json"
+      },
+      {
+        "query": "デイサービス",
+        "value": "36",
+        "extracted_value": 36,
+        "link": "https://trends.google.com/trends/explore?q=%E3%83%87%E3%82%A4%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_06.json"
+      },
+      {
+        "query": "在宅介護",
+        "value": "29",
+        "extracted_value": 29,
+        "link": "https://trends.google.com/trends/explore?q=%E5%9C%A8%E5%AE%85%E4%BB%8B%E8%AD%B7&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_07.json"
+      },
+      {
+        "query": "介護 資格",
+        "value": "22",
+        "extracted_value": 22,
+        "link": "https://trends.google.com/trends/explore?q=%E4%BB%8B%E8%AD%B7%20%E8%B3%87%E6%A0%BC&date=today+12-m&geo=JP",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/JP_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}

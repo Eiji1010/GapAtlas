@@ -1,0 +1,165 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_GB_TRENDS_RELATED_QUERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_TRENDS_RELATED_QUERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_TRENDS_RELATED_QUERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elderly care",
+    "hl": "en",
+    "geo": "GB",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "rising": [
+      {
+        "query": "hospital discharge waiting for care package",
+        "value": "+310%",
+        "extracted_value": 310,
+        "link": "https://trends.google.com/trends/explore?q=hospital%20discharge%20waiting%20for%20care%20package&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_01.json"
+      },
+      {
+        "query": "no carers available in my area",
+        "value": "Breakout",
+        "extracted_value": 5000,
+        "link": "https://trends.google.com/trends/explore?q=no%20carers%20available%20in%20my%20area&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_02.json"
+      },
+      {
+        "query": "carer shortage",
+        "value": "+280%",
+        "extracted_value": 280,
+        "link": "https://trends.google.com/trends/explore?q=carer%20shortage&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_03.json"
+      },
+      {
+        "query": "domiciliary care unavailable",
+        "value": "+230%",
+        "extracted_value": 230,
+        "link": "https://trends.google.com/trends/explore?q=domiciliary%20care%20unavailable&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_04.json"
+      },
+      {
+        "query": "care home waiting list",
+        "value": "+200%",
+        "extracted_value": 200,
+        "link": "https://trends.google.com/trends/explore?q=care%20home%20waiting%20list&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_05.json"
+      },
+      {
+        "query": "care needs assessment delay",
+        "value": "+175%",
+        "extracted_value": 175,
+        "link": "https://trends.google.com/trends/explore?q=care%20needs%20assessment%20delay&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_06.json"
+      },
+      {
+        "query": "respite care not available",
+        "value": "+140%",
+        "extracted_value": 140,
+        "link": "https://trends.google.com/trends/explore?q=respite%20care%20not%20available&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_07.json"
+      },
+      {
+        "query": "care home fees per week",
+        "value": "+120%",
+        "extracted_value": 120,
+        "link": "https://trends.google.com/trends/explore?q=care%20home%20fees%20per%20week&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_08.json"
+      },
+      {
+        "query": "self funding care home advice",
+        "value": "+90%",
+        "extracted_value": 90,
+        "link": "https://trends.google.com/trends/explore?q=self%20funding%20care%20home%20advice&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_09.json"
+      },
+      {
+        "query": "rural care home access",
+        "value": "+65%",
+        "extracted_value": 65,
+        "link": "https://trends.google.com/trends/explore?q=rural%20care%20home%20access&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_10.json"
+      },
+      {
+        "query": "care home poor inspection rating",
+        "value": "+55%",
+        "extracted_value": 55,
+        "link": "https://trends.google.com/trends/explore?q=care%20home%20poor%20inspection%20rating&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_11.json"
+      },
+      {
+        "query": "what is social care",
+        "value": "+30%",
+        "extracted_value": 30,
+        "link": "https://trends.google.com/trends/explore?q=what%20is%20social%20care&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_RISING_12.json"
+      }
+    ],
+    "top": [
+      {
+        "query": "elderly care",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=elderly%20care&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_01.json"
+      },
+      {
+        "query": "elderly care homes",
+        "value": "74",
+        "extracted_value": 74,
+        "link": "https://trends.google.com/trends/explore?q=elderly%20care%20homes&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_02.json"
+      },
+      {
+        "query": "care home",
+        "value": "66",
+        "extracted_value": 66,
+        "link": "https://trends.google.com/trends/explore?q=care%20home&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_03.json"
+      },
+      {
+        "query": "home care",
+        "value": "52",
+        "extracted_value": 52,
+        "link": "https://trends.google.com/trends/explore?q=home%20care&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_04.json"
+      },
+      {
+        "query": "elderly care jobs",
+        "value": "39",
+        "extracted_value": 39,
+        "link": "https://trends.google.com/trends/explore?q=elderly%20care%20jobs&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_05.json"
+      },
+      {
+        "query": "social care",
+        "value": "33",
+        "extracted_value": 33,
+        "link": "https://trends.google.com/trends/explore?q=social%20care&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_06.json"
+      },
+      {
+        "query": "elderly care at home",
+        "value": "27",
+        "extracted_value": 27,
+        "link": "https://trends.google.com/trends/explore?q=elderly%20care%20at%20home&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_07.json"
+      },
+      {
+        "query": "care agency",
+        "value": "20",
+        "extracted_value": 20,
+        "link": "https://trends.google.com/trends/explore?q=care%20agency&date=today+12-m&geo=GB",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/GB_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}

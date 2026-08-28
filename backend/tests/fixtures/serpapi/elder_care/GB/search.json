@@ -1,0 +1,102 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_GB_SEARCH",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_SEARCH.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_GB_SEARCH.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.co.uk/search?q=elderly%20care%20services&gl=uk&hl=en"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "elderly care services",
+    "google_domain": "google.co.uk",
+    "hl": "en",
+    "gl": "uk",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "elderly care services",
+    "total_results": 41200000,
+    "time_taken_displayed": 0.41
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Adult social care and support | Example Borough Council (fictional)",
+      "link": "https://council.example.co.uk/adult-social-care/",
+      "displayed_link": "council.example.co.uk › adult-social-care",
+      "snippet": "Fictional council page describing home care, day services and how to arrange support.",
+      "source": "council.example.co.uk"
+    },
+    {
+      "position": 2,
+      "title": "Getting a care needs assessment | Example Public Care Service (fictional)",
+      "link": "https://care-service.example.co.uk/assessment/",
+      "displayed_link": "care-service.example.co.uk › assessment",
+      "snippet": "Fictional public service guidance on requesting an assessment and what happens afterwards.",
+      "source": "care-service.example.co.uk"
+    },
+    {
+      "position": 3,
+      "title": "Types of elderly care explained | Example Care Advice (fictional)",
+      "link": "https://advice.example.co.uk/elderly-care-types/",
+      "displayed_link": "advice.example.co.uk › elderly-care-types",
+      "snippet": "Fictional advice article comparing residential care, home care and live-in care options.",
+      "source": "advice.example.co.uk"
+    },
+    {
+      "position": 4,
+      "title": "Search care homes and home care near you | Example Care Directory (fictional)",
+      "link": "https://directory.example.co.uk/search/",
+      "displayed_link": "directory.example.co.uk › search",
+      "snippet": "Fictional directory listing providers with vacancies, weekly fees and inspection summaries.",
+      "source": "directory.example.co.uk"
+    },
+    {
+      "position": 5,
+      "title": "Paying for care: what your council covers | Example Borough Council (fictional)",
+      "link": "https://council.example.co.uk/paying-for-care/",
+      "displayed_link": "council.example.co.uk › paying-for-care",
+      "snippet": "Fictional council page on means testing, capital limits and self-funded care arrangements.",
+      "source": "council.example.co.uk"
+    },
+    {
+      "position": 6,
+      "title": "Home care visits across the county | Example Willow Home Care (fictional)",
+      "link": "https://willowcare.example.co.uk/",
+      "displayed_link": "willowcare.example.co.uk",
+      "snippet": "Fictional domiciliary care agency providing personal care visits and overnight support.",
+      "source": "willowcare.example.co.uk"
+    },
+    {
+      "position": 7,
+      "title": "Care home fees guide 2026 | Example Money Advice (fictional)",
+      "link": "https://money-advice.example.co.uk/care-home-fees/"
+    },
+    {
+      "position": 8,
+      "title": "Care quality inspection reports | Example Care Regulator (fictional)",
+      "link": "https://inspections.example.co.uk/reports/",
+      "displayed_link": "inspections.example.co.uk › reports",
+      "snippet": "Fictional regulator page publishing inspection ratings and enforcement notices for providers.",
+      "source": "inspections.example.co.uk"
+    },
+    {
+      "position": 9,
+      "title": "Residential and respite care | Example Meadow Care Homes (fictional)",
+      "link": "https://meadowcare.example.co.uk/"
+    },
+    {
+      "position": 10,
+      "title": "Councils warn of rising social care waiting lists | Example Daily Report (fictional)",
+      "link": "https://news.example.co.uk/social-care-waiting-lists/",
+      "displayed_link": "news.example.co.uk › social-care",
+      "snippet": "Fictional news article reporting on assessment backlogs and unfilled care packages.",
+      "source": "news.example.co.uk"
+    }
+  ]
+}

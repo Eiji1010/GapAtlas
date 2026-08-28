@@ -1,0 +1,165 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_US_TRENDS_RELATED_QUERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_US_TRENDS_RELATED_QUERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_US_TRENDS_RELATED_QUERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "elder care",
+    "hl": "en",
+    "geo": "US",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "rising": [
+      {
+        "query": "home health aide shortage",
+        "value": "+310%",
+        "extracted_value": 310,
+        "link": "https://trends.google.com/trends/explore?q=home%20health%20aide%20shortage&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_01.json"
+      },
+      {
+        "query": "can't find a caregiver",
+        "value": "Breakout",
+        "extracted_value": 5000,
+        "link": "https://trends.google.com/trends/explore?q=can%27t%20find%20a%20caregiver&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_02.json"
+      },
+      {
+        "query": "nursing home waitlist",
+        "value": "+240%",
+        "extracted_value": 240,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20home%20waitlist&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_03.json"
+      },
+      {
+        "query": "nursing home understaffed",
+        "value": "+220%",
+        "extracted_value": 220,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20home%20understaffed&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_04.json"
+      },
+      {
+        "query": "medicaid waiver waiting list",
+        "value": "+180%",
+        "extracted_value": 180,
+        "link": "https://trends.google.com/trends/explore?q=medicaid%20waiver%20waiting%20list&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_05.json"
+      },
+      {
+        "query": "no home care availability",
+        "value": "+160%",
+        "extracted_value": 160,
+        "link": "https://trends.google.com/trends/explore?q=no%20home%20care%20availability&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_06.json"
+      },
+      {
+        "query": "caregiver burnout symptoms",
+        "value": "+150%",
+        "extracted_value": 150,
+        "link": "https://trends.google.com/trends/explore?q=caregiver%20burnout%20symptoms&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_07.json"
+      },
+      {
+        "query": "assisted living cost per month",
+        "value": "+130%",
+        "extracted_value": 130,
+        "link": "https://trends.google.com/trends/explore?q=assisted%20living%20cost%20per%20month&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_08.json"
+      },
+      {
+        "query": "elder care in rural counties",
+        "value": "+95%",
+        "extracted_value": 95,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20in%20rural%20counties&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_09.json"
+      },
+      {
+        "query": "paying for long term care",
+        "value": "+85%",
+        "extracted_value": 85,
+        "link": "https://trends.google.com/trends/explore?q=paying%20for%20long%20term%20care&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_10.json"
+      },
+      {
+        "query": "nursing home neglect warning signs",
+        "value": "+70%",
+        "extracted_value": 70,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20home%20neglect%20warning%20signs&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_11.json"
+      },
+      {
+        "query": "what is assisted living",
+        "value": "+35%",
+        "extracted_value": 35,
+        "link": "https://trends.google.com/trends/explore?q=what%20is%20assisted%20living&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_RISING_12.json"
+      }
+    ],
+    "top": [
+      {
+        "query": "elder care",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_01.json"
+      },
+      {
+        "query": "elder care services",
+        "value": "71",
+        "extracted_value": 71,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20services&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_02.json"
+      },
+      {
+        "query": "nursing home",
+        "value": "63",
+        "extracted_value": 63,
+        "link": "https://trends.google.com/trends/explore?q=nursing%20home&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_03.json"
+      },
+      {
+        "query": "assisted living",
+        "value": "58",
+        "extracted_value": 58,
+        "link": "https://trends.google.com/trends/explore?q=assisted%20living&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_04.json"
+      },
+      {
+        "query": "home care",
+        "value": "44",
+        "extracted_value": 44,
+        "link": "https://trends.google.com/trends/explore?q=home%20care&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_05.json"
+      },
+      {
+        "query": "elder care near me",
+        "value": "31",
+        "extracted_value": 31,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20near%20me&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_06.json"
+      },
+      {
+        "query": "elder law",
+        "value": "24",
+        "extracted_value": 24,
+        "link": "https://trends.google.com/trends/explore?q=elder%20law&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_07.json"
+      },
+      {
+        "query": "elder care jobs",
+        "value": "18",
+        "extracted_value": 18,
+        "link": "https://trends.google.com/trends/explore?q=elder%20care%20jobs&date=today+12-m&geo=US",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/US_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}

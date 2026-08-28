@@ -1,0 +1,163 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_JP_NEWS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_NEWS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_JP_NEWS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_news",
+    "q": "介護 人手不足",
+    "hl": "ja",
+    "gl": "jp"
+  },
+  "news_results": [
+    {
+      "position": 1,
+      "title": "介護職員の有効求人倍率が過去最高を更新 架空県で人手不足深刻",
+      "source": {
+        "name": "架空福祉新聞",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_01.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_01",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_01.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_01_small.jpeg",
+      "date": "08/27/2026, 06:36 PM, +0900 +09",
+      "iso_date": "2026-08-27T09:36:00Z"
+    },
+    {
+      "position": 2,
+      "title": "特別養護老人ホーム、職員不足で3割が受け入れ制限",
+      "source": {
+        "name": "架空医療介護ジャーナル",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_02.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_02",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_02.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_02_small.jpeg",
+      "date": "08/26/2026, 01:48 PM, +0900 +09",
+      "iso_date": "2026-08-26T04:48:00Z"
+    },
+    {
+      "position": 3,
+      "title": "訪問介護事業所の廃業が最多に 担い手確保進まず",
+      "source": {
+        "name": "架空経済タイムズ",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_03.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_03",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_03.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_03_small.jpeg",
+      "date": "08/25/2026, 04:12 AM, +0900 +09",
+      "iso_date": "2026-08-24T19:12:00Z"
+    },
+    {
+      "position": 4,
+      "title": "外国人介護人材の受け入れ拡大へ 架空自治体が支援策",
+      "source": {
+        "name": "架空地域ニュース",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_04.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_04",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_04.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_04_small.jpeg",
+      "date": "08/22/2026, 09:00 PM, +0900 +09",
+      "iso_date": "2026-08-22T12:00:00Z"
+    },
+    {
+      "position": 5,
+      "title": "介護報酬改定の議論始まる 人材確保が焦点",
+      "source": {
+        "name": "架空政策ウォッチ",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_05.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_05",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_05.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_05_small.jpeg",
+      "date": "08/19/2026, 06:36 AM, +0900 +09",
+      "iso_date": "2026-08-18T21:36:00Z"
+    },
+    {
+      "position": 6,
+      "title": "介護現場の離職率、賃上げでも改善せず",
+      "source": {
+        "name": "架空福祉新聞",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_06.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_06",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_06.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_06_small.jpeg",
+      "date": "08/14/2026, 11:24 PM, +0900 +09",
+      "iso_date": "2026-08-14T14:24:00Z"
+    },
+    {
+      "position": 7,
+      "title": "ケアマネジャー不足で相談待ちが常態化",
+      "source": {
+        "name": "架空医療介護ジャーナル",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_07.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_07",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_07.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_07_small.jpeg",
+      "date": "08/09/2026, 04:12 PM, +0900 +09",
+      "iso_date": "2026-08-09T07:12:00Z"
+    },
+    {
+      "position": 8,
+      "title": "介護ロボット導入で夜勤負担を軽減 架空施設の取り組み",
+      "source": {
+        "name": "架空テクノロジーレビュー",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_08.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_08",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_08.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_08_small.jpeg",
+      "date": "08/04/2026, 01:48 AM, +0900 +09",
+      "iso_date": "2026-08-03T16:48:00Z"
+    },
+    {
+      "position": 9,
+      "title": "地方の介護施設、募集しても応募ゼロが半数",
+      "source": {
+        "name": "架空地域ニュース",
+        "icon": "https://serpapi.com/searches/FIXTURE/icons/JP_NEWS_09.png",
+        "authors": [
+          "Example Staff Reporter (fictional)"
+        ]
+      },
+      "link": "https://news.example.com/fixture/jp_news_09",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_09.jpeg",
+      "thumbnail_small": "https://serpapi.com/searches/FIXTURE/images/JP_NEWS_09_small.jpeg",
+      "date": "07/30/2026, 06:36 PM, +0900 +09",
+      "iso_date": "2026-07-30T09:36:00Z"
+    }
+  ]
+}

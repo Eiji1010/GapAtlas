@@ -1,0 +1,170 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_DE_MAPS",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_MAPS.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_MAPS.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_maps",
+    "q": "Pflegedienst",
+    "type": "search",
+    "ll": "@52.5200,13.4050,12z",
+    "google_domain": "google.de",
+    "hl": "de",
+    "gl": "de"
+  },
+  "search_information": {
+    "local_results_state": "Results for exact spelling",
+    "query_displayed": "Pflegedienst"
+  },
+  "local_results": [
+    {
+      "position": 1,
+      "title": "Beispiel Pflegedienst Morgenstern (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_01",
+      "data_id": "0xFIXTURE0001:0xFIXTURE0001",
+      "data_cid": "FIXTURE_CID_DE_PLACE_01",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_01_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_01_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5211,
+        "longitude": 13.4067
+      },
+      "provider_id": "/g/FIXTURE0001",
+      "rating": 4.4,
+      "reviews": 62,
+      "type": "Ambulanter Pflegedienst",
+      "types": [
+        "Ambulanter Pflegedienst"
+      ],
+      "address": "Beispielstraße 12, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000001",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_01.jpeg"
+    },
+    {
+      "position": 2,
+      "title": "Beispiel Pflegedienst Lindenhof (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_02",
+      "data_id": "0xFIXTURE0002:0xFIXTURE0002",
+      "data_cid": "FIXTURE_CID_DE_PLACE_02",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_02_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_02_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5289,
+        "longitude": 13.3921
+      },
+      "provider_id": "/g/FIXTURE0002",
+      "rating": 4.1,
+      "reviews": 39,
+      "type": "Ambulanter Pflegedienst",
+      "types": [
+        "Ambulanter Pflegedienst"
+      ],
+      "address": "Beispielallee 5, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000002",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_02.jpeg"
+    },
+    {
+      "position": 3,
+      "title": "Beispiel Seniorenzentrum Rosengarten (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_03",
+      "data_id": "0xFIXTURE0003:0xFIXTURE0003",
+      "data_cid": "FIXTURE_CID_DE_PLACE_03",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_03_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_03_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5104,
+        "longitude": 13.4188
+      },
+      "provider_id": "/g/FIXTURE0003",
+      "rating": 3.6,
+      "reviews": 91,
+      "type": "Pflegeheim",
+      "types": [
+        "Pflegeheim"
+      ],
+      "address": "Beispielweg 88, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000003",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_03.jpeg"
+    },
+    {
+      "position": 4,
+      "title": "Beispiel Tagespflege Sonnenhof (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_04",
+      "data_id": "0xFIXTURE0004:0xFIXTURE0004",
+      "data_cid": "FIXTURE_CID_DE_PLACE_04",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_04_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_04_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5342,
+        "longitude": 13.4235
+      },
+      "provider_id": "/g/FIXTURE0004",
+      "rating": 4.6,
+      "reviews": 24,
+      "type": "Tagespflege",
+      "types": [
+        "Tagespflege"
+      ],
+      "address": "Beispielplatz 3, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000004",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_04.jpeg"
+    },
+    {
+      "position": 5,
+      "title": "Beispiel Pflegedienst Sonnenblume (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_05",
+      "data_id": "0xFIXTURE0005:0xFIXTURE0005",
+      "data_cid": "FIXTURE_CID_DE_PLACE_05",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_05_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_05_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5063,
+        "longitude": 13.3854
+      },
+      "provider_id": "/g/FIXTURE0005",
+      "rating": 4.0,
+      "reviews": 17,
+      "type": "Ambulanter Pflegedienst",
+      "types": [
+        "Ambulanter Pflegedienst"
+      ],
+      "address": "Beispielring 21, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000005",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_05.jpeg"
+    },
+    {
+      "position": 6,
+      "title": "Beispiel Kurzzeitpflege am Park (fiktiv)",
+      "place_id": "FIXTURE_PLACE_ID_DE_PLACE_06",
+      "data_id": "0xFIXTURE0006:0xFIXTURE0006",
+      "data_cid": "FIXTURE_CID_DE_PLACE_06",
+      "reviews_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_06_reviews.json",
+      "photos_link": "https://serpapi.com/searches/FIXTURE/DE_PLACE_06_photos.json",
+      "gps_coordinates": {
+        "latitude": 52.5398,
+        "longitude": 13.4102
+      },
+      "provider_id": "/g/FIXTURE0006",
+      "rating": 3.9,
+      "reviews": 28,
+      "type": "Kurzzeitpflege",
+      "types": [
+        "Kurzzeitpflege"
+      ],
+      "address": "Beispielufer 7, Beispielstadt",
+      "open_state": "Geöffnet ⋅ Schließt 18:00",
+      "phone": "030 000006",
+      "thumbnail": "https://serpapi.com/searches/FIXTURE/images/DE_PLACE_06.jpeg"
+    }
+  ]
+}

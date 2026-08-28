@@ -1,0 +1,102 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_IN_SEARCH",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_SEARCH.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_IN_SEARCH.html",
+    "total_time_taken": 1.42,
+    "google_url": "https://www.google.co.in/search?q=elder%20care%20services&gl=in&hl=en"
+  },
+  "search_parameters": {
+    "engine": "google",
+    "q": "elder care services",
+    "google_domain": "google.co.in",
+    "hl": "en",
+    "gl": "in",
+    "device": "desktop"
+  },
+  "search_information": {
+    "organic_results_state": "Results for exact spelling",
+    "query_displayed": "elder care services",
+    "total_results": 33500000,
+    "time_taken_displayed": 0.41
+  },
+  "organic_results": [
+    {
+      "position": 1,
+      "title": "Elder care services in India: a complete guide | Example Senior Guide (fictional)",
+      "link": "https://guide.example.co.in/elder-care-services/",
+      "displayed_link": "guide.example.co.in › elder-care-services",
+      "snippet": "Fictional guide covering home nursing, day care and assisted living options for families.",
+      "source": "guide.example.co.in"
+    },
+    {
+      "position": 2,
+      "title": "Find elder care and home nursing near you | Example Care Connect (fictional)",
+      "link": "https://connect.example.co.in/elder-care/",
+      "displayed_link": "connect.example.co.in › elder-care",
+      "snippet": "Fictional platform that matches families with verified attendants and nursing providers.",
+      "source": "connect.example.co.in"
+    },
+    {
+      "position": 3,
+      "title": "Types of elder care available for Indian families | Example Care Journal (fictional)",
+      "link": "https://journal.example.co.in/types-of-elder-care/",
+      "displayed_link": "journal.example.co.in › types-of-elder-care",
+      "snippet": "Fictional explainer comparing live-in attendants, day care centres and residential homes.",
+      "source": "journal.example.co.in"
+    },
+    {
+      "position": 4,
+      "title": "Home nursing and attendant services | Example Ashirwad Care (fictional)",
+      "link": "https://ashirwadcare.example.co.in/",
+      "displayed_link": "ashirwadcare.example.co.in",
+      "snippet": "Fictional provider offering trained attendants, nursing visits and physiotherapy at home.",
+      "source": "ashirwadcare.example.co.in"
+    },
+    {
+      "position": 5,
+      "title": "How much does elder care cost in India? | Example Money Notes (fictional)",
+      "link": "https://moneynotes.example.co.in/elder-care-cost/"
+    },
+    {
+      "position": 6,
+      "title": "Compare old age homes and assisted living | Example Senior Finder (fictional)",
+      "link": "https://finder.example.co.in/old-age-homes/",
+      "displayed_link": "finder.example.co.in › old-age-homes",
+      "snippet": "Fictional comparison site listing monthly charges, room types and admission requirements.",
+      "source": "finder.example.co.in"
+    },
+    {
+      "position": 7,
+      "title": "Elder care services - community discussion thread | Example Forum (fictional)",
+      "link": "https://forum.example.co.in/threads/elder-care-services/",
+      "displayed_link": "forum.example.co.in › threads",
+      "snippet": "Fictional user forum thread where families share experiences of hiring elder care help.",
+      "source": "forum.example.co.in"
+    },
+    {
+      "position": 8,
+      "title": "Assisted living and geriatric care centre | Example Sahara Senior Care (fictional)",
+      "link": "https://saharasenior.example.co.in/"
+    },
+    {
+      "position": 9,
+      "title": "Demand for home-based elder care rises in metros | Example Business Report (fictional)",
+      "link": "https://news.example.co.in/home-elder-care-demand/",
+      "displayed_link": "news.example.co.in › business",
+      "snippet": "Fictional news article on the growth of paid home care services in large Indian cities.",
+      "source": "news.example.co.in"
+    },
+    {
+      "position": 10,
+      "title": "Government schemes for senior citizens explained | Example Policy Digest (fictional)",
+      "link": "https://digest.example.co.in/senior-citizen-schemes/",
+      "displayed_link": "digest.example.co.in › schemes",
+      "snippet": "Fictional summary of pension, health and welfare schemes available to older citizens.",
+      "source": "digest.example.co.in"
+    }
+  ]
+}

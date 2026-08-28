@@ -1,0 +1,165 @@
+{
+  "search_metadata": {
+    "id": "FIXTURE_DE_TRENDS_RELATED_QUERIES",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_TRENDS_RELATED_QUERIES.json",
+    "created_at": "2026-08-28 00:00:01 UTC",
+    "processed_at": "2026-08-28 00:00:03 UTC",
+    "raw_html_file": "https://serpapi.com/searches/FIXTURE/FIXTURE_DE_TRENDS_RELATED_QUERIES.html",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_trends",
+    "q": "Pflege",
+    "hl": "de",
+    "geo": "DE",
+    "date": "today 12-m",
+    "data_type": "RELATED_QUERIES"
+  },
+  "related_queries": {
+    "rising": [
+      {
+        "query": "kein Pflegeheimplatz frei",
+        "value": "Breakout",
+        "extracted_value": 5000,
+        "link": "https://trends.google.com/trends/explore?q=kein%20Pflegeheimplatz%20frei&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_01.json"
+      },
+      {
+        "query": "Pflegekräftemangel",
+        "value": "+260%",
+        "extracted_value": 260,
+        "link": "https://trends.google.com/trends/explore?q=Pflegekr%C3%A4ftemangel&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_02.json"
+      },
+      {
+        "query": "Kurzzeitpflege kein Platz",
+        "value": "+240%",
+        "extracted_value": 240,
+        "link": "https://trends.google.com/trends/explore?q=Kurzzeitpflege%20kein%20Platz&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_03.json"
+      },
+      {
+        "query": "Pflegeplatz gesucht dringend",
+        "value": "+225%",
+        "extracted_value": 225,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeplatz%20gesucht%20dringend&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_04.json"
+      },
+      {
+        "query": "ambulanter Pflegedienst nimmt keine neuen Patienten auf",
+        "value": "+205%",
+        "extracted_value": 205,
+        "link": "https://trends.google.com/trends/explore?q=ambulanter%20Pflegedienst%20nimmt%20keine%20neuen%20Patienten%20auf&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_05.json"
+      },
+      {
+        "query": "Pflegeplatz Wartezeit",
+        "value": "+190%",
+        "extracted_value": 190,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeplatz%20Wartezeit&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_06.json"
+      },
+      {
+        "query": "Pflegekosten steigen",
+        "value": "+165%",
+        "extracted_value": 165,
+        "link": "https://trends.google.com/trends/explore?q=Pflegekosten%20steigen&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_07.json"
+      },
+      {
+        "query": "Pflegeheim Eigenanteil zu hoch",
+        "value": "+150%",
+        "extracted_value": 150,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeheim%20Eigenanteil%20zu%20hoch&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_08.json"
+      },
+      {
+        "query": "pflegende Angehörige überlastet",
+        "value": "+130%",
+        "extracted_value": 130,
+        "link": "https://trends.google.com/trends/explore?q=pflegende%20Angeh%C3%B6rige%20%C3%BCberlastet&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_09.json"
+      },
+      {
+        "query": "Pflege auf dem Land",
+        "value": "+70%",
+        "extracted_value": 70,
+        "link": "https://trends.google.com/trends/explore?q=Pflege%20auf%20dem%20Land&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_10.json"
+      },
+      {
+        "query": "Pflegeheim schlechte Bewertung",
+        "value": "+50%",
+        "extracted_value": 50,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeheim%20schlechte%20Bewertung&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_11.json"
+      },
+      {
+        "query": "Pflegegrad beantragen",
+        "value": "+45%",
+        "extracted_value": 45,
+        "link": "https://trends.google.com/trends/explore?q=Pflegegrad%20beantragen&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_RISING_12.json"
+      }
+    ],
+    "top": [
+      {
+        "query": "Pflege",
+        "value": "100",
+        "extracted_value": 100,
+        "link": "https://trends.google.com/trends/explore?q=Pflege&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_01.json"
+      },
+      {
+        "query": "Pflegeheim",
+        "value": "69",
+        "extracted_value": 69,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeheim&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_02.json"
+      },
+      {
+        "query": "Pflegedienst",
+        "value": "61",
+        "extracted_value": 61,
+        "link": "https://trends.google.com/trends/explore?q=Pflegedienst&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_03.json"
+      },
+      {
+        "query": "Pflegegrad",
+        "value": "54",
+        "extracted_value": 54,
+        "link": "https://trends.google.com/trends/explore?q=Pflegegrad&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_04.json"
+      },
+      {
+        "query": "häusliche Pflege",
+        "value": "42",
+        "extracted_value": 42,
+        "link": "https://trends.google.com/trends/explore?q=h%C3%A4usliche%20Pflege&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_05.json"
+      },
+      {
+        "query": "Pflegekosten",
+        "value": "30",
+        "extracted_value": 30,
+        "link": "https://trends.google.com/trends/explore?q=Pflegekosten&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_06.json"
+      },
+      {
+        "query": "Pflegeversicherung",
+        "value": "26",
+        "extracted_value": 26,
+        "link": "https://trends.google.com/trends/explore?q=Pflegeversicherung&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_07.json"
+      },
+      {
+        "query": "Pflege Jobs",
+        "value": "19",
+        "extracted_value": 19,
+        "link": "https://trends.google.com/trends/explore?q=Pflege%20Jobs&date=today+12-m&geo=DE",
+        "serpapi_link": "https://serpapi.com/searches/FIXTURE/DE_RELATED_TOP_08.json"
+      }
+    ]
+  }
+}
