@@ -2,7 +2,7 @@
 
 この文書は**セッションとマシンをまたぐ引き継ぎ**のため Git 追跡ファイルとして置いています（`.ai/temp/` は worktree もマシンもまたげません）。作業が進んだら**上書き更新**してください。履歴は Git が持ちます。
 
-- 最終更新: 2026-08-29
+- 最終更新: 2026-08-29 (W3/W4 完了時点)
 - 統合ブランチ: `develop`
 - Remote: `git@github.com:Eiji1010/GapAtlas.git`
 
@@ -12,7 +12,7 @@
 git fetch --all --prune
 git switch develop && git pull --ff-only
 make setup          # backend の依存関係(uv sync --all-extras)
-make verify         # 開始時点で緑であることを確認(799 passed)
+make verify         # 開始時点で緑であることを確認(916 passed)
 ```
 
 読む順番:
@@ -53,11 +53,12 @@ make verify         # 開始時点で緑であることを確認(799 passed)
 | W0 | リポジトリ基盤 + 仕様ドキュメント一式 | **完了** |
 | W1 | Phase 2 ドメインモデル（凍結契約） / SerpApi fixture 作成 | **完了** |
 | W2 | Phase 3 SerpApiアダプタ / Phase 4+5 Scoring+Confidence / LLMアダプタ+分類 | **完了**（第三者レビュー3観点と指摘対応まで） |
-| W3 | 統合 → CLI E2E（`make scan COUNTRY=JP`） | **次はここ** |
-| W4 | 第三者レビュー（W3 の統合部分） | 未着手 |
-| W5+ | Phase 7〜15（永続化 / API / Frontend / Terraform / Athena / demo） | 未着手 |
+| W3 | Phase 6 統合 → CLI E2E（`make scan COUNTRY=JP`） | **完了** |
+| W4 | W3 の第三者レビュー3観点と指摘対応 | **完了** |
+| W5 | Phase 7 永続化（DynamoDB / S3） | **次はここ** |
+| W6+ | Phase 8 SQS / 9 API / 10 Frontend / 12 Athena / 13 Terraform / 14-15 E2E・demo | 未着手 |
 
-`make verify` は **799 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。
+`make verify` は **916 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。
 
 ## 完了済みの成果物
 
@@ -151,7 +152,71 @@ CLASSIFIER_VERSION / PROMPT_VERSION / SCORE_VERSION
 4. `normalize_trends_timeseries` の第2引数には `profile.demand_queries` をそのまま渡す
 5. `compute_sample_sufficiency` は `profile` を要求する（各 demand query 基準で数えるため）
 
-## W3 の計画（次にやること）
+### W3+W4: application 層と CLI（Phase 6）
+
+`SerpApi Fixture → Normalize → Scoring → Confidence → JSON Output` が通るようになりました。
+
+```bash
+make scan COUNTRY=JP
+cd backend && uv run gapatlas scan --topic elder_care --all --mode fixture
+```
+
+fixture に対する現在の期待値（テストで固定済み）:
+
+| 国 | need_gap_score | confidence |
+|---|---:|---:|
+| JP | 75 | 91 |
+| DE | 67 | 90 |
+| IN | 66 | 92 |
+| GB | 58 | 90 |
+| US | 55 | 90 |
+
+#### 公開シグネチャ（W5 が配線に使う）
+
+```python
+# application/logging_context.py
+def configure_logging(level: str = "INFO", *, stream: Any | None = None) -> None
+def log_context(**fields: str | None) -> Iterator[None]        # contextmanager
+def current_context() -> Mapping[str, str]
+def submit_with_context(executor, function, /, *args, **kwargs) -> Future  # スレッド用
+class ScanContextFilter / JsonFormatter
+CONTEXT_FIELDS = ("scan_id", "topic", "country", "source")
+
+# application/evidence.py
+def build_evidence(evidence, classified) -> list[Evidence]
+def build_evidence_pack(country, topic_id, evaluation, items) -> EvidencePack
+METHODOLOGY_LIMITATIONS: tuple[str, ...]
+
+# application/country_scan.py
+class RawSources:        payloads: dict[SourceName, dict[str, Any]]
+class CountryScanOutcome: result / evidence / classified / evaluation / raw
+class CountryScanner:
+    def __init__(self, serpapi: SerpApiClient, classifier: LlmClassifier)
+    def scan(self, profile, *, scan_id, scan_time) -> CountryScanOutcome
+    def attach_maps(self, outcome, profile, *, scan_time) -> CountryScanOutcome
+def build_failed_outcome(topic_id, country, *, scan_id, scan_time, ...) -> CountryScanOutcome
+def build_versions(query_profile_version, *, classifier_version, prompt_version) -> Versions
+
+# application/scan_service.py
+class ScanOutput:  summary: ScanSummary / outcomes: dict[Country, CountryScanOutcome]
+class ScanService:
+    def __init__(self, serpapi, classifier, brief_writer, *, profiles_dir=None)
+    def scan(self, topic_id, countries, *, scan_id, scan_time, enrich=True) -> ScanOutput
+MAPS_COUNTRY_LIMIT = 2 / RANKABLE_STATUSES = {COMPLETED} / STATUS_RANK
+def to_public_component(value: float | None) -> int | None
+
+# cli.py
+def main(argv: Sequence[str] | None = None) -> int
+```
+
+#### W5 以降が知っておくべき点
+
+1. **`RawSources.payloads` が S3 raw/ 保存用の生レスポンス**。`CountryScanOutcome.raw` に入っている
+2. **`ScanOutput.outcomes` は全国分を保持する。** live では最悪 25 payload × 8MB（`MAX_RESPONSE_BYTES`）を同時に抱える。Phase 7 で S3 へ払い出す際は、**国のスキャン完了直後に解放する**設計にすること（持ち越し課題 #10）
+3. **並列化するときは `submit_with_context` を使う。** 素の `executor.submit` ではログの4フィールドが `null` になる
+4. `ScanService.scan(enrich=False)` で Top2 Maps と Top1 Brief をスキップできる（表示しない呼び出し元が無駄な外部 API 呼び出しを避けるため）
+
+## 旧 W3 の計画（完了済み・参考）
 
 `application/` と `cli.py` を実装し、次を成立させる（依頼書 §31 の Phase 4 完了条件）。
 
@@ -223,6 +288,39 @@ SerpApi はクエリパラメータ認証のみで URL 自体が秘密情報。h
 
 実装の定数を期待値に使うと自己参照になり、値を書き換えても検出できない。W2 のレビューではミューテーション試験42件のうち4件がこれで見逃されていた。
 
+### C12. 「国の内側」だけでなく「国の外側」も保護する（W4 で判明）
+
+`CountryScanner.scan` は `except Exception` で完全に保護されているが、
+**その外側**（QueryProfile の読み込み、ランキング確定後の Maps 取得、
+Opportunity Brief の生成）は保護されていなかった。いずれも
+「5か国分の完成した成果を1回の失敗で捨てる」構造になっていた。
+**新しい処理をスキャンの前後へ足すときは、必ず同じ観点で確認すること。**
+
+### C13. Core Source の `OK` は「取得できたか」ではなく「計算に使えるか」（W4 で判明）
+
+`docs/scoring.md` 6章の `OK` は「下位スコアの計算に使える内容があった」。
+Trends は 12 点未満だと Demand を計算できないので `MISSING` にする。
+「1点でもあれば OK」にすると、スコアを出せないのに `data_completeness` が
+満点になり、**Confidence が正常系より高くなる**。
+
+### C14. 版識別子は実装ごとに変える（W4 で判明）
+
+stub の規則ベース分類と実 LLM の分類は結果が変わる。同じ
+`classifier_version` を名乗ると結果を後から再現できない。
+`LlmClassifier` / `BriefWriter` は `classifier_version` / `prompt_version`
+プロパティを持ち、stub は `-stub` 接尾辞、Anthropic は `prompt_version` に
+モデル ID を含める。
+
+### C15. レビュア間の判断の割れは正本で決める（W4 の実例）
+
+「全国が `INSUFFICIENT_EVIDENCE` のときのスキャン status」について、
+R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
+「`INSUFFICIENT_EVIDENCE` はエラーではないので `COMPLETED`」と割れた。
+`docs/scoring.md` 7章の明文（「エラーではない」）を根拠に `COMPLETED` を
+採用し、監視の要求はログの指標（`rankable_countries` /
+`insufficient_countries` / `failed_countries`）で満たした。
+**多数決にしない。**
+
 ## 持ち越した課題
 
 | # | 内容 | 対応する Phase |
@@ -236,6 +334,10 @@ SerpApi はクエリパラメータ認証のみで URL 自体が秘密情報。h
 | 7 | live クライアントがリトライごとに `httpx.Client` を再生成する（TLS ハンドシェイクの無駄） | Phase 14 |
 | 8 | `edge_cases/search_missing_position.json` は `position` の代替値が本来の順位と一致するため、「添字代替」と「全件添字上書き」を区別できない | fixture を触る機会に |
 | 9 | `MapsPlace.link` は `docs/serpapi-schema.md` の確認済みキー一覧に無い。防御的読み取りとして残している | live 検証時 |
+| 10 | **`ScanOutput.outcomes` が全国分の生レスポンスを保持し続ける。** live では最悪 25 payload × 8MB。S3 へ払い出したら解放する設計にすること | **Phase 7 の着手時** |
+| 11 | ソース取得も国の処理も完全に逐次。live では 5国 × 4ソース = 20回の逐次呼び出しになり「5 Country Ranking p50 < 15 sec」を満たせない | Phase 8 |
+| 12 | `MISSING` と判定したソースの正規化済みデータを捨てている。`GET /scans/{id}/countries/{c}` は `news_results` を返す契約なので、「日付は無いが実在する記事」を出せない | Phase 9 |
+| 13 | `ScanSummary.versions.query_profile_version` は国別の版を連結した文字列。`docs/api.md` に明記済みだが、本来は `ScanSummary` 専用の版モデルを持つほうが素直 | 必要になったら |
 
 ## 未確認事項（推測で実装しないこと）
 
