@@ -23,6 +23,7 @@ from gapatlas.adapters.s3.memory import InMemoryScanArchive
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.adapters.sqs.decode import decode_job
 from gapatlas.adapters.sqs.memory import InMemoryJobQueue
+from gapatlas.api.errors import ScanNotFoundError
 from gapatlas.api.handlers import ApiService
 from gapatlas.application.country_scan import CountryScanner
 from gapatlas.application.worker import ScanWorker
@@ -159,8 +160,6 @@ def test_every_country_is_archived(stack):
 
 def test_a_missing_scan_is_reported_as_not_found(stack):
     api, _worker, _queue, _repository, _archive = stack
-    from gapatlas.api.errors import ScanNotFoundError
-
     with pytest.raises(ScanNotFoundError):
         api.get_scan("scan_unknown")
 
