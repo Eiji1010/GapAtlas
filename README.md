@@ -72,6 +72,48 @@ cd backend && uv run gapatlas scan --topic elder_care --all --mode fixture
 
 結果は標準出力へ JSON、ログは標準エラーへ JSON1行で出ます。
 
+### デモ手順
+
+**外部APIキー無し・AWS 無しで最初から最後まで動きます。**
+
+```bash
+# 1. 依存を入れる
+make setup && make setup-frontend
+
+# 2. バックエンドの検証(lint / 整形 / 型 / テスト)
+make verify
+
+# 3. 5か国のスキャンを CLI で通す
+cd backend && uv run gapatlas scan --topic elder_care --all --mode fixture 2>/dev/null
+
+# 4. 画面を開く(既定はモックモードなのでバックエンド不要)
+cd frontend && npm run dev
+```
+
+CLI の出力（fixture に対する値。テストで固定しています）:
+
+| 国 | Need Gap | Confidence |
+|---|---:|---:|
+| JP | 75 | 91 |
+| DE | 67 | 90 |
+| IN | 66 | 92 |
+| GB | 58 | 90 |
+| US | 55 | 90 |
+
+Top 2（JP・DE）に Maps の Local Evidence、Top 1（JP）に Opportunity Brief が付きます。
+
+### 動作モード
+
+| 環境変数 | 既定 | 意味 |
+|---|---|---|
+| `SERPAPI_MODE` | `fixture` | `fixture` は保存済みレスポンス、`live` は SerpApi を実際に呼ぶ |
+| `LLM_MODE` | `stub` | `stub` は決定的な規則ベース分類、`anthropic` は Anthropic API |
+| `PERSISTENCE_MODE` | `memory` | `memory` はプロセス内、`aws` は DynamoDB と S3 |
+| `VITE_API_MODE`（frontend） | `mock` | `mock` はバックエンド不要、`live` は API を呼ぶ |
+
+**既定はすべて外部通信ゼロ**です。`live` / `anthropic` / `aws` は実装済みですが、
+API キーと AWS 認証情報が無いため**未検証**です（[ADR 0003](docs/decisions/0003-fixture-first.md)）。
+
 ## ドキュメント
 
 [docs/index.md](docs/index.md) が入口です。
@@ -91,4 +133,20 @@ AI エージェントで開発する場合は [AGENTS.md](AGENTS.md) を先に�
 
 ## 状態
 
-MVP 実装中。現在の到達点は[要件定義](docs/requirements.md)の Definition of Done を参照してください。
+MVP の実装は Phase 1〜15 まで一巡しています。
+
+| 層 | 状態 |
+|---|---|
+| ドメインモデル / スコアリング / Confidence | 実装済み・テスト済み |
+| SerpApi アダプタ（fixture / live）とキャッシュ | fixture 検証済み、**live は未検証** |
+| LLM アダプタ（stub / Anthropic） | stub 検証済み、**Anthropic は未検証** |
+| application 層 + CLI | 実装済み・E2E テスト済み |
+| 永続化（DynamoDB / S3）と Athena | 実装済み、**実 AWS では未検証** |
+| 非同期（SQS + Worker）と API 4本 | 実装済み・E2E テスト済み |
+| Frontend（3画面） | 実装済み・テスト済み |
+| Terraform | `validate` まで。**`apply` はしない** |
+
+**未検証の範囲**は [ADR 0002](docs/decisions/0002-llm-provider.md) /
+[ADR 0003](docs/decisions/0003-fixture-first.md) と
+[要件定義の逸脱表](docs/requirements.md#依頼書からの逸脱)に記録しています。
+現在の到達点と持ち越し課題は[作業引き継ぎ](.ai/keep/handoff.md)が正本です。
