@@ -144,7 +144,7 @@ SLO: p95 < 800ms。
       "url": null
     }
   ],
-  "trends": { "timeline": [] },
+  "trends": { "series": [] },
   "related_queries": [],
   "search_results": [],
   "news_results": [],

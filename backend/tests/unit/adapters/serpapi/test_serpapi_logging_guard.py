@@ -172,3 +172,42 @@ def test_an_oversized_response_body_is_rejected(profile):
         _client(lambda _request: httpx.Response(200, content=oversized)).fetch(
             SourceName.SEARCH, profile
         )
+
+
+# --------------------------------------------------------------------------
+# Anthropic 形式のマスク(第三者レビュー R2 H-2)
+# --------------------------------------------------------------------------
+
+FAKE_ANTHROPIC_KEY = "sk-ant-canary-9876543210fedcba"
+"""テスト用のダミー値。実キーではない。"""
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        f"x-api-key: {FAKE_ANTHROPIC_KEY}",
+        f"X-Api-Key: {FAKE_ANTHROPIC_KEY}",
+        f"Authorization: Bearer {FAKE_ANTHROPIC_KEY}",
+        f'{{"x-api-key": "{FAKE_ANTHROPIC_KEY}"}}',
+        f"{{'x-api-key': '{FAKE_ANTHROPIC_KEY}'}}",
+        f"request failed with key {FAKE_ANTHROPIC_KEY}",
+        f"https://api.anthropic.com/v1?x-api-key={FAKE_ANTHROPIC_KEY}",
+    ],
+    ids=["header", "header-caps", "bearer", "json", "dict", "bare", "query"],
+)
+def test_anthropic_keys_are_masked(text):
+    """マスクは SerpApi 専用ではない。
+
+    docs/architecture.md「Observability」は「自分が書くログだけでなく、
+    プロセスが出すログ全体」へのマスクを求めている。LLM_MODE=anthropic で
+    SDK がヘッダを含むログを出したときに素通りしてはいけない。
+    """
+    masked = mask_api_key(text)
+    assert FAKE_ANTHROPIC_KEY not in masked
+    assert "***" in masked
+
+
+def test_masking_leaves_ordinary_text_alone():
+    """関係のない文字列を壊さない。"""
+    assert mask_api_key("scan completed for JP") == "scan completed for JP"
+    assert mask_api_key("count=42") == "count=42"

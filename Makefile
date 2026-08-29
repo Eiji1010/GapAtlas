@@ -3,8 +3,9 @@ BACKEND := backend
 FRONTEND := frontend
 
 .PHONY: help setup setup-backend setup-frontend test test-backend test-frontend \
-        lint lint-backend lint-frontend format format-check typecheck typecheck-backend \
-        typecheck-frontend build verify scan tf-validate tf-plan clean
+        lint lint-backend lint-frontend format format-check format-check-frontend \
+        typecheck typecheck-backend typecheck-frontend build verify verify-frontend \
+        scan tf-validate tf-plan clean
 
 help: ## コマンド一覧を表示する
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -39,6 +40,9 @@ format: ## コードを整形する
 format-check: ## 整形済みか確認する
 	cd $(BACKEND) && uv run ruff format --check .
 
+format-check-frontend: ## frontend が整形済みか確認する
+	cd $(FRONTEND) && npm run format:check
+
 typecheck: typecheck-backend ## 型チェックを実行する
 
 typecheck-backend: ## backend の型チェックを実行する
@@ -50,7 +54,9 @@ typecheck-frontend: ## frontend の型チェックを実行する
 build: ## frontend をビルドする
 	cd $(FRONTEND) && npm run build
 
-verify: lint format-check typecheck test ## lint・整形確認・型チェック・テストをまとめて実行する
+verify: lint format-check typecheck test ## backend の lint・整形確認・型チェック・テストをまとめて実行する
+
+verify-frontend: lint-frontend format-check-frontend typecheck-frontend test-frontend build ## frontend の検証をまとめて実行する
 
 scan: ## fixture モードで単一国のスキャンを実行する 例: make scan COUNTRY=JP
 	cd $(BACKEND) && uv run gapatlas scan --topic elder_care --country $(or $(COUNTRY),JP) --mode fixture

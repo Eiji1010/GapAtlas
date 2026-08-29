@@ -338,3 +338,114 @@ describe('モックモード', () => {
     vi.useRealTimers();
   });
 });
+
+// --------------------------------------------------------------------------
+// Polling の停止（第三者レビュー R3 H-1）
+// --------------------------------------------------------------------------
+
+describe('Polling の停止', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('間隔は 2 秒である', () => {
+    // 実装の定数を期待値に使うとトートロジーになる。リテラルで固定する。
+    expect(POLL_INTERVAL_MS).toBe(2000);
+  });
+
+  function fixedStatusClient(status: 'processing' | 'completed' | 'partially_failed'): ApiClient {
+    return {
+      listTopics: () => Promise.reject(new Error('unused')),
+      createScan: () => Promise.resolve({ scan_id: 's', status: 'processing' }),
+      getScan: () =>
+        Promise.resolve({
+          scan_id: 's',
+          topic_id: 'elder_care',
+          status,
+          progress: { total: 1, completed: 1 },
+          completed_countries: ['JP'],
+          ranking: [],
+          opportunity_brief: null,
+          versions: {
+            query_profile_version: 'v',
+            score_version: 'v',
+            classifier_version: 'v',
+            prompt_version: 'v',
+          },
+        }),
+      getCountry: () => Promise.reject(new Error('unused')),
+    };
+  }
+
+  it('partially_failed でも Polling を止める', async () => {
+    // 1か国でも FAILED なら partially_failed になる。ここを終端に含めないと
+    // 永久にポーリングし続ける。
+    const client = fixedStatusClient('partially_failed');
+    const getScan = vi.spyOn(client, 'getScan');
+    render(<App client={client} />);
+
+    await act(async () => {
+      clickAnalyze();
+    });
+    const settled = getScan.mock.calls.length;
+    await advanceOnePoll();
+    await advanceOnePoll();
+    expect(getScan.mock.calls.length).toBe(settled);
+  });
+
+  it('processing のままなら Polling を続ける', async () => {
+    const client = fixedStatusClient('processing');
+    const getScan = vi.spyOn(client, 'getScan');
+    render(<App client={client} />);
+
+    await act(async () => {
+      clickAnalyze();
+    });
+    const before = getScan.mock.calls.length;
+    await advanceOnePoll();
+    expect(getScan.mock.calls.length).toBeGreaterThan(before);
+  });
+
+  it('アンマウントすると Polling を止める', async () => {
+    const client = fixedStatusClient('processing');
+    const getScan = vi.spyOn(client, 'getScan');
+    const { unmount } = render(<App client={client} />);
+
+    await act(async () => {
+      clickAnalyze();
+    });
+    await advanceOnePoll();
+    unmount();
+    const settled = getScan.mock.calls.length;
+
+    await advanceOnePoll();
+    await advanceOnePoll();
+    expect(getScan.mock.calls.length).toBe(settled);
+  });
+
+  it('取得に失敗したら Polling を止める', async () => {
+    let calls = 0;
+    const client: ApiClient = {
+      listTopics: () => Promise.reject(new Error('unused')),
+      createScan: () => Promise.resolve({ scan_id: 's', status: 'processing' }),
+      getScan: () => {
+        calls += 1;
+        return Promise.reject(new Error('backend down'));
+      },
+      getCountry: () => Promise.reject(new Error('unused')),
+    };
+    render(<App client={client} />);
+
+    await act(async () => {
+      clickAnalyze();
+    });
+    const settled = calls;
+    await advanceOnePoll();
+    await advanceOnePoll();
+    expect(calls).toBe(settled);
+  });
+});

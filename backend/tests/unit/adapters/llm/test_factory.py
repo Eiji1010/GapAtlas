@@ -8,10 +8,9 @@ from __future__ import annotations
 import pytest
 from pydantic import SecretStr
 
-from gapatlas.adapters.llm.cache import CachingLlmClassifier
+from gapatlas.adapters.llm.cache import CachingBriefWriter, CachingLlmClassifier
 from gapatlas.adapters.llm.errors import LlmError
 from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classifier
-from gapatlas.adapters.llm.stub_client import StubLlmClient
 from gapatlas.config.settings import LlmMode, Settings, load_settings
 
 FAKE_API_KEY = "test-anthropic-key-not-real"
@@ -29,7 +28,13 @@ def test_the_stub_classifier_is_wrapped_in_the_cache(profile):
 
 
 def test_default_settings_produce_the_stub_brief_writer():
-    assert isinstance(create_brief_writer(load_settings(env={})), StubLlmClient)
+    """既定は stub。Evidence ハッシュのキャッシュで包まれる。
+
+    docs/requirements.md「Cache」の `AI Insight | evidence hash が変わるまで`。
+    """
+    writer = create_brief_writer(load_settings(env={}))
+    assert isinstance(writer, CachingBriefWriter)
+    assert writer.prompt_version.endswith("-stub")
 
 
 def test_anthropic_mode_without_the_package_or_key_raises_llm_error():

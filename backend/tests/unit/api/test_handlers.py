@@ -539,3 +539,25 @@ def test_a_country_result_stays_well_below_the_dynamodb_item_limit():
 
     size = len(with_maps.result.model_dump_json().encode("utf-8"))
     assert size < 200 * 1024, f"CountryResult が {size} バイトに増えている"
+
+
+def test_error_bodies_truncate_reflected_input(service: ApiService):
+    """利用者入力を無制限に反射させない。
+
+    5000文字の `topic_id` を送られると本文が 5KB になり、Lambda の
+    レスポンス上限まで増幅できてしまう。
+    """
+    with pytest.raises(InvalidRequestError) as excinfo:
+        service.create_scan({"topic_id": "x" * 5000}, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    message = excinfo.value.payload["error"]["message"]
+    assert len(message) < 200
+    assert "truncated" in message
+
+
+def test_unknown_field_errors_list_only_a_few_names(service: ApiService):
+    body = {"topic_id": "elder_care", **{f"junk{index}": 1 for index in range(500)}}
+    with pytest.raises(InvalidRequestError) as excinfo:
+        service.create_scan(body, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    message = excinfo.value.payload["error"]["message"]
+    assert len(message) < 200
+    assert "+495" in message

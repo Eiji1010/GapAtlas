@@ -12,13 +12,26 @@ make setup-frontend   # frontend の依存関係をインストール(npm instal
 ## 検証
 
 ```bash
-make verify           # lint + 整形確認 + 型チェック + テスト をまとめて実行
+make verify           # backend: lint + 整形確認 + 型チェック + テスト
 make test             # pytest
 make lint             # ruff check
 make format           # ruff format(整形を適用)
 make format-check     # ruff format --check(整形済みか確認)
 make typecheck        # mypy(strict)
 ```
+
+frontend:
+
+```bash
+make verify-frontend        # lint + 整形確認 + 型チェック + テスト + ビルド
+make lint-frontend          # eslint
+make format-check-frontend  # prettier --check
+make typecheck-frontend     # tsc -b
+make test-frontend          # vitest run
+make build                  # vite build
+```
+
+**`make verify` は backend だけ**です。frontend も変更した場合は `make verify-frontend` も実行してください。
 
 ## 実行
 
@@ -51,7 +64,7 @@ make tf-plan          # terraform plan
 
 - Python 3.12 以上、`uv`
 - Node.js 20 以上、`npm`
-- Terraform 1.5 以上
+- Terraform 1.9 以上 2.0 未満(`infrastructure/terraform/main.tf` の `required_version`)
 
 ## 環境変数
 

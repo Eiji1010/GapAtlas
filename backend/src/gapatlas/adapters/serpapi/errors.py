@@ -19,27 +19,53 @@ from gapatlas.domain.models.errors import GapAtlasError
 
 API_KEY_MASK: Final[str] = "***"
 
-_API_KEY_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
-    # クエリ文字列: ...&api_key=VALUE&...
-    re.compile(r"(api_key=)[^&\s\"']*", flags=re.IGNORECASE),
-    # dict / JSON 表記: {"api_key": "VALUE"} / 'api_key': 'VALUE'
-    re.compile(r"""(["']?api_key["']?\s*[:=]\s*["'])[^"']*(["'])""", flags=re.IGNORECASE),
-)
-"""API キーが現れうる表記。URL だけでなく dict の repr も捕捉する。
+_KEY_NAME: Final[str] = r"[-_]?api[-_]?key"
+"""`api_key` / `api-key` / `x-api-key` の揺れ。SerpApi と Anthropic の両方。"""
 
-`params` dict をそのままログ・例外へ載せる実装が後から入っても漏れないよう、
-関数名から期待される範囲(「API キーをマスクする」)を満たす広さにしている。
+_SUBSTITUTIONS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
+    # クエリ文字列: ...&api_key=VALUE&... / x-api-key=VALUE
+    (re.compile(rf"((?:x)?{_KEY_NAME}=)[^&\s\"']*", flags=re.IGNORECASE), rf"\1{API_KEY_MASK}"),
+    # dict / JSON 表記: {"api_key": "VALUE"} / 'x-api-key': 'VALUE'
+    (
+        re.compile(
+            rf"""(["']?(?:x)?{_KEY_NAME}["']?\s*[:=]\s*["'])[^"']*(["'])""",
+            flags=re.IGNORECASE,
+        ),
+        rf"\1{API_KEY_MASK}\2",
+    ),
+    # ヘッダ表記(引用符なし): x-api-key: VALUE
+    (
+        re.compile(rf"((?:x)?{_KEY_NAME}:\s*)\S+", flags=re.IGNORECASE),
+        rf"\1{API_KEY_MASK}",
+    ),
+    # Authorization: Bearer VALUE
+    (
+        re.compile(r"(Authorization:\s*Bearer\s+)\S+", flags=re.IGNORECASE),
+        rf"\1{API_KEY_MASK}",
+    ),
+    # 値そのもの。Anthropic のキーは `sk-ant-` 接頭辞を持つ。
+    # 名前が付いていない裸の値でも落とす。
+    (re.compile(r"sk-ant-[A-Za-z0-9_-]+"), API_KEY_MASK),
+)
+"""API キーが現れうる表記。**SerpApi と Anthropic の両方を覆う。**
+
+`docs/architecture.md`「Observability」は「自分が書くログだけでなく、
+**プロセスが出すログ全体**」へのマスクを要求している。`params` dict や
+SDK が出すヘッダが後からログへ載っても漏れないよう、関数名から期待される
+範囲を満たす広さにしている。
 """
 
 
 def mask_api_key(text: str) -> str:
     """文字列中の API キーの値をマスクする。
 
-    URL や params の dict をそのまま例外メッセージやログへ載せると API キーが
-    漏れる。載せる必要がある場合は必ずこの関数を通す。
+    URL・params の dict・HTTP ヘッダをそのまま例外メッセージやログへ載せると
+    API キーが漏れる。載せる必要がある場合は必ずこの関数を通す。
     """
-    masked = _API_KEY_PATTERNS[0].sub(rf"\1{API_KEY_MASK}", text)
-    return _API_KEY_PATTERNS[1].sub(rf"\1{API_KEY_MASK}\2", masked)
+    masked = text
+    for pattern, replacement in _SUBSTITUTIONS:
+        masked = pattern.sub(replacement, masked)
+    return masked
 
 
 class SerpApiError(GapAtlasError):

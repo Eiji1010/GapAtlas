@@ -75,6 +75,24 @@ _RESERVED_RECORD_FIELDS: Final[frozenset[str]] = frozenset(
 """`LogRecord` が元から持つ属性。JSON へ出す追加フィールドの判定に使う。"""
 
 
+def _masked(value: object) -> object:
+    """ログへ出す値から API キーを取り除く。
+
+    文字列はそのまま、コンテナは中身を再帰的に処理する。それ以外は
+    `str()` した結果にキーが含まれる場合だけ差し替える(`%d` などの
+    書式や JSON の型を無用に壊さないため)。
+    """
+    if isinstance(value, str):
+        return mask_api_key(value)
+    if isinstance(value, Mapping):
+        return {str(key): _masked(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_masked(item) for item in value]
+    text = str(value)
+    masked = mask_api_key(text)
+    return masked if masked != text else value
+
+
 def current_context() -> Mapping[str, str]:
     """現在のログ文脈。テストと診断用。"""
     return _CONTEXT.get()
@@ -126,7 +144,9 @@ class JsonFormatter(logging.Formatter):
             if key not in _RESERVED_RECORD_FIELDS and key not in payload:
                 # `extra=` 由来の値もマスクを通す。フィルタは `msg` と `args`
                 # しか書き換えないため、ここを通さないと素通りする。
-                payload[key] = mask_api_key(value) if isinstance(value, str) else value
+                # **文字列以外(dict / list など)も覆う。** dict を extra へ
+                # 渡されると json.dumps がそのまま出力してしまう。
+                payload[key] = _masked(value)
         if record.exc_info is not None:
             # トレースバックの本文にも URL が現れうる。
             payload["exception"] = mask_api_key(self.formatException(record.exc_info))

@@ -45,6 +45,24 @@ CREATE_SCAN_FIELDS: Final[frozenset[str]] = frozenset({"topic_id", "countries"})
 同じ方針。
 """
 
+MAX_ECHOED_VALUE_LENGTH: Final[int] = 64
+"""エラー本文へ反射させる利用者入力の最大長。
+
+`api/errors.py` は「要求された値を本文へ反射させない」方針だが、400 では
+何が悪かったかを示す必要がある。**無制限に返さない。** 5000文字の
+`topic_id` を送られると本文が 5KB になり、Lambda のレスポンス上限まで
+増幅できてしまう。
+"""
+
+
+def _echo(value: object) -> str:
+    """利用者入力をエラー本文へ載せる形へ切り詰める。"""
+    text = repr(value)
+    if len(text) <= MAX_ECHOED_VALUE_LENGTH:
+        return text
+    return f"{text[:MAX_ECHOED_VALUE_LENGTH]}...(truncated)"
+
+
 UNRESOLVED_VERSION: Final[str] = "pending"
 """スキャン作成時点で確定していないバージョン識別子。
 
@@ -78,7 +96,7 @@ def _parse_topic_id(value: Any) -> TopicId:
         return TopicId(value)
     except ValueError as exc:
         allowed = ", ".join(member.value for member in TopicId)
-        message = f"unknown topic_id: {value!r}; allowed: {allowed}"
+        message = f"unknown topic_id: {_echo(value)}; allowed: {allowed}"
         raise InvalidRequestError(message) from exc
 
 
@@ -92,7 +110,7 @@ def parse_country(value: str) -> Country:
         return Country(value.strip().upper())
     except ValueError as exc:
         allowed = ", ".join(member.value for member in Country)
-        message = f"unknown country: {value!r}; allowed: {allowed}"
+        message = f"unknown country: {_echo(value)}; allowed: {allowed}"
         raise InvalidRequestError(message) from exc
 
 
@@ -279,7 +297,9 @@ class ApiService:
         """
         unknown = sorted(set(body) - CREATE_SCAN_FIELDS)
         if unknown:
-            message = f"unknown fields in request body: {', '.join(unknown)}"
+            listed = sorted(unknown)[:5]
+            suffix = "" if len(unknown) <= len(listed) else f" (+{len(unknown) - len(listed)})"
+            message = f"unknown fields in request body: {', '.join(map(_echo, listed))}{suffix}"
             raise InvalidRequestError(message)
 
         topic_id = _parse_topic_id(body.get("topic_id"))

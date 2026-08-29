@@ -48,10 +48,11 @@ backend/src/gapatlas/
 │   ├── models/    # Pydantic モデル。全層が共有する凍結契約
 │   └── scoring/   # スコア計算。純粋関数のみ。I/O 禁止
 ├── adapters/
-│   ├── serpapi/   # SerpApi クライアント + fixture 実装
+│   ├── serpapi/   # SerpApi クライアント + fixture 実装 + キャッシュ
 │   ├── llm/       # LLM クライアント + stub 実装
-│   ├── dynamodb/
-│   └── s3/
+│   ├── dynamodb/  # 最新結果の読み書き
+│   ├── s3/        # raw / normalized / curated と Athena 定義
+│   └── sqs/       # ジョブ投入とメッセージ復元
 └── config/        # 設定、QueryProfile ローダー
 ```
 
@@ -233,7 +234,9 @@ CloudWatch Structured Logging(JSON1行)。全ログに次を含める。
 
 **API キーのマスクは root ハンドラへ装着する。** ロガー単位のフィルタ(`httpx` / `httpcore`)だけでは、自前のロガーや将来追加されるライブラリが素通りする。`configure_logging` が `ApiKeyMaskingFilter` を root ハンドラへ付け、`extra=` の値と例外トレースバックもマスクする。
 
-Metrics: `scan_duration_ms` / `serpapi_latency_ms` / `serpapi_calls` / `serpapi_errors` / `cache_hits` / `cache_misses` / `llm_latency` / `country_completed` / `scan_completed`
+Metrics(**候補。MVP では未実装**): `scan_duration_ms` / `serpapi_latency_ms` / `serpapi_calls` / `serpapi_errors` / `cache_hits` / `cache_misses` / `llm_latency` / `country_completed` / `scan_completed`
+
+現状は構造化ログのみで、`put_metric` も EMF もメトリクスフィルタも実装していない。したがって Performance SLO は**測定できていない**。
 
 ## Security
 

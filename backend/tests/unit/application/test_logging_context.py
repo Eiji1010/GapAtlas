@@ -13,6 +13,7 @@ import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
 from conftest import SCAN_ID, SCAN_TIME
 
 from gapatlas.adapters.llm.stub_client import StubLlmClient
@@ -243,3 +244,25 @@ def test_submit_with_context_isolates_sibling_tasks():
 
     assert results["jp"]["country"] == "JP"
     assert results["us"]["country"] == "US"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"x-api-key": "sk-ant-canary-abcdef"},
+        ["sk-ant-canary-abcdef"],
+        ("sk-ant-canary-abcdef",),
+        {"nested": {"header": "Authorization: Bearer sk-ant-canary-abcdef"}},
+    ],
+    ids=["dict", "list", "tuple", "nested"],
+)
+def test_extra_fields_are_masked_even_when_not_strings(value):
+    """`extra=` に dict を渡すと JSON へそのまま出るため、中身まで覆う。"""
+    stream, restore = _capture()
+    try:
+        logging.getLogger("gapatlas.test").info("calling", extra={"payload": value})
+    finally:
+        restore()
+    logged = stream.getvalue()
+    assert "sk-ant-canary-abcdef" not in logged
+    assert "***" in logged

@@ -20,13 +20,14 @@ import hashlib
 import json
 from collections.abc import Sequence
 
+from gapatlas.adapters.llm.models import EvidencePack
 from gapatlas.adapters.llm.prompts import (
     ItemPayload,
     build_news_article_payload,
     build_rising_query_payload,
     build_search_result_payload,
 )
-from gapatlas.adapters.llm.protocol import LlmClassifier
+from gapatlas.adapters.llm.protocol import BriefWriter, LlmClassifier
 from gapatlas.adapters.llm.versions import CLASSIFIER_VERSION, PROMPT_VERSION
 from gapatlas.domain.models.classification import (
     NewsClassification,
@@ -35,6 +36,7 @@ from gapatlas.domain.models.classification import (
 )
 from gapatlas.domain.models.normalized import NewsArticle, RisingQuery, SearchResultItem
 from gapatlas.domain.models.query_profile import QueryProfile
+from gapatlas.domain.models.result import OpportunityBrief
 
 
 def build_cache_key(
@@ -128,3 +130,50 @@ class CachingLlmClassifier:
             cached = self._inner.classify_news_articles(items, profile)
             self._news[key] = cached
         return list(cached)
+
+
+def build_brief_cache_key(pack: EvidencePack) -> str:
+    """Opportunity Brief のキャッシュキー。
+
+    `docs/requirements.md`「Cache」の `| AI Insight | evidence hash が
+    変わるまで |`。Evidence パックの内容(スコア・Evidence の要約・限界)から
+    作る。**同じ根拠なら同じ Brief を返す。**
+
+    Worker の「最後の1国」判定が競合すると確定処理が2回走りうる。実 LLM は
+    決定的でないため、キャッシュが無いと2回目が別の文面で上書きし、
+    2秒 Polling 中のユーザーには Brief が書き換わって見える。
+    """
+    material = json.dumps(
+        {
+            "pack": pack.model_dump(mode="json"),
+            "prompt_version": PROMPT_VERSION,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+class CachingBriefWriter:
+    """`BriefWriter` を Evidence ハッシュのキャッシュで包む。
+
+    生成しない判断(`None`)もキャッシュする。検証に落ちた Brief を
+    呼び出しのたびに作り直しても、同じ入力なら同じ結果になるためである。
+    """
+
+    def __init__(self, inner: BriefWriter) -> None:
+        self._inner = inner
+        self._briefs: dict[str, OpportunityBrief | None] = {}
+
+    @property
+    def prompt_version(self) -> str:
+        return self._inner.prompt_version
+
+    def write_brief(self, pack: EvidencePack) -> OpportunityBrief | None:
+        key = build_brief_cache_key(pack)
+        if key in self._briefs:
+            return self._briefs[key]
+        brief = self._inner.write_brief(pack)
+        self._briefs[key] = brief
+        return brief

@@ -54,6 +54,7 @@ class FakeAthena:
         self.start_error = start_error
         self.start_calls: list[dict[str, Any]] = []
         self.result_calls: list[dict[str, Any]] = []
+        self.state_calls = 0
 
     def start_query_execution(self, **kwargs: Any) -> dict[str, Any]:
         self.start_calls.append(kwargs)
@@ -62,6 +63,7 @@ class FakeAthena:
         return {} if self.execution_id is None else {"QueryExecutionId": self.execution_id}
 
     def get_query_execution(self, **_kwargs: Any) -> dict[str, Any]:
+        self.state_calls += 1
         state = self.states.pop(0) if len(self.states) > 1 else self.states[0]
         return {"QueryExecution": {"Status": {"State": state}}}
 
@@ -165,11 +167,24 @@ def test_a_terminal_failure_becomes_a_read_error(state):
 
 
 def test_it_gives_up_instead_of_waiting_forever():
+    """上限を外すと**ハングではなく失敗**として現れること。
+
+    既定の上限に依存すると、上限を外す改変でテストが無限ループし、CI が
+    タイムアウトするまで原因が分からない。**呼び出し回数を数える。**
+    """
     client = FakeAthena(states=["RUNNING"])
+    history = AthenaScoreHistory(
+        Settings(), client=client, sleep=lambda _seconds: None, max_poll_attempts=3
+    )
     with pytest.raises(ArchiveReadError, match="did not finish"):
-        _history(client).country_score_history(TopicId.ELDER_CARE, Country.JP)
-    # ポーリング上限を超えて呼び続けないこと
-    assert MAX_POLL_ATTEMPTS >= 1
+        history.country_score_history(TopicId.ELDER_CARE, Country.JP)
+
+    assert client.state_calls == 3
+
+
+def test_the_default_poll_budget_is_bounded():
+    """既定の上限もリテラルで固定する(0.5秒 x 60 = 30秒)。"""
+    assert MAX_POLL_ATTEMPTS == 60
 
 
 def test_a_missing_execution_id_is_an_error():
@@ -192,3 +207,30 @@ def test_a_programming_error_is_not_hidden_as_a_service_failure():
     client = FakeAthena(start_error=TypeError("bad arguments"))
     with pytest.raises(TypeError):
         _history(client).country_score_history(TopicId.ELDER_CARE, Country.JP)
+
+
+def test_the_first_data_row_is_not_dropped_when_the_first_page_is_empty():
+    """1ページ目が空でも、2ページ目の先頭をヘッダとして捨てないこと。"""
+    pages = [
+        {"ResultSet": {"Rows": []}, "NextToken": "t1"},
+        {
+            "ResultSet": {
+                "Rows": [
+                    _row("2026-08-27", "a", "70", "88", "completed"),
+                    _row("2026-08-28", "b", "75", "91", "completed"),
+                ]
+            }
+        },
+    ]
+    rows = _history(FakeAthena(pages=pages)).country_score_history(TopicId.ELDER_CARE, Country.JP)
+    assert [row.scan_id for row in rows] == ["a", "b"]
+
+
+def test_the_workgroup_comes_from_the_settings():
+    """Terraform が作る名前と食い違うと WorkGroup not found で必ず失敗する。"""
+    client = FakeAthena()
+    history = AthenaScoreHistory(
+        Settings(athena_workgroup="gapatlas-dev"), client=client, sleep=lambda _s: None
+    )
+    history.country_score_history(TopicId.ELDER_CARE, Country.JP)
+    assert client.start_calls[0]["WorkGroup"] == "gapatlas-dev"

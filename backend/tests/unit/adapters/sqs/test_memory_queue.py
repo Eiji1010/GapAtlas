@@ -91,3 +91,37 @@ def test_a_job_rejects_unknown_fields():
                 "unexpected": 1,
             }
         )
+
+
+@pytest.mark.parametrize(
+    "scan_id",
+    ["../../etc/passwd", "scan/1", "scan id", "a" * 65, "", "scan#1"],
+    ids=["traversal", "slash", "space", "too-long", "empty", "hash"],
+)
+def test_scan_id_must_match_the_storage_key_pattern(scan_id):
+    """書き込み経路も読み取り経路と同じ形を要求すること。
+
+    `scan_id` は DynamoDB のパーティションキーと S3 のオブジェクトキーに
+    なる。API の読み取り側だけで検証していると、SQS -> Worker -> S3 の
+    書き込み経路が素通しになる。
+    """
+    with pytest.raises(ValidationError):
+        ScanJob(
+            scan_id=scan_id,
+            topic_id=TopicId.ELDER_CARE,
+            country=Country.JP,
+            scan_time=SCAN_TIME,
+            countries=[Country.JP],
+        )
+
+
+@pytest.mark.parametrize("scan_id", ["scan_abc123", "scan-1", "A0_-"])
+def test_a_valid_scan_id_is_accepted(scan_id):
+    job = ScanJob(
+        scan_id=scan_id,
+        topic_id=TopicId.ELDER_CARE,
+        country=Country.JP,
+        scan_time=SCAN_TIME,
+        countries=[Country.JP],
+    )
+    assert job.scan_id == scan_id

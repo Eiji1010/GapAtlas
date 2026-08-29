@@ -20,9 +20,19 @@ POST /scans -> SCAN META を作成 -> 国ごとに ScanJob を SQS へ投入
 
 from __future__ import annotations
 
+from typing import Final
+
 from pydantic import BaseModel, Field
 
 from gapatlas.domain.models.common import MODEL_CONFIG, Country, TopicId, UtcDatetime
+
+SCAN_ID_PATTERN: Final[str] = r"^[A-Za-z0-9_-]{1,64}$"
+"""`scan_id` に許す形。
+
+DynamoDB のパーティションキーと S3 のオブジェクトキーになるため、パス区切りを
+含む任意文字列を通さない。API の読み取り経路(`api/handlers.py`)だけで検証
+していると、書き込み経路(SQS -> Worker -> S3 / DynamoDB)が素通しになる。
+"""
 
 
 class ScanJob(BaseModel):
@@ -30,7 +40,7 @@ class ScanJob(BaseModel):
 
     model_config = MODEL_CONFIG
 
-    scan_id: str = Field(min_length=1)
+    scan_id: str = Field(pattern=SCAN_ID_PATTERN)
     topic_id: TopicId
     country: Country
     scan_time: UtcDatetime

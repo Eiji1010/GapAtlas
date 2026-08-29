@@ -9,7 +9,12 @@ from collections.abc import Sequence
 
 import pytest
 
-from gapatlas.adapters.llm.cache import CachingLlmClassifier, build_cache_key
+from gapatlas.adapters.llm.cache import (
+    CachingBriefWriter,
+    CachingLlmClassifier,
+    build_cache_key,
+)
+from gapatlas.adapters.llm.models import BriefComponents, EvidencePack, EvidenceSummary
 from gapatlas.adapters.llm.prompts import build_rising_query_payload
 from gapatlas.adapters.llm.stub_client import StubLlmClient
 from gapatlas.domain.models.classification import (
@@ -20,8 +25,10 @@ from gapatlas.domain.models.classification import (
     SolutionCategory,
     SolutionClassification,
 )
+from gapatlas.domain.models.common import Country, SourceName, TopicId
 from gapatlas.domain.models.normalized import NewsArticle, RisingQuery, SearchResultItem
 from gapatlas.domain.models.query_profile import QueryProfile
+from gapatlas.domain.models.result import OpportunityBrief
 
 RISING = [RisingQuery(query="care home waiting list", growth_percent=200.0)]
 OTHER_RISING = [RisingQuery(query="carer shortage", growth_percent=200.0)]
@@ -151,3 +158,101 @@ def test_wrapping_the_stub_preserves_its_results(profile):
     assert cached.classify_rising_queries(RISING, profile) == stub.classify_rising_queries(
         RISING, profile
     )
+
+
+# --------------------------------------------------------------------------
+# Opportunity Brief のキャッシュ(docs/requirements.md「AI Insight」)
+# --------------------------------------------------------------------------
+
+
+class CountingBriefWriter:
+    """呼び出し回数を数え、毎回違う文面を返す(実 LLM の非決定性を模す)。"""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    @property
+    def prompt_version(self) -> str:
+        return "counting-prompt"
+
+    def write_brief(self, pack: EvidencePack) -> OpportunityBrief:
+        self.calls += 1
+        return OpportunityBrief(
+            why_now=f"call {self.calls} [E1]",
+            what_people_are_struggling_with="x [E1]",
+            visible_solutions="y [E1]",
+            what_this_does_not_prove="検索上の可視性であり実際の供給量ではない",
+            next_validation="一次調査",
+            cited_evidence_ids=["E1"],
+        )
+
+
+def _pack(country: Country = Country.JP, summary: str = "需要が上昇") -> EvidencePack:
+    return EvidencePack(
+        country=country,
+        topic_id=TopicId.ELDER_CARE,
+        need_gap_score=75,
+        confidence=91,
+        components=BriefComponents(demand=85, pain=73, solution_gap=65, news_urgency=63),
+        evidence=[EvidenceSummary(id="E1", source=SourceName.TRENDS, summary=summary)],
+        limitations=["検索上の可視性であり実際の供給量ではない"],
+    )
+
+
+def test_the_same_evidence_returns_the_same_brief():
+    """同じ根拠なら同じ Brief。
+
+    Worker の「最後の1国」判定が競合すると確定処理が2回走りうる。実 LLM は
+    決定的でないため、キャッシュが無いと2回目が別の文面で上書きする。
+    """
+    inner = CountingBriefWriter()
+    writer = CachingBriefWriter(inner)
+
+    first = writer.write_brief(_pack())
+    second = writer.write_brief(_pack())
+
+    assert inner.calls == 1
+    assert first == second
+
+
+def test_different_evidence_is_not_served_from_the_cache():
+    inner = CountingBriefWriter()
+    writer = CachingBriefWriter(inner)
+    writer.write_brief(_pack(summary="需要が上昇"))
+    writer.write_brief(_pack(summary="需要が低下"))
+    assert inner.calls == 2
+
+
+def test_a_different_country_is_not_served_from_the_cache():
+    inner = CountingBriefWriter()
+    writer = CachingBriefWriter(inner)
+    writer.write_brief(_pack(Country.JP))
+    writer.write_brief(_pack(Country.US))
+    assert inner.calls == 2
+
+
+def test_a_none_result_is_cached_too():
+    """生成しない判断もキャッシュする(同じ入力なら同じ結果になるため)。"""
+
+    class NullWriter:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        @property
+        def prompt_version(self) -> str:
+            return "null"
+
+        def write_brief(self, pack: EvidencePack) -> OpportunityBrief | None:
+            del pack
+            self.calls += 1
+            return None
+
+    inner = NullWriter()
+    writer = CachingBriefWriter(inner)
+    assert writer.write_brief(_pack()) is None
+    assert writer.write_brief(_pack()) is None
+    assert inner.calls == 1
+
+
+def test_the_prompt_version_is_delegated():
+    assert CachingBriefWriter(CountingBriefWriter()).prompt_version == "counting-prompt"

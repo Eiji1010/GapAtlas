@@ -196,3 +196,27 @@ def test_a_cached_payload_is_returned_unchanged(profile):
     cached = client.fetch(SourceName.TRENDS, profile)
     assert cached == direct
     assert client.fetch(SourceName.TRENDS, profile) == direct
+
+
+def test_the_key_separates_countries_even_when_the_params_match(monkeypatch, profile):
+    """`build_params` が同一でも国が違えばキーが変わること。
+
+    現状は `build_params` が `geo` / `gl` / 国別クエリを含むので偶然分かれて
+    いるだけ。国に依らないソースを足した瞬間に5か国が同じキーを共有して
+    他国の結果を返す。
+    """
+    monkeypatch.setattr(
+        "gapatlas.adapters.serpapi.cache.build_params",
+        lambda _source, _profile: {"engine": "same-for-every-country"},
+    )
+    other = load_query_profile(TopicId.ELDER_CARE, Country.US)
+    assert build_cache_key(SourceName.SEARCH, profile) != build_cache_key(SourceName.SEARCH, other)
+
+
+def test_the_key_separates_topics_even_when_the_params_match(monkeypatch, profile):
+    monkeypatch.setattr(
+        "gapatlas.adapters.serpapi.cache.build_params",
+        lambda _source, _profile: {"engine": "same"},
+    )
+    other = profile.model_copy(update={"version": "elder-care-jp-v3"})
+    assert build_cache_key(SourceName.SEARCH, profile) != build_cache_key(SourceName.SEARCH, other)

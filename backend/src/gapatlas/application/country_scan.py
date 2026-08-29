@@ -504,6 +504,10 @@ class CountryScanner:
                     status=SourceStatus.MISSING,
                     error=type(exc).__name__,
                     fetched_at=fetches[source].fetched_at,
+                    # 取得自体は成功しているので、キャッシュ経過時間を引き継ぐ。
+                    # 0 へ戻すと、Freshness の定義が MISSING も含める形に
+                    # 変わった瞬間に静かに誤る。
+                    cache_age_seconds=fetches[source].cache_age_seconds,
                 )
                 return []
 
