@@ -2,7 +2,7 @@
 
 この文書は**セッションとマシンをまたぐ引き継ぎ**のため Git 追跡ファイルとして置いています（`.ai/temp/` は worktree もマシンもまたげません）。作業が進んだら**上書き更新**してください。履歴は Git が持ちます。
 
-- 最終更新: 2026-08-29 (W3/W4 完了時点)
+- 最終更新: 2026-08-29 (W7 完了時点)
 - 統合ブランチ: `develop`
 - Remote: `git@github.com:Eiji1010/GapAtlas.git`
 
@@ -12,7 +12,10 @@
 git fetch --all --prune
 git switch develop && git pull --ff-only
 make setup          # backend の依存関係(uv sync --all-extras)
-make verify         # 開始時点で緑であることを確認(916 passed)
+make verify         # backend。開始時点で緑であることを確認(1370 passed)
+make setup-frontend # frontend の依存(npm install)
+make lint-frontend && make typecheck-frontend && make test-frontend && make build
+make tf-validate    # terraform(apply はしない)
 ```
 
 読む順番:
@@ -27,8 +30,9 @@ make verify         # 開始時点で緑であることを確認(916 passed)
 
 ### 環境の前提（2026-08-29 時点で確認）
 
-- `uv` が必要です。未導入なら `brew install uv`
+- `uv` / `node` / `npm` / `terraform` が必要です。未導入なら `brew install uv`、`brew install hashicorp/tap/terraform`
 - **`gh` は未認証です。** PR の作成・マージには `gh auth login` が必要（人間が対話で実行する）。認証できるまで、Wave の成果は `develop` へ直接 push しています
+- **セッションのレート上限に注意。** 2026-08-29 の作業中に上限（Asia/Tokyo 7:30 リセット）へ当たり、実行中のサブエージェント5体が同時に落ちました。worktree の成果は残るので、統合担当が引き継いで完成させられます
 
 ## 作業目的
 
@@ -55,10 +59,12 @@ make verify         # 開始時点で緑であることを確認(916 passed)
 | W2 | Phase 3 SerpApiアダプタ / Phase 4+5 Scoring+Confidence / LLMアダプタ+分類 | **完了**（第三者レビュー3観点と指摘対応まで） |
 | W3 | Phase 6 統合 → CLI E2E（`make scan COUNTRY=JP`） | **完了** |
 | W4 | W3 の第三者レビュー3観点と指摘対応 | **完了** |
-| W5 | Phase 7 永続化（DynamoDB / S3） | **次はここ** |
-| W6+ | Phase 8 SQS / 9 API / 10 Frontend / 12 Athena / 13 Terraform / 14-15 E2E・demo | 未着手 |
+| W5 | Phase 7 永続化（DynamoDB / S3 / Athena 定義） | **完了** |
+| W6 | Phase 8 SQS + Worker / Phase 9 API | **完了** |
+| W7 | Phase 10 Frontend / Phase 13 Terraform / Cache / Phase 12 Athena クライアント / Phase 14 E2E / Phase 15 demo | **完了** |
+| W8 | W5〜W7 の第三者レビューと指摘対応 | **次はここ**（レビュー実行中） |
 
-`make verify` は **916 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。
+`make verify` は **1370 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。frontend は 12 件、`terraform validate` も成功。
 
 ## 完了済みの成果物
 
@@ -242,6 +248,38 @@ make scan COUNTRY=JP
 
 **参考**: `backend/tests/unit/integration/test_fixture_to_score_pipeline.py` に、fixture → 正規化 → stub 分類 → `evaluate_country` を通す配線がすでにあります。application 層はこれを製品コードへ移す形になります。
 
+### W5〜W7: 永続化・非同期・API・Frontend・Terraform
+
+Phase 1〜15 が一巡しました。`docs/requirements.md` の Definition of Done 18項目は、
+**実 AWS / 実 SerpApi / 実 Anthropic が要るもの以外はすべて実装済み**です。
+
+#### 追加された公開シグネチャ
+
+```python
+# adapters/dynamodb    ScanRepository / InMemoryScanRepository / DynamoDbScanRepository
+#                      create_scan_repository(settings)
+# adapters/s3          ScanArchive / InMemoryScanArchive / S3ScanArchive
+#                      create_scan_archive(settings) / keys.py / athena.py
+#                      AthenaScoreHistory.country_score_history(topic_id, country)
+# adapters/sqs         JobQueue / InMemoryJobQueue / SqsJobQueue
+#                      create_job_queue(settings) / decode_job / decode_records
+# adapters/serpapi     CachingSerpApiClient / CacheStore / cache_age_seconds(...)
+# application/jobs     ScanJob
+# application/worker   ScanWorker.handle(job)
+# application/persistence  save_country / save_summary / archive_raw / _normalized / _curated
+# application/scan_service build_scan_summary(...) / maps_targets(...)
+# api                  ApiService / api_handler / worker_handler
+```
+
+#### 動作モード（既定はすべて外部通信ゼロ）
+
+| 環境変数 | 既定 | 備考 |
+|---|---|---|
+| `SERPAPI_MODE` | `fixture` | `live` はキャッシュで包まれる |
+| `LLM_MODE` | `stub` | 版に `-stub` が付く |
+| `PERSISTENCE_MODE` | `memory` | `aws` で DynamoDB / S3 / SQS |
+| `VITE_API_MODE` | `mock` | frontend。バックエンド不要 |
+
 ## 重要な技術的判断（会話だけに残さないため記録）
 
 ### C1. ドメインモデルは並列化しない
@@ -321,6 +359,32 @@ R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
 `insufficient_countries` / `failed_countries`）で満たした。
 **多数決にしない。**
 
+### C16. 「Cache 動作」は fixture を包まない（W7 で判明）
+
+`CachingSerpApiClient` は **live モードだけ**を包む。fixture を包むと2回目
+以降の `cache_age_seconds` が 0 でなくなり、Freshness が実行のたびに変わって
+テストとデモの決定性が壊れる。
+
+キャッシュ経過時間は `SourceFetch.cache_age_seconds` へ載せる。ここを 0 の
+ままにすると、`docs/scoring.md` の Freshness が「6時間前の結果でも今取得した」
+と扱う。**キャッシュを入れるときは Freshness への配線まで含めて1組**である。
+
+### C17. 検証の終了コードをパイプで潰さない（W7 の失敗）
+
+`make verify 2>&1 | tail -4 && git commit` と書くと、パイプの終了コードは
+`tail` のものになり、**lint が落ちていてもコミットが進む**。実際に1度
+壊れたまま push した。`make verify >/dev/null 2>&1 && ...` のように、
+**検証コマンドの終了コードを直接見ること。**
+
+### C18. Terraform と backend の定数は両方直す（W7）
+
+`infrastructure/README.md` に一覧がある。片方だけ変えると壊れる。
+
+- DynamoDB: `PK` / `SK` / `ttl`（`adapters/dynamodb/table.py`）
+- S3 のキー配置（`adapters/s3/keys.py`）と Glue のパーティション列
+- Lambda のハンドラ名（`api.lambda_handlers.api_handler` / `api.worker_handler.worker_handler`）
+- 環境変数名（`config/settings.py`）、`batch_size = 1`、`maxReceiveCount = 3`
+
 ## 持ち越した課題
 
 | # | 内容 | 対応する Phase |
@@ -338,6 +402,11 @@ R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
 | 11 | ソース取得も国の処理も完全に逐次。live では 5国 × 4ソース = 20回の逐次呼び出しになり「5 Country Ranking p50 < 15 sec」を満たせない | Phase 8 |
 | 12 | `MISSING` と判定したソースの正規化済みデータを捨てている。`GET /scans/{id}/countries/{c}` は `news_results` を返す契約なので、「日付は無いが実在する記事」を出せない | Phase 9 |
 | 13 | `ScanSummary.versions.query_profile_version` は国別の版を連結した文字列。`docs/api.md` に明記済みだが、本来は `ScanSummary` 専用の版モデルを持つほうが素直 | 必要になったら |
+| 14 | **キャッシュはプロセス内メモリのみ。** Lambda の実行環境をまたいで共有されない。共有キャッシュ（DynamoDB など）は MVP の範囲外 | 必要になったら |
+| 15 | **「最後の1国」判定が競合しうる。** 概要の保存は冪等で、余分に発生するのは Brief の LLM 呼び出し1回。厳密に解くには `ScanRepository` へ条件付き書き込みの追加が必要 | 必要になったら |
+| 16 | `CountryScanner` に `fetch_maps` の公開メソッドが無いため、Worker が空の証拠を種に `attach_maps` を呼ぶ迂回をしている（`worker.py` の `_fetch_maps`） | リファクタの機会に |
+| 17 | Worker 内の4つの SerpApi 呼び出しが逐次。並列化するときは `submit_with_context` を使うこと（使わないと全ログの4フィールドが `null` になる） | Phase 8 の性能改善 |
+| 18 | **Athena / DynamoDB / S3 / SQS / Lambda はいずれも実 AWS では未検証。** `terraform apply` を行わない方針のため | AWS 利用の判断後 |
 
 ## 未確認事項（推測で実装しないこと）
 
