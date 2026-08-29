@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from enum import StrEnum
+from pathlib import Path
 from typing import Final, Self
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError, model_validator
@@ -89,6 +90,23 @@ class Settings(BaseModel):
     s3_bucket_name: str = Field(default="gapatlas-data", min_length=1)
     sqs_queue_url: str | None = None
 
+    athena_workgroup: str = Field(default="gapatlas", min_length=1)
+    """Athena のワークグループ名。
+
+    **Terraform が作る名前と一致させること**(`${project}-${environment}`、
+    既定 `gapatlas-dev`)。食い違うと `WorkGroup not found` でクエリが必ず
+    失敗する。Lambda へは `ATHENA_WORKGROUP` で渡す。
+    """
+
+    query_profiles_dir: Path | None = None
+    """QueryProfile(国別 YAML)の格納ディレクトリ。
+
+    省略時はリポジトリ配置を前提に相対解決する(`query_profile_loader`)。
+    **Lambda のデプロイパッケージでは階層が違うため必ず指定すること。**
+    指定しないと全国のプロファイルが読めず、例外ではなく「全国 FAILED の
+    スキャンが completed として保存される」という無言の失敗になる。
+    """
+
     log_level: LogLevel = LogLevel.INFO
     """`logging` のレベル名。不正な値は起動時に弾く。
 
@@ -165,6 +183,12 @@ def _get_int(env: Mapping[str, str], key: str, default: int) -> int:
         raise SettingsError(message) from exc
 
 
+def _get_path(env: Mapping[str, str], key: str) -> Path | None:
+    """パスを表す環境変数を読む。空文字は未設定として扱う。"""
+    value = _get(env, key)
+    return None if value is None else Path(value)
+
+
 def _get_log_level(env: Mapping[str, str]) -> LogLevel:
     """`LOG_LEVEL` を読む。大文字小文字は問わない。"""
     value = _get(env, "LOG_LEVEL")
@@ -216,6 +240,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
             dynamodb_table_name=_get(source, "DYNAMODB_TABLE_NAME") or "gapatlas",
             s3_bucket_name=_get(source, "S3_BUCKET_NAME") or "gapatlas-data",
             sqs_queue_url=_get(source, "SQS_QUEUE_URL"),
+            athena_workgroup=_get(source, "ATHENA_WORKGROUP") or "gapatlas",
+            query_profiles_dir=_get_path(source, "QUERY_PROFILES_DIR"),
             log_level=_get_log_level(source),
             cors_allowed_origins=_get_str_list(
                 source, "CORS_ALLOWED_ORIGINS", DEFAULT_CORS_ALLOWED_ORIGINS

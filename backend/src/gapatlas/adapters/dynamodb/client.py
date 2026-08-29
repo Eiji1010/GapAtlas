@@ -46,7 +46,7 @@ from gapatlas.adapters.dynamodb.table import (
     scan_partition_key,
 )
 from gapatlas.config.settings import Settings
-from gapatlas.domain.models.common import Country
+from gapatlas.domain.models.common import Country, ScanStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 DEFAULT_TTL_DAYS: Final[int] = 30
@@ -108,6 +108,38 @@ class DynamoDbScanRepository:
         item[SORT_KEY_ATTRIBUTE] = meta_sort_key()
         item[TTL_ATTRIBUTE] = self._expires_at()
         self._put_item(item, operation="save scan")
+
+    def save_scan_if_unfinished(self, summary: ScanSummary) -> bool:
+        """終端でない場合のみ上書きする。条件付き書き込みで競合を防ぐ。
+
+        `ConditionalCheckFailedException` は失敗ではなく「既に確定済み
+        だったので書かなかった」を意味する。例外にせず `False` を返す。
+        """
+        item = to_attributes(summary)
+        item[PARTITION_KEY_ATTRIBUTE] = scan_partition_key(summary.scan_id)
+        item[SORT_KEY_ATTRIBUTE] = meta_sort_key()
+        item[TTL_ATTRIBUTE] = self._expires_at()
+        try:
+            self._table.put_item(
+                Item=dict(item),
+                # 未作成、または処理中のときだけ上書きする。
+                ConditionExpression=(
+                    f"attribute_not_exists({PARTITION_KEY_ATTRIBUTE}) OR #status = :processing"
+                ),
+                ExpressionAttributeNames={"#status": "status"},
+                ExpressionAttributeValues={":processing": ScanStatus.PROCESSING.value},
+            )
+        except Exception as exc:
+            # 条件不成立は**失敗ではない**。「既に確定済みだったので書かなかった」
+            # を意味する。例外の型ではなく `response["Error"]["Code"]` で判定
+            # する(boto3 の遅延 import を壊さないため)。
+            if _is_conditional_check_failure(exc):
+                return False
+            if isinstance(exc, _aws_error_types()):
+                raise RepositoryWriteError(self._failure_message("save scan", exc)) from exc
+            # 実装バグは AWS の障害として隠さない。
+            raise
+        return True
 
     def save_country(self, result: CountryResult) -> None:
         item = to_attributes(result)
@@ -248,3 +280,18 @@ def _build_default_table(*, table_name: str, region: str) -> Any:
         )
         raise RepositoryError(message) from exc
     return boto3.resource("dynamodb", region_name=region).Table(table_name)
+
+
+def _is_conditional_check_failure(error: BaseException) -> bool:
+    """条件付き書き込みが条件不成立で弾かれたか。
+
+    `botocore` の `ClientError` は `response["Error"]["Code"]` を持つ。
+    ここで型を直接参照すると boto3 の遅延 import が壊れるため、構造で判定する。
+    """
+    response = getattr(error, "response", None)
+    if not isinstance(response, Mapping):
+        return False
+    detail = response.get("Error")
+    if not isinstance(detail, Mapping):
+        return False
+    return detail.get("Code") == "ConditionalCheckFailedException"

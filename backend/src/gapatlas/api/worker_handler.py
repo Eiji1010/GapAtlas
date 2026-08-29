@@ -55,6 +55,11 @@ def build_worker(settings: Settings | None = None) -> ScanWorker:
         create_scan_repository(resolved),
         create_scan_archive(resolved),
         create_brief_writer(resolved),
+        # **Lambda では必ず渡す。** 省略するとリポジトリ配置を前提とした
+        # 相対解決になり、パッケージ内で YAML が見つからない。しかも
+        # ScanWorker は ConfigError を握るため、例外ではなく「全国 FAILED の
+        # スキャンが completed として保存される」という無言の失敗になる。
+        profiles_dir=resolved.query_profiles_dir,
     )
 
 

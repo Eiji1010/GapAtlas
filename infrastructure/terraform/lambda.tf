@@ -56,6 +56,17 @@ locals {
     DYNAMODB_TABLE_NAME = aws_dynamodb_table.main.name
     S3_BUCKET_NAME      = aws_s3_bucket.data.id
     LOG_LEVEL           = var.log_level
+
+    # **必須。** 省略すると query_profile_loader がリポジトリ配置を前提に
+    # 相対解決し、パッケージ内で国別 YAML を見つけられない。ScanWorker は
+    # ConfigError を握るため、例外ではなく「全国 FAILED のスキャンが
+    # completed として保存される」という無言の失敗になる。
+    # infrastructure/README.md のパッケージ構成に合わせた絶対パス。
+    QUERY_PROFILES_DIR = "/var/task/config/query_profiles"
+
+    # Athena のワークグループ名。backend の既定値と Terraform の名前が
+    # 食い違うと、クエリが WorkGroup not found で必ず失敗する。
+    ATHENA_WORKGROUP = aws_athena_workgroup.main.name
   }
 }
 

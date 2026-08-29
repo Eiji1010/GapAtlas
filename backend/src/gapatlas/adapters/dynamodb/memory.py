@@ -9,8 +9,11 @@ AWS へ接続せずに API と CLI を動かすための実装。`SERPAPI_MODE=f
 
 from __future__ import annotations
 
-from gapatlas.domain.models.common import Country
+from gapatlas.domain.models.common import Country, ScanStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
+
+FINISHED_STATUSES = frozenset({ScanStatus.COMPLETED, ScanStatus.PARTIALLY_FAILED})
+"""これ以上「途中経過」で上書きしてはいけない状態。"""
 
 
 class InMemoryScanRepository:
@@ -22,6 +25,13 @@ class InMemoryScanRepository:
 
     def save_scan(self, summary: ScanSummary) -> None:
         self._scans[summary.scan_id] = summary
+
+    def save_scan_if_unfinished(self, summary: ScanSummary) -> bool:
+        stored = self._scans.get(summary.scan_id)
+        if stored is not None and stored.status in FINISHED_STATUSES:
+            return False
+        self._scans[summary.scan_id] = summary
+        return True
 
     def save_country(self, result: CountryResult) -> None:
         self._countries[(result.scan_id, result.country)] = result

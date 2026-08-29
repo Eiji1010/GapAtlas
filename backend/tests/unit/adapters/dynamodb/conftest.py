@@ -10,7 +10,7 @@ from collections.abc import Callable, Mapping
 from copy import deepcopy
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
@@ -22,7 +22,27 @@ from gapatlas.adapters.dynamodb.table import (
     SORT_KEY_ATTRIBUTE,
 )
 from gapatlas.config.settings import Settings
+from gapatlas.domain.models.classification import (
+    ClassifiedNewsArticle,
+    ClassifiedRisingQuery,
+    ClassifiedSearchResult,
+    NewsClassification,
+    NewsRelevance,
+    PainCategory,
+    PainClassification,
+    SolutionCategory,
+    SolutionClassification,
+)
 from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus, SourceName, TopicId
+from gapatlas.domain.models.normalized import (
+    MapsPlace,
+    NewsArticle,
+    RisingQuery,
+    SearchResultItem,
+    TrendPoint,
+    TrendsSeries,
+    TrendsTimeseries,
+)
 from gapatlas.domain.models.result import (
     CountryResult,
     Evidence,
@@ -61,7 +81,13 @@ def make_country_result(
     scan_id: str = "s1",
     score: int | None = 75,
 ) -> CountryResult:
-    """契約テスト用の `CountryResult`。float・int・None・ネストしたリストを含む。"""
+    """契約テスト用の `CountryResult`。
+
+    **Screen 2 用の5フィールドにも必ず非既定値を入れる。** 既定値のままだと、
+    シリアライズがこれらを丸ごと落としても往復テストが気づかない
+    (`trends` / `related_queries` / `search_results` / `news_results` /
+    `maps_results` は `None` / `[]` が既定)。
+    """
     return CountryResult(
         scan_id=scan_id,
         topic_id=TopicId.ELDER_CARE,
@@ -86,17 +112,89 @@ def make_country_result(
             ),
             Evidence(id="E2", source=SourceName.NEWS, summary="staff shortage reported", url=None),
         ],
+        trends=TrendsTimeseries(
+            series=[
+                TrendsSeries(
+                    query="介護",
+                    points=[
+                        TrendPoint(timestamp=SCAN_TIME, value=90.0),
+                        TrendPoint(timestamp=SCAN_TIME, value=0.0),
+                    ],
+                )
+            ]
+        ),
+        related_queries=[
+            ClassifiedRisingQuery(
+                item=RisingQuery(
+                    query="介護 空き",
+                    growth_percent=4500.0,
+                    is_breakout=True,
+                    raw_value="Breakout",
+                    link="https://example.com/rq",
+                ),
+                classification=PainClassification(
+                    classification=PainCategory.SHORTAGE, confidence=0.9
+                ),
+            )
+        ],
+        search_results=[
+            ClassifiedSearchResult(
+                item=SearchResultItem(
+                    position=1,
+                    title="介護サービス",
+                    link="https://example.com/s",
+                    snippet=None,
+                    displayed_link="example.com",
+                    source=None,
+                ),
+                classification=SolutionClassification(
+                    classification=SolutionCategory.DIRECT_PROVIDER, confidence=0.8
+                ),
+            )
+        ],
+        news_results=[
+            ClassifiedNewsArticle(
+                item=NewsArticle(
+                    position=1,
+                    title="人手不足",
+                    link="https://example.com/n",
+                    source_name="架空新聞",
+                    published_at=SCAN_TIME,
+                    raw_date=None,
+                ),
+                classification=NewsClassification(
+                    classification=NewsRelevance.DIRECTLY_RELEVANT, confidence=0.95
+                ),
+            )
+        ],
+        maps_results=[
+            MapsPlace(
+                position=1,
+                title="架空ケアセンター",
+                place_id="p1",
+                rating=4.2,
+                reviews=31,
+                place_type="nursing_home",
+                address="東京",
+                link=None,
+            )
+        ],
         versions=VERSIONS,
         computed_at=SCAN_TIME,
     )
 
 
-def make_scan_summary(scan_id: str = "s1", *, with_brief: bool = False) -> ScanSummary:
+def make_scan_summary(
+    scan_id: str = "s1",
+    *,
+    with_brief: bool = False,
+    status: ScanStatus = ScanStatus.COMPLETED,
+) -> ScanSummary:
     """契約テスト用の `ScanSummary`。`ranking` はネストしたリスト。"""
     return ScanSummary(
         scan_id=scan_id,
         topic_id=TopicId.ELDER_CARE,
-        status=ScanStatus.COMPLETED,
+        status=status,
         progress=ScanProgress(total=2, completed=2),
         completed_countries=[Country.JP, Country.US],
         ranking=[
@@ -154,6 +252,21 @@ def _to_stored(value: object) -> object:
     raise TypeError(message)
 
 
+class ConditionalCheckFailedError(Exception):
+    """`botocore` の `ClientError` のうち、条件付き書き込みが弾かれた形。
+
+    実装は例外の型ではなく `response["Error"]["Code"]` を見る(boto3 の
+    遅延 import を壊さないため)。フェイクも同じ構造を持たせる。
+    """
+
+    response: ClassVar[dict[str, dict[str, str]]] = {
+        "Error": {"Code": "ConditionalCheckFailedException"}
+    }
+
+
+ConditionalCheckFailed = ConditionalCheckFailedError("the condition was not met")
+
+
 class FakeDynamoDbTable:
     """`boto3.resource("dynamodb").Table` の最小の模倣。
 
@@ -181,15 +294,53 @@ class FakeDynamoDbTable:
         self.get_error = get_error
         self.query_error = query_error
 
-    def put_item(self, *, Item: Mapping[str, Any]) -> dict[str, Any]:  # noqa: N803
+    def put_item(
+        self,
+        *,
+        Item: Mapping[str, Any],  # noqa: N803
+        ConditionExpression: str | None = None,  # noqa: N803
+        ExpressionAttributeNames: Mapping[str, str] | None = None,  # noqa: N803
+        ExpressionAttributeValues: Mapping[str, Any] | None = None,  # noqa: N803
+    ) -> dict[str, Any]:
         if self.put_error is not None:
             raise self.put_error
-        self.put_calls.append(deepcopy(dict(Item)))
         stored = _to_stored(Item)
         assert isinstance(stored, dict)
         key = (str(stored[PARTITION_KEY_ATTRIBUTE]), str(stored[SORT_KEY_ATTRIBUTE]))
+
+        if ConditionExpression is not None and not self._condition_holds(
+            key, ConditionExpression, ExpressionAttributeNames, ExpressionAttributeValues
+        ):
+            # 実 DynamoDB と同じ形の例外にする(`response["Error"]["Code"]`)。
+            raise ConditionalCheckFailed
+
+        self.put_calls.append(deepcopy(dict(Item)))
         self.items[key] = stored
         return {}
+
+    def _condition_holds(
+        self,
+        key: tuple[str, str],
+        expression: str,
+        names: Mapping[str, str] | None,
+        values: Mapping[str, Any] | None,
+    ) -> bool:
+        """`attribute_not_exists(PK) OR #name = :value` だけを解釈する。
+
+        汎用の式評価は実装しない。**サポートしていない式は明示的に落とす**
+        (黙って True を返すと、条件付き書き込みのテストが無意味になる)。
+        """
+        expected = f"attribute_not_exists({PARTITION_KEY_ATTRIBUTE}) OR #status = :processing"
+        if expression != expected:
+            message = f"FakeDynamoDbTable does not support: {expression}"
+            raise NotImplementedError(message)
+
+        stored = self.items.get(key)
+        if stored is None:
+            return True
+        attribute = (names or {}).get("#status", "status")
+        wanted = (values or {}).get(":processing")
+        return stored.get(attribute) == wanted
 
     def get_item(self, *, Key: Mapping[str, str]) -> dict[str, Any]:  # noqa: N803
         if self.get_error is not None:

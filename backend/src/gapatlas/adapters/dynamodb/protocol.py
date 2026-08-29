@@ -31,7 +31,25 @@ class ScanRepository(Protocol):
     """
 
     def save_scan(self, summary: ScanSummary) -> None:
-        """スキャン概要を保存する。同じ `scan_id` は上書きする。"""
+        """スキャン概要を保存する。同じ `scan_id` は無条件で上書きする。
+
+        **確定した概要を書くときだけ使うこと。** 途中経過には
+        `save_scan_if_unfinished` を使う。
+        """
+        ...
+
+    def save_scan_if_unfinished(self, summary: ScanSummary) -> bool:
+        """保存済みの概要が**まだ終端でない場合のみ**上書きする。
+
+        Worker は1国終わるたびに途中経過を書く。並行実行では「まだ揃って
+        いない」と読んだ Worker の書き込みが、別 Worker の確定書き込みより
+        **後に着地する**ことがある。無条件上書きだと完了済みのスキャンが
+        `processing` へ巻き戻り、ランキングと Opportunity Brief が失われ、
+        フロントエンドは終端状態に到達できず 2秒 Polling を続ける。
+
+        Returns:
+            上書きしたら `True`。既に終端だったため書かなかったら `False`。
+        """
         ...
 
     def save_country(self, result: CountryResult) -> None:

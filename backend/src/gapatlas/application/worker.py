@@ -93,6 +93,7 @@ from gapatlas.application.persistence import (
     archive_normalized,
     archive_raw,
     save_country,
+    save_interim_summary,
     save_summary,
 )
 from gapatlas.application.scan_service import (
@@ -262,7 +263,10 @@ class ScanWorker:
             results=results,
             status=ScanStatus.PROCESSING,
         )
-        self._persist_summary(summary)
+        # **条件付きで書く。** 「まだ揃っていない」と読んだ Worker の書き込みが
+        # 別 Worker の確定書き込みより後に着地すると、完了済みのスキャンが
+        # `processing` へ巻き戻り、ランキングと Brief が失われる。
+        self._persist_interim_summary(summary)
 
     def _finalize_if_last(self, job: ScanJob) -> None:
         """自分が最後の1国なら、スキャン全体を確定する。
@@ -488,8 +492,12 @@ class ScanWorker:
             save_country(self._repository, result)
 
     def _persist_summary(self, summary: ScanSummary) -> None:
-        """スキャン概要を保存する。"""
+        """確定した概要を保存する(無条件で上書きする)。"""
         save_summary(self._repository, summary)
+
+    def _persist_interim_summary(self, summary: ScanSummary) -> None:
+        """途中経過の概要を保存する。**確定済みなら上書きしない。**"""
+        save_interim_summary(self._repository, summary)
 
 
 def _renumbered(items: Sequence[Evidence], *, start: int) -> list[Evidence]:

@@ -21,7 +21,7 @@ from gapatlas.adapters.s3.memory import InMemoryScanArchive
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.application.country_scan import CountryScanner
 from gapatlas.application.jobs import ScanJob
-from gapatlas.application.scan_service import MAPS_COUNTRY_LIMIT, ScanService
+from gapatlas.application.scan_service import MAPS_COUNTRY_LIMIT, ScanService, build_scan_summary
 from gapatlas.application.worker import ScanWorker, public_evaluation_from_result
 from gapatlas.config.query_profile_loader import DEFAULT_QUERY_PROFILES_DIR
 from gapatlas.domain.models.common import (
@@ -420,6 +420,12 @@ class BrokenRepository(InMemoryScanRepository):
             raise RuntimeError(message)
         super().save_scan(summary)
 
+    def save_scan_if_unfinished(self, summary: ScanSummary) -> bool:
+        if self._fail_scan:
+            message = "simulated scan write failure"
+            raise RuntimeError(message)
+        return super().save_scan_if_unfinished(summary)
+
 
 class UnreadableRepository(InMemoryScanRepository):
     """`list_countries` が失敗するリポジトリ。完了判定ができない状況を作る。"""
@@ -572,3 +578,63 @@ def test_every_country_can_be_the_last_one(country):
     repository = InMemoryScanRepository()
     _run_all(_worker(repository), _jobs(order))
     assert repository.get_scan(SCAN_ID) is not None
+
+
+# --------------------------------------------------------------------------
+# 第三者レビューの指摘(完了済みスキャンの巻き戻り)
+# --------------------------------------------------------------------------
+
+
+def test_a_stale_interim_summary_does_not_roll_back_a_finished_scan():
+    """確定済みの概要を途中経過で上書きしない。
+
+    並行実行では「まだ揃っていない」と読んだ Worker の書き込みが、別 Worker
+    の確定書き込みより**後に着地する**。無条件上書きだと完了済みのスキャンが
+    `processing` へ巻き戻り、ランキングと Brief が失われ、フロントエンドは
+    終端状態に到達できず 2秒 Polling を続ける。
+    """
+    repository = InMemoryScanRepository()
+    worker = _worker(repository)
+    jobs = _jobs()
+
+    # 4か国を処理し、5か国目で確定させる
+    for job in jobs:
+        worker.handle(job)
+    finished = repository.get_scan(SCAN_ID)
+    assert finished is not None
+    assert finished.status is ScanStatus.COMPLETED
+    assert finished.opportunity_brief is not None
+
+    # 遅れて届いた途中経過(4か国分)を書こうとする
+    stale = build_scan_summary(
+        scan_id=SCAN_ID,
+        topic_id=TOPIC,
+        total=len(Country),
+        results=repository.list_countries(SCAN_ID)[:4],
+        status=ScanStatus.PROCESSING,
+    )
+    assert repository.save_scan_if_unfinished(stale) is False
+
+    after = repository.get_scan(SCAN_ID)
+    assert after is not None
+    assert after.status is ScanStatus.COMPLETED
+    assert after.opportunity_brief is not None
+    assert len(after.ranking) == len(Country)
+
+
+def test_an_interim_summary_is_written_while_the_scan_is_processing():
+    """処理中は上書きできること(条件が厳しすぎて進捗が止まらないこと)。"""
+    repository = InMemoryScanRepository()
+    worker = _worker(repository)
+    jobs = _jobs()
+
+    worker.handle(jobs[0])
+    first = repository.get_scan(SCAN_ID)
+    assert first is not None
+    assert first.status is ScanStatus.PROCESSING
+    assert len(first.ranking) == 1
+
+    worker.handle(jobs[1])
+    second = repository.get_scan(SCAN_ID)
+    assert second is not None
+    assert len(second.ranking) == 2

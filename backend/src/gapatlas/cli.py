@@ -29,7 +29,7 @@ from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classi
 from gapatlas.adapters.s3.factory import create_scan_archive
 from gapatlas.adapters.serpapi.factory import create_serpapi_client
 from gapatlas.application.logging_context import configure_logging
-from gapatlas.application.scan_service import ScanOutput, ScanService
+from gapatlas.application.scan_service import ScanOutput, ScanService, to_public_component
 from gapatlas.config.errors import ConfigError
 from gapatlas.config.settings import LlmMode, SerpApiMode, Settings, load_settings
 from gapatlas.domain.models.common import Country, TopicId
@@ -132,11 +132,15 @@ def _resolve_scan_id(raw: str | None) -> str:
 
 
 def _country_summary(result: CountryResult) -> dict[str, Any]:
-    """依頼書 §31 が求める最小の出力形。"""
-    components = result.components
+    """依頼書 §31 が求める最小の出力形。
 
-    def public(value: float | None) -> int | None:
-        return None if value is None else round(value)
+    丸めは `to_public_component`(round half up)を使う。**組み込みの
+    `round()` は偶数丸めなので使わない。** 使うと同じスキャンでも
+    `make scan` と `GET /scans/{id}/countries/{c}` で 1 ずれる
+    (docs/scoring.md「四捨五入」)。
+    """
+    components = result.components
+    public = to_public_component
 
     return {
         "country": result.country.value,
@@ -203,6 +207,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             create_brief_writer(settings),
             repository=create_scan_repository(settings),
             archive=create_scan_archive(settings),
+            profiles_dir=settings.query_profiles_dir,
         )
         output = service.scan(
             TopicId(args.topic),

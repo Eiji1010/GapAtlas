@@ -14,10 +14,13 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
+from pydantic import BaseModel
 
 from gapatlas.adapters.dynamodb.memory import InMemoryScanRepository
+from gapatlas.adapters.dynamodb.serialization import from_attributes, to_attributes
 from gapatlas.adapters.llm.stub_client import StubLlmClient
 from gapatlas.adapters.s3.memory import InMemoryScanArchive
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
@@ -29,6 +32,7 @@ from gapatlas.application.country_scan import CountryScanner
 from gapatlas.application.worker import ScanWorker
 from gapatlas.config.settings import Settings
 from gapatlas.domain.models.common import Country
+from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 SCAN_ID = "scan_e2e"
 SCAN_TIME = datetime(2026, 8, 28, tzinfo=UTC)
@@ -43,10 +47,51 @@ EXPECTED_SCORES = {
 """fixture に対する期待値。CLI の出力と一致すること。"""
 
 
-@pytest.fixture
-def stack():
-    """デモで使う構成そのもの(fixture / stub / インメモリ)。"""
-    repository = InMemoryScanRepository()
+def _round_trip[ModelT: BaseModel](model_type: type[ModelT], model: ModelT) -> ModelT:
+    """DynamoDB の属性表現を実際に往復させる。"""
+    return from_attributes(model_type, to_attributes(model))
+
+
+class SerializingScanRepository:
+    """保存のたびに**実際のシリアライズを通す**リポジトリ。
+
+    インメモリ実装はモデルオブジェクトをそのまま返すため、E2E が
+    `adapters/dynamodb/serialization.py` を1バイトも通らない。`CountryResult`
+    の Screen 2 用フィールド(`trends` / `related_queries` / `search_results` /
+    `news_results` / `maps_results`)が保存時に丸ごと落ちても気づけない。
+    """
+
+    def __init__(self) -> None:
+        self._inner = InMemoryScanRepository()
+
+    def save_scan(self, summary: ScanSummary) -> None:
+        self._inner.save_scan(_round_trip(ScanSummary, summary))
+
+    def save_scan_if_unfinished(self, summary: ScanSummary) -> bool:
+        return self._inner.save_scan_if_unfinished(_round_trip(ScanSummary, summary))
+
+    def save_country(self, result: CountryResult) -> None:
+        self._inner.save_country(_round_trip(CountryResult, result))
+
+    def get_scan(self, scan_id: str) -> ScanSummary | None:
+        return self._inner.get_scan(scan_id)
+
+    def get_country(self, scan_id: str, country: Country) -> CountryResult | None:
+        return self._inner.get_country(scan_id, country)
+
+    def list_countries(self, scan_id: str) -> list[CountryResult]:
+        return self._inner.list_countries(scan_id)
+
+
+@pytest.fixture(params=["memory", "serializing"])
+def stack(request: pytest.FixtureRequest):
+    """デモで使う構成そのもの(fixture / stub)。
+
+    リポジトリは**素のインメモリ**と**シリアライズを通すもの**の両方で回す。
+    """
+    repository: Any = (
+        InMemoryScanRepository() if request.param == "memory" else SerializingScanRepository()
+    )
     archive = InMemoryScanArchive()
     queue = InMemoryJobQueue()
     api = ApiService(repository, queue, Settings())

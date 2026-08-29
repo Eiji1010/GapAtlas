@@ -31,9 +31,6 @@ from gapatlas.domain.models.common import Country, TopicId
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
-DEFAULT_WORKGROUP: Final[str] = "gapatlas"
-"""Terraform が作るワークグループ名(infrastructure/terraform/athena.tf)。"""
-
 POLL_INTERVAL_SECONDS: Final[float] = 0.5
 MAX_POLL_ATTEMPTS: Final[int] = 60
 """最大待ち時間 = 0.5秒 * 60 = 30秒。**無限には待たない。**"""
@@ -111,7 +108,7 @@ class AthenaScoreHistory:
         settings: Settings,
         *,
         client: Any | None = None,
-        workgroup: str = DEFAULT_WORKGROUP,
+        workgroup: str | None = None,
         sleep: Callable[[float], None] = time.sleep,
         max_poll_attempts: int = MAX_POLL_ATTEMPTS,
     ) -> None:
@@ -121,7 +118,10 @@ class AthenaScoreHistory:
                 (実 AWS を呼ばない。認証情報は無い前提)。
             sleep: ポーリングの待機関数。テストが実時間を消費しないよう注入可能。
         """
-        self._workgroup = workgroup
+        # **ワークグループ名は設定から取る。** ここに既定値を書くと
+        # Terraform の名前(`${project}-${environment}`)と食い違い、
+        # `WorkGroup not found` でクエリが必ず失敗する。
+        self._workgroup = workgroup if workgroup is not None else settings.athena_workgroup
         self._sleep = sleep
         self._max_poll_attempts = max_poll_attempts
         self._client = (
@@ -212,8 +212,10 @@ class AthenaScoreHistory:
             result_set = response.get("ResultSet") if isinstance(response, Mapping) else None
             raw_rows = result_set.get("Rows") if isinstance(result_set, Mapping) else None
             page = list(raw_rows) if isinstance(raw_rows, Sequence) else []
-            if first_page and page:
+            if first_page:
                 # 先頭ページの1行目は列名(Athena の仕様)。
+                # **`page` が空でもフラグを倒すこと。** 空のまま残すと、
+                # 次ページの先頭にある実データ行をヘッダとして捨てる。
                 page = page[1:]
                 first_page = False
 

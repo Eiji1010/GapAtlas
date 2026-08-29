@@ -46,11 +46,28 @@ def save_country(repository: ScanRepository | None, result: CountryResult) -> No
 
 
 def save_summary(repository: ScanRepository | None, summary: ScanSummary) -> None:
-    """スキャン概要を保存する。失敗はログへ残して握る。"""
+    """確定した概要を保存する(無条件で上書きする)。失敗はログへ残して握る。"""
     if repository is None:
         return
     try:
         repository.save_scan(summary)
+    except Exception:
+        _log_failure("scan repository")
+
+
+def save_interim_summary(repository: ScanRepository | None, summary: ScanSummary) -> None:
+    """途中経過の概要を保存する。**確定済みなら上書きしない。**
+
+    並行実行では「まだ揃っていない」と読んだ Worker の書き込みが、別 Worker
+    の確定書き込みより後に着地することがある。無条件上書きだと完了済みの
+    スキャンが `processing` へ巻き戻り、ランキングと Opportunity Brief が
+    失われる(フロントエンドは終端状態に到達できず Polling を続ける)。
+    """
+    if repository is None:
+        return
+    try:
+        if not repository.save_scan_if_unfinished(summary):
+            _LOGGER.info("skipped an interim summary; the scan is already finalized")
     except Exception:
         _log_failure("scan repository")
 
