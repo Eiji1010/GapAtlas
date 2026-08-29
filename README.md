@@ -61,6 +61,7 @@ make setup
 
 ```bash
 make scan COUNTRY=JP     # fixture モードで単一国を分析し JSON を出力
+make serve               # ローカル API サーバーを起動(http://localhost:8000/api/v1)
 make verify              # lint + 整形確認 + 型チェック + テスト
 ```
 
@@ -89,6 +90,21 @@ cd backend && uv run gapatlas scan --topic elder_care --all --mode fixture 2>/de
 # 4. 画面を開く(既定はモックモードなのでバックエンド不要)
 cd frontend && npm run dev
 ```
+
+画面をバックエンドに繋ぐ場合は、**ターミナルを2つ**使います。
+
+```bash
+# ターミナル1: API + Worker を1プロセスで起動する
+make serve
+
+# ターミナル2: 画面を live モードで開く
+cd frontend && VITE_API_MODE=live npm run dev
+```
+
+`make serve` は本番の Lambda ハンドラをそのまま `http.server` で包んだ**開発用**の
+サーバーです(`backend/src/gapatlas/api/dev_server.py`)。SQS の代わりにインメモリの
+キューを使い、バックグラウンドスレッドが**1国ずつ**処理するため、画面の2秒 Polling で
+進捗が進む様子もそのまま再現できます。認証・レート制限・並列処理はありません。
 
 CLI の出力（fixture に対する値。テストで固定しています）:
 

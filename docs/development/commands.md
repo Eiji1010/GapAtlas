@@ -37,6 +37,8 @@ make build                  # vite build
 
 ```bash
 make scan COUNTRY=JP  # fixture モードで単一国のスキャンを実行し JSON を出力
+make serve            # ローカル開発用の API サーバーを起動する
+make serve PORT=8080  # ポートを変える
 ```
 
 CLI を直接呼ぶと、5か国のランキングと Opportunity Brief まで出せます。
@@ -50,6 +52,33 @@ uv run gapatlas scan --topic elder_care --country JP --scan-time 2026-08-28T00:0
 
 - **結果は標準出力へ JSON、ログは標準エラーへ JSON1行**で出ます。`... 2>/dev/null | jq` で結果だけを取り出せます
 - `--scan-time` を省略すると現在時刻を使います。**fixture の基準日は `2026-08-28T00:00:00Z`** なので、再現性のある出力が要る場合は明示してください
+
+## ローカル API サーバー
+
+`make serve` は API と Worker を**1プロセス**で立ち上げます。frontend を
+`VITE_API_MODE=live` で動かすときの接続先です。
+
+```bash
+# ターミナル1
+make serve
+
+# ターミナル2(VITE_API_BASE_URL の既定が http://localhost:8000/api/v1 なので省略可)
+cd frontend && VITE_API_MODE=live npm run dev
+```
+
+```bash
+curl -X POST http://localhost:8000/api/v1/scans \
+  -H 'content-type: application/json' -d '{"topic_id":"elder_care"}'
+curl http://localhost:8000/api/v1/scans/<scan_id>
+curl http://localhost:8000/api/v1/scans/<scan_id>/countries/JP
+```
+
+- **本番の入口ではありません。** 本番は API Gateway HTTP API + Lambda です。このサーバーは
+  同じハンドラ(`api/lambda_handlers.py`)を標準ライブラリの `http.server` で包んだだけです
+- SQS の代わりにインメモリのキューを使い、**1国ずつ**処理します(本番の `batch_size = 1` と同じ単位)
+- 認証・レート制限・同時接続の処理はありません
+- 状態はプロセス内メモリです。**再起動すると過去のスキャンは消えます**
+- 既定は `SERPAPI_MODE=fixture` / `LLM_MODE=stub` / `PERSISTENCE_MODE=memory` なので外部通信ゼロです
 
 ## Terraform
 

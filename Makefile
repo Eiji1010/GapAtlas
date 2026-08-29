@@ -5,7 +5,7 @@ FRONTEND := frontend
 .PHONY: help setup setup-backend setup-frontend test test-backend test-frontend \
         lint lint-backend lint-frontend format format-check format-check-frontend \
         typecheck typecheck-backend typecheck-frontend build verify verify-frontend \
-        scan tf-validate tf-plan clean
+        serve scan tf-validate tf-plan clean
 
 help: ## コマンド一覧を表示する
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -57,6 +57,9 @@ build: ## frontend をビルドする
 verify: lint format-check typecheck test ## backend の lint・整形確認・型チェック・テストをまとめて実行する
 
 verify-frontend: lint-frontend format-check-frontend typecheck-frontend test-frontend build ## frontend の検証をまとめて実行する
+
+serve: ## ローカル開発用の API サーバーを起動する(本番は Lambda)
+	cd $(BACKEND) && uv run gapatlas serve --port $(or $(PORT),8000)
 
 scan: ## fixture モードで単一国のスキャンを実行する 例: make scan COUNTRY=JP
 	cd $(BACKEND) && uv run gapatlas scan --topic elder_care --country $(or $(COUNTRY),JP) --mode fixture

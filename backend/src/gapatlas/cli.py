@@ -30,6 +30,8 @@ from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classi
 from gapatlas.adapters.s3.athena_client import AthenaScoreHistory
 from gapatlas.adapters.s3.factory import create_scan_archive
 from gapatlas.adapters.serpapi.factory import create_serpapi_client
+from gapatlas.api.dev_server import DEFAULT_HOST, DEFAULT_PORT
+from gapatlas.api.dev_server import serve as serve_dev_server
 from gapatlas.application.logging_context import configure_logging
 from gapatlas.application.scan_service import ScanOutput, ScanService, to_public_component
 from gapatlas.config.errors import ConfigError
@@ -94,6 +96,13 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         required=True,
         choices=[member.value for member in Country],
     )
+
+    serve = subparsers.add_parser(
+        "serve",
+        help="ローカル開発用の API サーバーを起動する(本番は Lambda)",
+    )
+    serve.add_argument("--host", default=DEFAULT_HOST)
+    serve.add_argument("--port", type=int, default=DEFAULT_PORT)
     return parser.parse_args(argv)
 
 
@@ -223,67 +232,63 @@ def _run_history(args: argparse.Namespace, settings: Settings) -> int:
     return EXIT_OK
 
 
+def _fail(exc: Exception) -> int:
+    """エラーを JSON 1行で標準エラーへ出す。**トレースバックは出さない。**"""
+    detail = str(exc) if isinstance(exc, ConfigError) else f"{type(exc).__name__}: {exc}"
+    print(json.dumps({"error": detail}, ensure_ascii=False), file=sys.stderr)
+    return EXIT_ERROR
+
+
+def _run_scan(args: argparse.Namespace, settings: Settings) -> int:
+    """`gapatlas scan`。fixture / live のスキャンを実行して JSON を出す。"""
+    scan_time = _resolve_scan_time(args.scan_time)
+    scan_id = _resolve_scan_id(args.scan_id)
+    countries = (
+        list(Country) if args.all else [Country(args.country) if args.country else Country.JP]
+    )
+
+    service = ScanService(
+        create_serpapi_client(settings),
+        create_llm_classifier(settings),
+        create_brief_writer(settings),
+        repository=create_scan_repository(settings),
+        archive=create_scan_archive(settings),
+        profiles_dir=settings.query_profiles_dir,
+    )
+    output = service.scan(
+        TopicId(args.topic),
+        countries,
+        scan_id=scan_id,
+        scan_time=scan_time,
+        # 要約だけを出す単一国モードでは Maps と Brief を表示しないので、
+        # 使わない外部 API 呼び出しを行わない。
+        enrich=args.full or len(countries) > 1,
+    )
+    print(json.dumps(_render(output, countries, full=args.full), ensure_ascii=False, indent=2))
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    """CLI の入口。終了コードを返す。"""
+    """CLI の入口。終了コードを返す。
+
+    **例外を素通しさせない。** 生のトレースバックではなく
+    `{"error": ...}` を返す(docs/api.md のエラー契約に揃える)。
+    """
     args = _parse_args(argv)
 
     try:
         settings = _resolve_settings(args) if args.command == "scan" else load_settings()
     except ConfigError as exc:
-        print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
-        return EXIT_ERROR
+        return _fail(exc)
 
     configure_logging(settings.log_level.value, stream=sys.stderr)
 
-    if args.command == "history":
-        try:
+    try:
+        if args.command == "serve":
+            serve_dev_server(settings, host=args.host, port=args.port)
+            return EXIT_OK
+        if args.command == "history":
             return _run_history(args, settings)
-        except GapAtlasError as exc:
-            print(
-                json.dumps({"error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False),
-                file=sys.stderr,
-            )
-            return EXIT_ERROR
-
-    try:
-        scan_time = _resolve_scan_time(args.scan_time)
-        scan_id = _resolve_scan_id(args.scan_id)
-    except ConfigError as exc:
-        print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
-        return EXIT_ERROR
-
-    countries = (
-        list(Country) if args.all else [Country(args.country) if args.country else Country.JP]
-    )
-
-    try:
-        service = ScanService(
-            create_serpapi_client(settings),
-            create_llm_classifier(settings),
-            create_brief_writer(settings),
-            repository=create_scan_repository(settings),
-            archive=create_scan_archive(settings),
-            profiles_dir=settings.query_profiles_dir,
-        )
-        output = service.scan(
-            TopicId(args.topic),
-            countries,
-            scan_id=scan_id,
-            scan_time=scan_time,
-            # 要約だけを出す単一国モードでは Maps と Brief を表示しないので、
-            # 使わない外部 API 呼び出しを行わない。
-            enrich=args.full or len(countries) > 1,
-        )
-    except GapAtlasError as exc:
-        print(
-            json.dumps({"error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False),
-            file=sys.stderr,
-        )
-        return EXIT_ERROR
-
-    print(json.dumps(_render(output, countries, full=args.full), ensure_ascii=False, indent=2))
-    return EXIT_OK
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        return _run_scan(args, settings)
+    except (ConfigError, GapAtlasError) as exc:
+        return _fail(exc)
