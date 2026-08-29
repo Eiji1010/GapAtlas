@@ -2,7 +2,7 @@
 
 この文書は**セッションとマシンをまたぐ引き継ぎ**のため Git 追跡ファイルとして置いています（`.ai/temp/` は worktree もマシンもまたげません）。作業が進んだら**上書き更新**してください。履歴は Git が持ちます。
 
-- 最終更新: 2026-08-29 (W8 完了時点)
+- 最終更新: 2026-08-29 (W8 完了 + ローカル開発サーバー追加時点)
 - 統合ブランチ: `develop`
 - Remote: `git@github.com:Eiji1010/GapAtlas.git`
 
@@ -34,6 +34,18 @@ make tf-validate    # terraform(apply はしない)
 - **`gh` は未認証です。** PR の作成・マージには `gh auth login` が必要（人間が対話で実行する）。認証できるまで、Wave の成果は `develop` へ直接 push しています
 - **セッションのレート上限に注意。** 2026-08-29 の作業中に上限（Asia/Tokyo 7:30 リセット）へ当たり、実行中のサブエージェント5体が同時に落ちました。worktree の成果は残るので、統合担当が引き継いで完成させられます
 
+### 画面をバックエンドへ繋いで動かす
+
+```bash
+# ターミナル1: API + Worker を1プロセスで起動(既定 http://localhost:8000/api/v1)
+make serve
+
+# ターミナル2: 画面を live モードで開く
+cd frontend && VITE_API_MODE=live npm run dev
+```
+
+`backend/src/gapatlas/api/dev_server.py` は**開発専用**です。本番の入口は API Gateway + Lambda で、このサーバーは同じハンドラ（`api/lambda_handlers.py`）を標準ライブラリの `http.server` で包んだだけです（依存の追加なし）。SQS の代わりにインメモリキューを使い、バックグラウンドスレッドが**1国ずつ**処理します（本番の `batch_size = 1` と同じ単位）。状態はプロセス内メモリなので、再起動すると過去のスキャンは消えます。
+
 ## 作業目的
 
 `gapatlas_claude_implementation_prompt.md`（ハッカソン向け実装依頼書）に基づく GapAtlas MVP の実装。
@@ -64,8 +76,9 @@ make tf-validate    # terraform(apply はしない)
 | W7 | Phase 10 Frontend / Phase 13 Terraform / Cache / Phase 12 Athena クライアント / Phase 14 E2E / Phase 15 demo | **完了** |
 | W8 | W5〜W7 の第三者レビュー3観点と指摘対応 | **完了** |
 | W9 | main への PR（人間の承認が必要） | **次はここ** |
+| 追加 | ローカル開発用 API サーバー（`make serve`） | **完了** |
 
-`make verify` は **1370 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。frontend は 12 件、`terraform validate` も成功。
+`make verify` は **1450 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。frontend は 12 件、`terraform validate` も成功。
 
 ## 完了済みの成果物
 
@@ -412,6 +425,25 @@ R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
 コメントで紐付けても、**Terraform 側だけを変えたときに何も落ちない**。
 `backend/tests/unit/integration/test_terraform_constants.py` が `.tf` を
 正規表現で読んで突き合わせる。定数を増やしたらここへも足すこと。
+
+### C22. 依存の差し替えはモジュール属性ではなく引数で行う
+
+ローカル開発サーバーは当初 `lambda_handlers.build_service` をモジュールごと
+差し替えていた。復元手段が無いため、**同一プロセスの後続処理へ漏れる**。実際に
+`test_build_service_uses_the_in_memory_defaults` が「dev サーバー起動後に実行
+されると本物の `build_service` を一度も呼ばない」状態になり、緑のまま検証が
+無意味になっていた。`api_handler(event, context, *, service=None)` という
+キーワード引数の注入点へ変更した。**pytest の収集順に依存して意味が変わる
+テストは、赤くならないので気づけない。**
+
+### C23. 開発サーバーの応答は本番ハンドラと同じ経路を通す
+
+`do_PUT` などを定義しないと `http.server` の既定へ落ち、**501 + HTML**（CORS
+ヘッダ無し）を返す。本番（API Gateway → `_require_method`）は **405 + JSON**
+なので、ローカルで再現できない差異になる。全メソッドを `api_handler` へ流す。
+
+また、上限超過の本文は**切り詰めない**。マルチバイト境界で切ると `decode` が
+例外を投げ、応答を返さないまま接続が切れる。読み捨ててから 400 を返す。
 
 ## 持ち越した課題
 

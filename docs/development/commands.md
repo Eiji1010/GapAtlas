@@ -79,6 +79,7 @@ curl http://localhost:8000/api/v1/scans/<scan_id>/countries/JP
 - 認証・レート制限・同時接続の処理はありません
 - 状態はプロセス内メモリです。**再起動すると過去のスキャンは消えます**
 - 既定は `SERPAPI_MODE=fixture` / `LLM_MODE=stub` / `PERSISTENCE_MODE=memory` なので外部通信ゼロです
+- **`--host 0.0.0.0` を使わないでください。** 認証もレート制限も無い API を LAN へ晒すことになります。`SERPAPI_MODE=live` と併用すると、同じネットワークの第三者が `POST /scans` で SerpApi のクォータを消費できます（指定した場合は警告ログが出ます）
 
 ## Terraform
 

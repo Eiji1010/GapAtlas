@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import logging
+import subprocess
+import sys
 
 import pytest
 
@@ -279,3 +281,21 @@ def test_history_reports_an_athena_failure_as_json(capsys, monkeypatch):
 def test_history_requires_a_country():
     with pytest.raises(SystemExit):
         main(["history", "--topic", "elder_care"])
+
+
+def test_the_module_entry_point_runs_the_cli() -> None:
+    """`python -m gapatlas.cli` でも動くこと。
+
+    `if __name__ == "__main__"` が無いと、**何も出さず終了コード 0** で終わる。
+    パイプの向こうからは「成功したが結果が空」に見え、赤いテストも出ない。
+    """
+    completed = subprocess.run(  # noqa: S603
+        [sys.executable, "-m", "gapatlas.cli", *BASE_ARGS, "--country", "JP"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=120,
+    )
+
+    assert completed.returncode == EXIT_OK
+    assert json.loads(completed.stdout)["country"] == "JP"

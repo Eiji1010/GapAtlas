@@ -292,3 +292,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_scan(args, settings)
     except (ConfigError, GapAtlasError) as exc:
         return _fail(exc)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

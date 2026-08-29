@@ -198,7 +198,9 @@ def _unhandled(
     return error_response(InternalError(), extra_headers=cors_headers(origin, allowed_origins))
 
 
-def api_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
+def api_handler(
+    event: Mapping[str, Any], context: Any, *, service: ApiService | None = None
+) -> dict[str, Any]:
     """API Gateway HTTP API(payload format version 2.0)の入口。
 
     エラー応答も含めて**すべてのログを `scan_id` 付きで出す**ため、例外の捕捉を
@@ -207,13 +209,18 @@ def api_handler(event: Mapping[str, Any], context: Any) -> dict[str, Any]:
     Args:
         event: API Gateway のイベント。
         context: Lambda のコンテキスト。`aws_request_id` をログの相関 ID に使う。
+        service: 使う `ApiService`。**Lambda からは渡さない**(省略時は
+            `get_service()` が組み立てる)。ローカル開発サーバー
+            (`api/dev_server.py`)が自分で組み立てた依存を渡すための注入点で、
+            これが無いと `build_service` をモジュールごと差し替えるしかなく、
+            同一プロセスの後続処理(特にテスト)へ差し替えが漏れる。
     """
     request_id = getattr(context, "aws_request_id", None)
     allowed_origins: Sequence[str] = ()
     origin: str | None = None
 
     try:
-        service = get_service()
+        service = get_service() if service is None else service
         allowed_origins = service.settings.cors_allowed_origins
         request = parse_request(event)
         origin = request.origin

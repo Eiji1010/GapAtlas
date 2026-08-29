@@ -17,8 +17,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from gapatlas.api import dev_server
+from gapatlas.api import dev_server, lambda_handlers
 from gapatlas.application.jobs import ScanJob
+from gapatlas.config.errors import ConfigError
 from gapatlas.config.settings import Settings
 from gapatlas.domain.models.common import Country, TopicId
 
@@ -122,15 +123,14 @@ def test_the_worker_thread_survives_a_failing_job() -> None:
 @pytest.fixture
 def running_server() -> Iterator[str]:
     """実際にサーバーを起動して、その URL を返す。"""
-    server, stop = dev_server.create_server(Settings(), host="127.0.0.1", port=0)
+    server, shutdown = dev_server.create_server(Settings(), host="127.0.0.1", port=0)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
         yield f"http://127.0.0.1:{server.server_address[1]}/api/v1"
     finally:
-        stop.set()
         server.shutdown()
-        server.server_close()
+        shutdown()
         thread.join(timeout=5)
 
 
@@ -208,3 +208,87 @@ def test_a_missing_scan_is_a_404_with_the_documented_error_shape(running_server:
     assert caught.value.code == 404
     payload = json.loads(caught.value.read().decode("utf-8"))
     assert payload["error"]["code"] == "SCAN_NOT_FOUND"
+
+
+def test_the_server_does_not_replace_the_lambda_dependencies() -> None:
+    """**同一プロセスの後続処理を汚さないこと。**
+
+    以前は `lambda_handlers.build_service` をモジュールごと差し替えていた。
+    復元手段が無いため、一度起動すると同じプロセスの他のテストが開発用の
+    インメモリリポジトリを掴み、赤くならないまま検証が無意味になっていた。
+    """
+    original_build = lambda_handlers.build_service
+    server, shutdown = dev_server.create_server(Settings(), host="127.0.0.1", port=0)
+    try:
+        assert lambda_handlers.build_service is original_build
+    finally:
+        server.server_close()
+        shutdown()
+
+    assert lambda_handlers.build_service is original_build
+
+
+def test_an_unusable_port_is_a_config_error() -> None:
+    """`make serve` の二重起動で生のトレースバックを出さないこと。"""
+    first, shutdown = dev_server.create_server(Settings(), host="127.0.0.1", port=0)
+    port = first.server_address[1]
+    try:
+        with pytest.raises(ConfigError) as caught:
+            dev_server.create_server(Settings(), host="127.0.0.1", port=port)
+    finally:
+        first.server_close()
+        shutdown()
+
+    assert f"127.0.0.1:{port}" in str(caught.value)
+
+
+def test_a_failed_bind_leaves_no_worker_thread() -> None:
+    """待ち受けに失敗したとき、ワーカースレッドを残さないこと。"""
+    first, shutdown = dev_server.create_server(Settings(), host="127.0.0.1", port=0)
+    port = first.server_address[1]
+    before = {thread.name for thread in threading.enumerate()}
+    try:
+        with pytest.raises(ConfigError):
+            dev_server.create_server(Settings(), host="127.0.0.1", port=port)
+        after = {thread.name for thread in threading.enumerate()}
+    finally:
+        first.server_close()
+        shutdown()
+
+    assert after == before
+
+
+@pytest.mark.parametrize("method", ["PUT", "PATCH", "DELETE"])
+def test_an_unsupported_method_matches_the_lambda_response(
+    running_server: str, method: str
+) -> None:
+    """本番(API Gateway -> Lambda)と同じ 405 + JSON を返すこと。
+
+    `http.server` の既定へ落ちると 501 + HTML になり、CORS ヘッダも付かない。
+    ローカルで再現できない差異になる。
+    """
+    with pytest.raises(urllib.error.HTTPError) as caught:
+        _request(f"{running_server}/scans", method=method)
+
+    assert caught.value.code == 405
+    payload = json.loads(caught.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "METHOD_NOT_ALLOWED"
+
+
+def test_an_oversized_body_is_rejected_without_breaking_the_connection(running_server: str) -> None:
+    """上限超過の本文を切り詰めない。
+
+    以前は切り詰めていたため、マルチバイト文字の境界で `UnicodeDecodeError`
+    となり、**応答を返さないまま接続が切れて**いた。
+    """
+    padding = "あ" * dev_server.MAX_BODY_BYTES
+    with pytest.raises(urllib.error.HTTPError) as caught:
+        _request(
+            f"{running_server}/scans",
+            method="POST",
+            payload={"topic_id": "elder_care", "x": padding},
+        )
+
+    assert caught.value.code == 400
+    payload = json.loads(caught.value.read().decode("utf-8"))
+    assert payload["error"]["code"] == "INVALID_REQUEST"
