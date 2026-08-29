@@ -2,7 +2,7 @@
 
 この文書は**セッションとマシンをまたぐ引き継ぎ**のため Git 追跡ファイルとして置いています（`.ai/temp/` は worktree もマシンもまたげません）。作業が進んだら**上書き更新**してください。履歴は Git が持ちます。
 
-- 最終更新: 2026-08-29 (W7 完了時点)
+- 最終更新: 2026-08-29 (W8 完了時点)
 - 統合ブランチ: `develop`
 - Remote: `git@github.com:Eiji1010/GapAtlas.git`
 
@@ -12,7 +12,7 @@
 git fetch --all --prune
 git switch develop && git pull --ff-only
 make setup          # backend の依存関係(uv sync --all-extras)
-make verify         # backend。開始時点で緑であることを確認(1370 passed)
+make verify         # backend。開始時点で緑であることを確認(1400 件超)
 make setup-frontend # frontend の依存(npm install)
 make lint-frontend && make typecheck-frontend && make test-frontend && make build
 make tf-validate    # terraform(apply はしない)
@@ -62,7 +62,8 @@ make tf-validate    # terraform(apply はしない)
 | W5 | Phase 7 永続化（DynamoDB / S3 / Athena 定義） | **完了** |
 | W6 | Phase 8 SQS + Worker / Phase 9 API | **完了** |
 | W7 | Phase 10 Frontend / Phase 13 Terraform / Cache / Phase 12 Athena クライアント / Phase 14 E2E / Phase 15 demo | **完了** |
-| W8 | W5〜W7 の第三者レビューと指摘対応 | **次はここ**（レビュー実行中） |
+| W8 | W5〜W7 の第三者レビュー3観点と指摘対応 | **完了** |
+| W9 | main への PR（人間の承認が必要） | **次はここ** |
 
 `make verify` は **1370 passed**（ruff / ruff format / mypy strict / pytest すべて緑）。frontend は 12 件、`terraform validate` も成功。
 
@@ -385,6 +386,33 @@ R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
 - Lambda のハンドラ名（`api.lambda_handlers.api_handler` / `api.worker_handler.worker_handler`）
 - 環境変数名（`config/settings.py`）、`batch_size = 1`、`maxReceiveCount = 3`
 
+### C19. 「無言の失敗」を疑う（W8 の最大の学び）
+
+第三者レビューが見つけた Critical 3件は、いずれも**例外も赤いテストも
+出ない**失敗だった。
+
+1. Lambda で QueryProfile が読めず、全国 `FAILED` のスキャンが `completed`
+   として保存される（`ConfigError` を握っていたため WARNING 1行だけ）
+2. 完了済みスキャンが途中経過で `processing` へ巻き戻り、フロントが永久に
+   Polling する（`save_scan` が無条件上書きだったため）
+3. DynamoDB のシリアライズが Screen 2 用の5フィールドを落としても、
+   1370 件のテストが1つも落ちない（テストのビルダが既定値のままだった）
+
+**共通点**: 「捕捉して既定値へ倒す」設計と、「既定値で作ったテストデータ」の
+組み合わせ。**例外を握る箇所を書いたら、その分岐が観測できるかを必ず確認する。**
+
+### C20. テストデータに既定値を使わない
+
+`CountryResult` の新フィールドは既定値（`None` / `[]`）を持つ。テストの
+ビルダがそれを埋めないと、**保存時に丸ごと落としても往復テストが通る**。
+モデルへフィールドを足したら、テストのビルダにも非既定値を入れること。
+
+### C21. Terraform と backend の定数一致は機械的に検証する
+
+コメントで紐付けても、**Terraform 側だけを変えたときに何も落ちない**。
+`backend/tests/unit/integration/test_terraform_constants.py` が `.tf` を
+正規表現で読んで突き合わせる。定数を増やしたらここへも足すこと。
+
 ## 持ち越した課題
 
 | # | 内容 | 対応する Phase |
@@ -407,6 +435,11 @@ R2 は「外形障害を検知できないので `PARTIALLY_FAILED`」、R3 は
 | 16 | `CountryScanner` に `fetch_maps` の公開メソッドが無いため、Worker が空の証拠を種に `attach_maps` を呼ぶ迂回をしている（`worker.py` の `_fetch_maps`） | リファクタの機会に |
 | 17 | Worker 内の4つの SerpApi 呼び出しが逐次。並列化するときは `submit_with_context` を使うこと（使わないと全ログの4フィールドが `null` になる） | Phase 8 の性能改善 |
 | 18 | **Athena / DynamoDB / S3 / SQS / Lambda はいずれも実 AWS では未検証。** `terraform apply` を行わない方針のため | AWS 利用の判断後 |
+| 19 | **`SERPAPI_MODE=live` / `LLM_MODE=anthropic` は Secrets Manager からの読み出しが未実装**。Terraform の `validation` で弾いている。実装したら validation を外すこと | live 検証時 |
+| 20 | 「最後の1国」判定の競合で、Top2 の Maps 呼び出しが 2回ずつ（計4回）になりうる。概要の巻き戻りと Brief の二重生成は解決済み。厳密に解くには確定処理のリーダー選出が必要 | 必要になったら |
+| 21 | 非同期経路では `normalized/` に Maps が含まれない（同期実行とは内容が違う）。`raw/` と `curated/` には残る | Phase 12 の分析時 |
+| 22 | Metrics（`scan_duration_ms` など）は未実装。**Performance SLO を測定する手段が無い** | Phase 14 の性能作業 |
+| 23 | frontend の mock データ（約5,800行）が本番ビルドにも同梱される（304KB）。動的 import で分離できる | 必要になったら |
 
 ## 未確認事項（推測で実装しないこと）
 
