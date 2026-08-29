@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import inspect
+from datetime import timedelta
 
 import pytest
 from conftest import (
@@ -20,6 +21,7 @@ from conftest import (
 )
 
 from gapatlas.adapters.llm.stub_client import StubLlmClient
+from gapatlas.adapters.serpapi.cache import CachingSerpApiClient
 from gapatlas.adapters.serpapi.fixture_client import FixtureSerpApiClient
 from gapatlas.application.country_scan import CountryScanner
 from gapatlas.config.query_profile_loader import load_query_profile
@@ -31,6 +33,19 @@ from gapatlas.domain.models.common import (
     SourceStatus,
     TopicId,
 )
+
+
+class _Clock:
+    """キャッシュの経過時間を決定的にするための時計。"""
+
+    def __init__(self) -> None:
+        self.now = SCAN_TIME
+
+    def __call__(self):
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += timedelta(seconds=seconds)
 
 
 def _profile(country: Country = Country.JP):
@@ -314,3 +329,29 @@ def test_expected_scores_per_country(country, expected_score, expected_confidenc
     outcome = _scan(country=Country(country))
     assert outcome.result.need_gap_score == expected_score
     assert outcome.result.confidence == expected_confidence
+
+
+def test_the_cache_age_is_recorded_on_the_source_fetch():
+    """Freshness はキャッシュ経過時間を使う(docs/scoring.md 6章)。
+
+    0 を返し続けると、6時間前の結果でも「今取得した」ものとして扱われる。
+    """
+    clock = _Clock()
+    cached = CachingSerpApiClient(FixtureSerpApiClient(), now=clock)
+    scanner = CountryScanner(cached, StubLlmClient())
+
+    scanner.scan(_profile(), scan_id=SCAN_ID, scan_time=SCAN_TIME)
+    clock.advance(1800)
+    outcome = scanner.scan(_profile(), scan_id=SCAN_ID, scan_time=SCAN_TIME)
+
+    ages = {source: fetch.cache_age_seconds for source, fetch in outcome.evidence.fetches.items()}
+    assert ages[SourceName.SEARCH] == 1800.0
+    assert ages[SourceName.TRENDS] == 1800.0
+    # News の TTL は 1h なので 30分では期限切れにならない
+    assert ages[SourceName.NEWS] == 1800.0
+
+
+def test_a_fresh_fetch_records_a_zero_cache_age():
+    outcome = _scan()
+    for fetch in outcome.evidence.fetches.values():
+        assert fetch.cache_age_seconds == 0.0

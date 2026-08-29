@@ -200,6 +200,13 @@ MVP では最低限「国ごとの Need Gap Score 履歴」を Athena から取�
 
 キャッシュキーには `query_profile_version` を含める。Cache Hit の場合 SerpApi を再度呼ばない。
 
+実装は `adapters/serpapi/cache.py`(`CachingSerpApiClient`)。**live モードだけを包む。** fixture を包むと2回目以降の `cache_age_seconds` が 0 でなくなり、Freshness が実行のたびに変わってテストとデモの決定性が壊れる。
+
+- **失敗はキャッシュしない。** 1回の失敗を TTL のあいだ引きずらない
+- **キャッシュ経過時間を `SourceFetch.cache_age_seconds` へ載せる。** `docs/scoring.md` の Freshness は `related_queries` と `search` の古さをこれで測る。0 を返し続けると6時間前の結果でも「今取得した」ものとして扱われる
+- 保存先はプロセス内メモリ。**Lambda の実行環境をまたぐ共有キャッシュ(DynamoDB など)は MVP の範囲外**。キャッシュが効かなくても結果は正しく、外部呼び出しが増えるだけという設計にしてある
+- LLM の分類キャッシュは別（`adapters/llm/cache.py`、入力ハッシュで引く）
+
 ## Reliability
 
 - SerpApi timeout 8秒、リトライ最大2回、Exponential backoff

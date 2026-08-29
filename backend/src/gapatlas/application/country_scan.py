@@ -19,6 +19,7 @@ from typing import Any, Final
 from gapatlas.adapters.llm.errors import LlmError
 from gapatlas.adapters.llm.protocol import LlmClassifier
 from gapatlas.adapters.llm.versions import CLASSIFIER_VERSION, PROMPT_VERSION
+from gapatlas.adapters.serpapi.cache import cache_age_seconds
 from gapatlas.adapters.serpapi.errors import SerpApiError
 from gapatlas.adapters.serpapi.normalize import (
     normalize_maps_results,
@@ -416,7 +417,15 @@ class CountryScanner:
             status = SourceStatus.OK if has_content(normalized) else SourceStatus.MISSING
             if status is SourceStatus.MISSING:
                 _LOGGER.info("source returned no usable content")
-            fetches[source] = SourceFetch(source=source, status=status, fetched_at=scan_time)
+            # Freshness は related_queries / search の古さをキャッシュ経過時間で
+            # 測る(docs/scoring.md 6章)。0 を返し続けると、6時間前の結果でも
+            # 「今取得した」ものとして扱われる。
+            fetches[source] = SourceFetch(
+                source=source,
+                status=status,
+                fetched_at=scan_time,
+                cache_age_seconds=cache_age_seconds(self._serpapi, source, profile),
+            )
             return normalized if status is SourceStatus.OK else empty
 
     def _classify(
