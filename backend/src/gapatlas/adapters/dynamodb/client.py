@@ -25,12 +25,13 @@ docs/architecture.md「DynamoDB」のアクセスパターンだけを実装す�
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from typing import Any, Final
 
 from gapatlas.adapters.dynamodb.errors import (
+    RepositoryDataError,
     RepositoryError,
     RepositoryReadError,
     RepositoryWriteError,
@@ -46,7 +47,7 @@ from gapatlas.adapters.dynamodb.table import (
     scan_partition_key,
 )
 from gapatlas.config.settings import Settings
-from gapatlas.domain.models.common import Country, ScanStatus
+from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 DEFAULT_TTL_DAYS: Final[int] = 30
@@ -187,6 +188,26 @@ class DynamoDbScanRepository:
         ]
         return sorted(results, key=lambda result: result.country.value)
 
+    def list_country_statuses(self, scan_id: str) -> list[tuple[Country, CountryStatus]]:
+        """国と status だけを Query する。
+
+        `GET /scans/{scan_id}` は2秒間隔で叩かれる。進捗を数えるためだけに
+        全属性(1件 20KB 超)を読むと、2.4KB の応答に 100KB 超の読み取りが
+        毎回発生する。
+        """
+        statuses: list[tuple[Country, CountryStatus]] = []
+        for item in self._query_all(
+            scan_partition_key(scan_id), projection=[SORT_KEY_ATTRIBUTE, "country", "status"]
+        ):
+            if not is_country_sort_key(str(item.get(SORT_KEY_ATTRIBUTE, ""))):
+                continue
+            try:
+                statuses.append((Country(str(item["country"])), CountryStatus(str(item["status"]))))
+            except (KeyError, ValueError) as exc:
+                message = "a stored country item is missing country or status"
+                raise RepositoryDataError(message) from exc
+        return sorted(statuses, key=lambda entry: entry[0].value)
+
     # --- 内部 -------------------------------------------------------------------------
 
     def _expires_at(self) -> int:
@@ -216,17 +237,30 @@ class DynamoDbScanRepository:
         item: Mapping[str, Any] | None = response.get("Item")
         return item
 
-    def _query_all(self, partition_key: str) -> list[Mapping[str, Any]]:
+    def _query_all(
+        self, partition_key: str, *, projection: Sequence[str] | None = None
+    ) -> list[Mapping[str, Any]]:
+        """パーティション配下を全件取得する。
+
+        `projection` を渡すと、その属性だけを読む。進捗を数えるためだけに
+        1件 20KB の項目を全部読まないようにするため(`ProjectionExpression`)。
+        """
         items: list[Mapping[str, Any]] = []
         start_key: Mapping[str, Any] | None = None
         while True:
+            names: dict[str, str] = {_PARTITION_KEY_PLACEHOLDER: PARTITION_KEY_ATTRIBUTE}
             arguments: dict[str, Any] = {
                 "KeyConditionExpression": (
                     f"{_PARTITION_KEY_PLACEHOLDER} = {_PARTITION_VALUE_PLACEHOLDER}"
                 ),
-                "ExpressionAttributeNames": {_PARTITION_KEY_PLACEHOLDER: PARTITION_KEY_ATTRIBUTE},
+                "ExpressionAttributeNames": names,
                 "ExpressionAttributeValues": {_PARTITION_VALUE_PLACEHOLDER: partition_key},
             }
+            if projection is not None:
+                # `status` などは予約語なので必ずプレースホルダ経由にする。
+                placeholders = [f"#p{index}" for index, _ in enumerate(projection)]
+                names.update(dict(zip(placeholders, projection, strict=True)))
+                arguments["ProjectionExpression"] = ", ".join(placeholders)
             if start_key is not None:
                 arguments["ExclusiveStartKey"] = dict(start_key)
             try:

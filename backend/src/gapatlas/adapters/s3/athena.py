@@ -12,7 +12,7 @@ SQL はダッシュボードの裏側に置かない。
 (`topic` / `country` / `dt`)は `keys.py` と厳密に一致させること。**片方だけ
 変更すると Athena が黙って0件を返す。**
 
-保存形式は JSON Lines(`client.py`)。docs/architecture.md は「可能なら Parquet」と
+保存形式は JSON Lines(`client.py`)。docs/architecture.md は Parquet を採らない方針と
 しているが、Parquet ライブラリを依存に追加していないため JSON SerDe で読む。
 """
 

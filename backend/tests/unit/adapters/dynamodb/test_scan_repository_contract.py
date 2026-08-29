@@ -202,3 +202,19 @@ def test_a_real_scan_result_round_trips(repository, make_summary):
     loaded = repository.get_country("s1", Country.JP)
     assert loaded is not None
     assert loaded.model_dump() == scanned.model_dump()
+
+
+def test_list_country_statuses_matches_list_countries(repository, make_result):
+    """軽量クエリと全件取得で、国と status が一致すること。"""
+    for country in (Country.US, Country.JP):
+        repository.save_country(make_result(country))
+
+    statuses = repository.list_country_statuses("s1")
+    results = repository.list_countries("s1")
+
+    assert statuses == [(result.country, result.status) for result in results]
+    assert [country for country, _status in statuses] == [Country.JP, Country.US]
+
+
+def test_list_country_statuses_for_an_unknown_scan_is_empty(repository):
+    assert repository.list_country_statuses("nope") == []

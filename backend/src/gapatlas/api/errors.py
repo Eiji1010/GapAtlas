@@ -23,7 +23,7 @@ class ApiErrorCode(StrEnum):
 
     `INVALID_REQUEST` / `SCAN_NOT_FOUND` / `COUNTRY_NOT_FOUND` /
     `INTERNAL_ERROR` は docs/api.md のエラー表そのもの。`ROUTE_NOT_FOUND` と
-    `METHOD_NOT_ALLOWED` はルータが返す必要があるが表に無いため、この2つは
+    `METHOD_NOT_ALLOWED` はルータが返す必要がある。この2つは
     docs/api.md への追記が必要(完了報告に記載)。
     """
 

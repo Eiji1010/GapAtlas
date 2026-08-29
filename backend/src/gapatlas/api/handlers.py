@@ -222,15 +222,19 @@ def country_payload(result: CountryResult) -> dict[str, Any]:
 
 
 def _derive_progress(
-    summary: ScanSummary, results: Sequence[CountryResult]
+    summary: ScanSummary, statuses: Sequence[tuple[Country, CountryStatus]]
 ) -> tuple[ScanProgress, list[Country]]:
     """保存済みの COUNTRY item から進捗を数える。
 
     `completed` は **`FAILED` 以外の終了国数**。`ScanService` が最終概要で
     使う定義と同じにする。定義を変えると、完了した瞬間に進捗の数字が飛ぶ。
+
+    **国と status だけを読む。** この経路は2秒間隔で叩かれるため、Screen 2
+    用の詳細を含む `CountryResult` を全件読むと応答の 40 倍以上を毎回
+    読むことになる。
     """
-    finished = [result for result in results if result.status in TERMINAL_COUNTRY_STATUSES]
-    completed = [result.country for result in finished if result.status is not CountryStatus.FAILED]
+    finished = [entry for entry in statuses if entry[1] in TERMINAL_COUNTRY_STATUSES]
+    completed = [country for country, status in finished if status is not CountryStatus.FAILED]
     # 保存済みの国数が概要の `total` を超えることは通常無いが、超えたときに
     # `ScanProgress` の検証(completed <= total)で 500 にしない。
     total = max(summary.progress.total, len(finished))
@@ -319,42 +323,65 @@ class ApiService:
             # META を先に保存する。Worker が先に走っても対象のスキャンを
             # 必ず読めるようにするため。
             self._repository.save_scan(summary)
-            self._queue.enqueue(
-                [
-                    ScanJob(
-                        scan_id=scan_id,
-                        topic_id=topic_id,
-                        country=country,
-                        scan_time=scan_time,
-                        countries=countries,
-                    )
-                    for country in countries
-                ]
-            )
+            try:
+                self._queue.enqueue(
+                    [
+                        ScanJob(
+                            scan_id=scan_id,
+                            topic_id=topic_id,
+                            country=country,
+                            scan_time=scan_time,
+                            countries=countries,
+                        )
+                        for country in countries
+                    ]
+                )
+            except Exception:
+                # 投入できなければ誰もこのスキャンを処理しない。META を
+                # `processing` のまま残すと、UI が終端状態へ到達できず
+                # 2秒 Polling を続ける。**失敗として確定させる。**
+                _LOGGER.exception("failed to enqueue the scan jobs")
+                self._mark_failed(summary)
+                raise
             _LOGGER.info(
                 "scan accepted",
                 extra={"countries": [country.value for country in countries]},
             )
             return {"scan_id": scan_id, "status": summary.status.value}
 
+    def _mark_failed(self, summary: ScanSummary) -> None:
+        """ジョブを投入できなかったスキャンを `partially_failed` で確定させる。
+
+        ここで例外を通すと、投入の失敗を伝える 500 を返せなくなる。
+        確定に失敗した場合はログへ残して元の失敗を優先する。
+        """
+        try:
+            self._repository.save_scan(
+                summary.model_copy(update={"status": ScanStatus.PARTIALLY_FAILED})
+            )
+        except Exception:
+            _LOGGER.exception("failed to mark the scan as failed after an enqueue error")
+
     def get_scan(self, scan_id: str) -> dict[str, Any]:
         """`GET /api/v1/scans/{scan_id}`。Frontend が2秒間隔で叩く。
 
         **`progress` と `completed_countries` は保存済みの COUNTRY item から
-        算出する**(保存された概要をそのまま返さない)。Worker は最後の1国が
-        終わった時点でしか概要を保存しないため、概要の `progress` は処理中ずっと
-        `0 / N` のままになる。それを返すと Polling しても進捗が動かない。
+        算出する**(保存された概要をそのまま返さない)。保存された概要の
+        `progress` は、次の国が終わるまで更新されないためである。
 
         `status` / `ranking` / `opportunity_brief` / `versions` は保存された
         概要をそのまま返す。ランキングの並べ替えと Brief の生成は application
-        層の責務であり、api 層で作り直さない。したがって処理中は `ranking` が
-        空になる(完了報告の申し送り事項)。
+        層の責務であり、api 層で作り直さない。**Worker は1国終わるたびに
+        概要を `processing` で上書きする**ので、処理中も部分的なランキングが
+        返る(`application/worker.py` の `_save_interim_summary`)。
 
         Raises:
             ScanNotFoundError: `scan_id` が存在しない場合(404)。
         """
         summary = self._load_summary(scan_id)
-        progress, completed = _derive_progress(summary, self._repository.list_countries(scan_id))
+        progress, completed = _derive_progress(
+            summary, self._repository.list_country_statuses(scan_id)
+        )
         payload = summary.model_dump(mode="json")
         payload["progress"] = progress.model_dump(mode="json")
         payload["completed_countries"] = [country.value for country in completed]

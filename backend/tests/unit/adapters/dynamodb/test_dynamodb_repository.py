@@ -297,3 +297,21 @@ def test_injected_now_is_used(fake_table, settings, country_result):
 
     DynamoDbScanRepository(settings, table=fake_table, now=now).save_country(country_result)
     assert calls == [1]
+
+
+def test_list_country_statuses_projects_only_the_needed_attributes(
+    fake_table, dynamodb_repository, make_result
+):
+    """進捗を数えるためだけに 20KB の項目を全部読まないこと。
+
+    `GET /scans/{id}` は2秒間隔で叩かれる。全属性を読むと、2.4KB の応答に
+    100KB 超の読み取りが毎回発生する。
+    """
+    dynamodb_repository.save_country(make_result(Country.JP))
+
+    dynamodb_repository.list_country_statuses("s1")
+
+    projections = [call.get("ProjectionExpression") for call in fake_table.query_calls]
+    assert projections and all(value is not None for value in projections)
+    names = fake_table.query_calls[-1]["ExpressionAttributeNames"]
+    assert set(names.values()) >= {"SK", "country", "status"}

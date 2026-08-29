@@ -31,7 +31,7 @@ from gapatlas.api.handlers import ApiService
 from gapatlas.application.country_scan import CountryScanner
 from gapatlas.application.worker import ScanWorker
 from gapatlas.config.settings import Settings
-from gapatlas.domain.models.common import Country
+from gapatlas.domain.models.common import Country, CountryStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 SCAN_ID = "scan_e2e"
@@ -81,6 +81,9 @@ class SerializingScanRepository:
 
     def list_countries(self, scan_id: str) -> list[CountryResult]:
         return self._inner.list_countries(scan_id)
+
+    def list_country_statuses(self, scan_id: str) -> list[tuple[Country, CountryStatus]]:
+        return self._inner.list_country_statuses(scan_id)
 
 
 @pytest.fixture(params=["memory", "serializing"])

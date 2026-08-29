@@ -173,6 +173,7 @@ curated/
 Partition key は `topic` / `country` / `dt`。
 
 - `raw/` は SerpApi のレスポンスを **JSON のまま**保存する
+- **非同期経路(Lambda Worker)では `normalized/` に Maps が含まれない。** Maps はランキング確定後に Top2 だけへ足すが、そのとき Worker は他ソースの正規化済みデータを持っていない(SQS メッセージにも DynamoDB にも入っていない)。部分的な内容で同じキーを上書きすると事実と違う内容が残るため、`normalized/` は書き直さない。Maps の取得結果は `raw/source=maps/...` と `curated/` に残る。**同期実行(CLI)では Maps を含む**ので、両者の `normalized/` は一致しない
 - `normalized/` `curated/` は **JSON Lines**(1オブジェクト1レコード)。Parquet は `pyarrow` の追加が必要で、Lambda のパッケージサイズが 40〜60MB 増えるため MVP では採用しない。切り替える場合は Glue の `ROW FORMAT SERDE` / `STORED AS` も同時に変更する
 - Glue は**パーティション射影**を使う。`MSCK REPAIR TABLE` 方式は新しい `dt` ごとに実行が必要で、忘れると**エラーではなく 0 件**が返る(デモで最も危険な失敗モード)。代償として、射影範囲外の `dt` と `Country` Enum に無い国は不可視になる。**国やトピックを増やすときはテーブル定義の更新が必須**
 

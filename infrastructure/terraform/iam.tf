@@ -130,3 +130,61 @@ resource "aws_iam_role_policy" "worker_lambda" {
   role   = aws_iam_role.worker_lambda.id
   policy = data.aws_iam_policy_document.worker_lambda.json
 }
+
+
+# ---------------------------------------------------------------------------
+# Athena(履歴分析)
+# ---------------------------------------------------------------------------
+
+# Glue の ARN はアカウント ID を含むため、実行アカウントを解決する。
+data "aws_caller_identity" "current" {}
+#
+# `gapatlas history` を実行するための最小権限。**Lambda には付けない。**
+# Athena は Web のリアルタイム表示に使わず履歴分析専用であり
+# (docs/architecture.md「Athena」)、実行するのは運用者の手元か、将来の
+# 分析ジョブである。API / Worker のロールに付けると Least Privilege を崩す。
+
+data "aws_iam_policy_document" "athena_reader" {
+  statement {
+    sid = "RunHistoryQueries"
+    actions = [
+      "athena:StartQueryExecution",
+      "athena:GetQueryExecution",
+      "athena:GetQueryResults",
+      "athena:StopQueryExecution",
+    ]
+    resources = [aws_athena_workgroup.main.arn]
+  }
+
+  statement {
+    sid = "ReadGlueCatalog"
+    actions = [
+      "glue:GetDatabase",
+      "glue:GetTable",
+      "glue:GetPartitions",
+    ]
+    resources = [
+      "arn:aws:glue:${var.aws_region}:${data.aws_caller_identity.current.account_id}:catalog",
+      aws_glue_catalog_database.main.arn,
+      "arn:aws:glue:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${aws_glue_catalog_database.main.name}/*",
+    ]
+  }
+
+  statement {
+    sid       = "ReadCuratedScores"
+    actions   = ["s3:GetObject", "s3:ListBucket"]
+    resources = [aws_s3_bucket.data.arn, "${aws_s3_bucket.data.arn}/curated/*"]
+  }
+
+  statement {
+    sid       = "WriteQueryResults"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+    resources = [aws_s3_bucket.athena_results.arn, "${aws_s3_bucket.athena_results.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "athena_reader" {
+  name        = "${local.name_prefix}-athena-reader"
+  description = "gapatlas history を実行するための最小権限。ロールへは紐付けない。"
+  policy      = data.aws_iam_policy_document.athena_reader.json
+}

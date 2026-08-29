@@ -11,7 +11,10 @@ import logging
 
 import pytest
 
+from gapatlas.adapters.s3.athena_client import ScoreHistoryRow
+from gapatlas.adapters.s3.errors import ArchiveReadError
 from gapatlas.cli import EXIT_ERROR, EXIT_OK, main
+from gapatlas.domain.models.common import Country, TopicId
 
 BASE_ARGS = [
     "scan",
@@ -216,3 +219,63 @@ def test_expected_scores_are_stable(capsys):
         "GB": (58, 90),
         "US": (55, 90),
     }
+
+
+# --------------------------------------------------------------------------
+# gapatlas history(Athena / DoD「Athena で過去 Score 取得」)
+# --------------------------------------------------------------------------
+
+
+def test_history_prints_the_rows_from_athena(capsys, monkeypatch):
+    """Athena の履歴を CLI から取得できること。**実 AWS へは繋がない。**"""
+
+    class FakeHistory:
+        def __init__(self, settings):
+            self.settings = settings
+
+        def country_score_history(self, topic_id, country):
+            assert topic_id is TopicId.ELDER_CARE
+            assert country is Country.JP
+            return [
+                ScoreHistoryRow(
+                    dt="2026-08-27",
+                    scan_id="scan_a",
+                    need_gap_score=70,
+                    confidence=88,
+                    status="completed",
+                    computed_at="2026-08-27 00:00:00.000",
+                )
+            ]
+
+    monkeypatch.setattr("gapatlas.cli.AthenaScoreHistory", FakeHistory)
+    exit_code = main(["history", "--topic", "elder_care", "--country", "JP"])
+    captured = capsys.readouterr()
+
+    assert exit_code == EXIT_OK
+    payload = json.loads(captured.out)
+    assert payload["country"] == "JP"
+    assert payload["history"][0]["need_gap_score"] == 70
+    assert payload["workgroup"]
+
+
+def test_history_reports_an_athena_failure_as_json(capsys, monkeypatch):
+    class ExplodingHistory:
+        def __init__(self, settings):
+            del settings
+
+        def country_score_history(self, topic_id, country):
+            del topic_id, country
+            message = "the Athena query ended in state FAILED"
+            raise ArchiveReadError(message)
+
+    monkeypatch.setattr("gapatlas.cli.AthenaScoreHistory", ExplodingHistory)
+    exit_code = main(["history", "--country", "JP"])
+    captured = capsys.readouterr()
+
+    assert exit_code == EXIT_ERROR
+    assert "Athena" in json.loads(captured.err.strip().splitlines()[-1])["error"]
+
+
+def test_history_requires_a_country():
+    with pytest.raises(SystemExit):
+        main(["history", "--topic", "elder_care"])

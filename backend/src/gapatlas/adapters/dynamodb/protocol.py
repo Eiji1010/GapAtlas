@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from gapatlas.domain.models.common import Country
+from gapatlas.domain.models.common import Country, CountryStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 
@@ -66,4 +66,14 @@ class ScanRepository(Protocol):
 
     def list_countries(self, scan_id: str) -> list[CountryResult]:
         """そのスキャンの国別結果をすべて取得する。順序は国コード昇順。"""
+        ...
+
+    def list_country_statuses(self, scan_id: str) -> list[tuple[Country, CountryStatus]]:
+        """国と status だけを取得する。順序は国コード昇順。
+
+        `GET /scans/{scan_id}` は2秒間隔で叩かれ、進捗を数えるためだけに
+        呼ばれる。`CountryResult` は Screen 2 用の詳細を含むため1件 20KB を
+        超える。全属性を読むと、2.4KB の応答を返すために 100KB 超を毎回
+        読むことになる。**進捗の算出にはこちらを使う。**
+        """
         ...

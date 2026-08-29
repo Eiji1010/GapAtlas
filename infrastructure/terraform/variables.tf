@@ -296,6 +296,14 @@ variable "serpapi_mode" {
     condition     = contains(["fixture", "live"], var.serpapi_mode)
     error_message = "serpapi_mode は fixture か live にすること。"
   }
+
+  validation {
+    # backend は SERPAPI_API_KEY(環境変数)しか読まない。Secrets Manager から
+    # 取得する実装が入るまで live にすると、Settings の資格情報チェックで
+    # Lambda が起動時に落ち、全メッセージが maxReceiveCount を消費して DLQ へ行く。
+    condition     = var.serpapi_mode == "fixture"
+    error_message = "live は未対応。config/settings.py に Secrets Manager の読み出しを実装してから、この validation を外すこと。"
+  }
 }
 
 variable "llm_mode" {
@@ -306,6 +314,13 @@ variable "llm_mode" {
   validation {
     condition     = contains(["stub", "anthropic"], var.llm_mode)
     error_message = "llm_mode は stub か anthropic にすること。"
+  }
+
+  validation {
+    # serpapi_mode と同じ理由。ANTHROPIC_API_KEY を Secrets Manager から
+    # 読む実装が無いため、anthropic にすると Lambda が起動できない。
+    condition     = var.llm_mode == "stub"
+    error_message = "anthropic は未対応。config/settings.py に Secrets Manager の読み出しを実装してから、この validation を外すこと。"
   }
 }
 

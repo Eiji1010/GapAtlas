@@ -9,7 +9,7 @@ AWS へ接続せずに API と CLI を動かすための実装。`SERPAPI_MODE=f
 
 from __future__ import annotations
 
-from gapatlas.domain.models.common import Country, ScanStatus
+from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus
 from gapatlas.domain.models.result import CountryResult, ScanSummary
 
 FINISHED_STATUSES = frozenset({ScanStatus.COMPLETED, ScanStatus.PARTIALLY_FAILED})
@@ -41,6 +41,9 @@ class InMemoryScanRepository:
 
     def get_country(self, scan_id: str, country: Country) -> CountryResult | None:
         return self._countries.get((scan_id, country))
+
+    def list_country_statuses(self, scan_id: str) -> list[tuple[Country, CountryStatus]]:
+        return [(result.country, result.status) for result in self.list_countries(scan_id)]
 
     def list_countries(self, scan_id: str) -> list[CountryResult]:
         return [

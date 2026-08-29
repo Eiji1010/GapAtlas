@@ -25,6 +25,7 @@ from gapatlas.api.errors import CountryNotFoundError, InvalidRequestError, ScanN
 from gapatlas.api.handlers import UNRESOLVED_VERSION, ApiService
 from gapatlas.application.country_scan import CountryScanner
 from gapatlas.config.query_profile_loader import load_query_profile
+from gapatlas.config.settings import Settings
 from gapatlas.domain.models.common import Country, CountryStatus, ScanStatus, TopicId
 from gapatlas.domain.models.result import CountryResult
 from gapatlas.domain.scoring.constants import SCORE_VERSION
@@ -561,3 +562,27 @@ def test_unknown_field_errors_list_only_a_few_names(service: ApiService):
     message = excinfo.value.payload["error"]["message"]
     assert len(message) < 200
     assert "+495" in message
+
+
+def test_an_enqueue_failure_does_not_leave_the_scan_processing(
+    repository: InMemoryScanRepository,
+):
+    """ジョブを投入できなければ誰も処理しない。
+
+    `processing` のまま残すと UI が終端状態へ到達できず、2秒 Polling を
+    続ける。
+    """
+
+    class ExplodingQueue:
+        def enqueue(self, jobs):
+            del jobs
+            message = "sqs down"
+            raise RuntimeError(message)
+
+    service = ApiService(repository, ExplodingQueue(), Settings())
+    with pytest.raises(RuntimeError, match="sqs down"):
+        service.create_scan({"topic_id": "elder_care"}, scan_id=SCAN_ID, scan_time=SCAN_TIME)
+
+    stored = repository.get_scan(SCAN_ID)
+    assert stored is not None
+    assert stored.status is ScanStatus.PARTIALLY_FAILED

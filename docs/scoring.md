@@ -372,6 +372,8 @@ freshness = mean([freshness_s for s in OK の Core Source])
 
 `OK` の Core Source が0件の場合は `freshness = 0`。
 
+**キャッシュ経過時間の効きは小さい。** 減衰の時定数が 30 日、Freshness の重みが 10%、キャッシュ経過時間を使うのは 4 ソースのうち `related_queries` と `search` の 2 つだけなので、TTL 上限(6時間)までキャッシュされても Evidence Confidence は最大 0.04 点しか下がらない(実測)。**「6時間前の結果を今取得したものとして扱わない」という意図は満たすが、公開表現の整数値はほぼ動かない。** TTL を延ばす判断をする場合はこの数値を根拠にすること。
+
 ### Hard Rules
 
 `confidence_raw` を求めた後、次を**この順に**適用する。

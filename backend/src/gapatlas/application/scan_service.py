@@ -7,7 +7,8 @@
 3. **Top 2 countries** についてのみ Maps を取得する
 4. **Top 1** について Opportunity Brief を生成する
 
-MVP の CLI では同期的に順次実行する。SQS 経由の非同期化は Phase 8。
+CLI は同期的に順次実行する。SQS 経由の非同期実行は `application/worker.py`
+(`ScanWorker`)が担当し、**同じ成果物を作る**。
 """
 
 from __future__ import annotations

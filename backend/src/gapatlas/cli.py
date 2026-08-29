@@ -21,11 +21,13 @@ import re
 import sys
 import uuid
 from collections.abc import Sequence
+from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Any, Final
 
 from gapatlas.adapters.dynamodb.factory import create_scan_repository
 from gapatlas.adapters.llm.factory import create_brief_writer, create_llm_classifier
+from gapatlas.adapters.s3.athena_client import AthenaScoreHistory
 from gapatlas.adapters.s3.factory import create_scan_archive
 from gapatlas.adapters.serpapi.factory import create_serpapi_client
 from gapatlas.application.logging_context import configure_logging
@@ -77,6 +79,21 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     scan.add_argument("--scan-id", help="スキャンID。省略時は自動生成")
     scan.add_argument("--full", action="store_true", help="要約ではなく完全な結果 JSON を出力する")
+
+    history = subparsers.add_parser(
+        "history",
+        help="国ごとの Need Gap Score 履歴を Athena から取得する(要 AWS 認証情報)",
+    )
+    history.add_argument(
+        "--topic",
+        default=TopicId.ELDER_CARE.value,
+        choices=[member.value for member in TopicId],
+    )
+    history.add_argument(
+        "--country",
+        required=True,
+        choices=[member.value for member in Country],
+    )
     return parser.parse_args(argv)
 
 
@@ -114,7 +131,7 @@ def _resolve_scan_time(raw: str | None) -> datetime:
 def _resolve_scan_id(raw: str | None) -> str:
     """`--scan-id` を検証する。省略時は生成する。
 
-    scan_id は Phase 7 で S3 キーと DynamoDB のパーティションキーになる予定
+    scan_id は S3 のオブジェクトキーと DynamoDB のパーティションキーになる
     なので、任意文字列を通さない。
 
     Raises:
@@ -182,19 +199,58 @@ def _render(output: ScanOutput, countries: Sequence[Country], *, full: bool) -> 
     }
 
 
+def _run_history(args: argparse.Namespace, settings: Settings) -> int:
+    """`gapatlas history`。Athena から過去のスコアを読む。
+
+    **Web のリアルタイム表示には使わない。履歴分析専用**
+    (docs/architecture.md「Athena」)。AWS 認証情報が必要で、fixture モード
+    のようなオフライン経路は無い。
+    """
+    history = AthenaScoreHistory(settings)
+    rows = history.country_score_history(TopicId(args.topic), Country(args.country))
+    print(
+        json.dumps(
+            {
+                "topic": args.topic,
+                "country": args.country,
+                "workgroup": settings.athena_workgroup,
+                "history": [asdict(row) for row in rows],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI の入口。終了コードを返す。"""
     args = _parse_args(argv)
 
     try:
-        settings = _resolve_settings(args)
-        scan_time = _resolve_scan_time(args.scan_time)
-        scan_id = _resolve_scan_id(args.scan_id)
+        settings = _resolve_settings(args) if args.command == "scan" else load_settings()
     except ConfigError as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return EXIT_ERROR
 
     configure_logging(settings.log_level.value, stream=sys.stderr)
+
+    if args.command == "history":
+        try:
+            return _run_history(args, settings)
+        except GapAtlasError as exc:
+            print(
+                json.dumps({"error": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False),
+                file=sys.stderr,
+            )
+            return EXIT_ERROR
+
+    try:
+        scan_time = _resolve_scan_time(args.scan_time)
+        scan_id = _resolve_scan_id(args.scan_id)
+    except ConfigError as exc:
+        print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        return EXIT_ERROR
 
     countries = (
         list(Country) if args.all else [Country(args.country) if args.country else Country.JP]
